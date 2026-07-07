@@ -1,1 +1,33 @@
 .github/instructions/wmt-copilot.instructions.md
+
+# Node / build artifacts
+node_modules/
+dist/
+build/
+.vite/
+*.log
+
+# Env / secrets (never commit)
+.env
+.env.local
+.env.*.local
+
+# OS crud
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+
+# Cashier-app local
+cashier-app/coverage/
+
+# Backend WIP
+cashier-api/node_modules/
+cashier-api/dist/
+cashier-api/coverage/
+
+# Agent-browser audit artifacts (screenshots etc.)
+.wibey-tasks/
