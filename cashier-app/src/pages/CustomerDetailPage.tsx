@@ -7,6 +7,7 @@ import cls from './pages.module.css';
 import { Badge, Button, Field, Icon, Input, Select, Text, Textarea } from '../components/atoms';
 import { Modal } from '../components/organisms';
 import { PaymentBadge } from '../components/molecules';
+import { EmptyState } from '../components/molecules';
 import { PageHeader } from '../components/layout/AppShell';
 import { STRINGS } from '../domain/strings';
 import { fmtDate, fmtDateTime, formatPhone, money } from '../domain/format';
@@ -126,9 +127,7 @@ export const CustomerDetailPage: FC = () => {
           <Badge variant="neutral">{payments.length}</Badge>
         </div>
         {payments.length === 0 ? (
-          <div className={cls.cardBody}>
-            <Text tone="subtle" center>{STRINGS.customers.paymentEmpty}</Text>
-          </div>
+          <EmptyState icon="coins" title={STRINGS.customers.paymentEmpty} />
         ) : (
           <div className={cls.tableWrap}>
             <table className={cls.table}>
@@ -163,9 +162,7 @@ export const CustomerDetailPage: FC = () => {
           <Badge variant="neutral">{sales.length}</Badge>
         </div>
         {sales.length === 0 ? (
-          <div className={cls.cardBody}>
-            <Text tone="subtle" center>{STRINGS.customers.saleHistoryEmpty}</Text>
-          </div>
+          <EmptyState icon="receipt" title={STRINGS.customers.saleHistoryEmpty} />
         ) : (
           <div className={cls.tableWrap}>
             <table className={cls.table}>

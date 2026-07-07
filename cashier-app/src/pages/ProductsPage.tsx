@@ -7,6 +7,7 @@ import cls from './pages.module.css';
 import { Badge, Button, Field, Input, Select, Text } from '../components/atoms';
 import { Modal } from '../components/organisms';
 import { ProductBadge, SearchBar } from '../components/molecules';
+import { EmptyState } from '../components/molecules';
 import { ConfirmDialog } from '../components/feedback';
 import { PageHeader } from '../components/layout/AppShell';
 import { STRINGS } from '../domain/strings';
@@ -84,12 +85,19 @@ export const ProductsPage: FC = () => {
         </div>
 
         {filtered.length === 0 ? (
-          <div className={cls.cardBody}>
-            <Text tone="subtle" center>
-              {products.length === 0 ? STRINGS.products.empty : 'No products match your search.'}
-            </Text>
-            {products.length === 0 && <Text size="sm" tone="subtle" center>{STRINGS.products.emptyHint}</Text>}
-          </div>
+          products.length === 0 ? (
+            <EmptyState
+              icon="bag"
+              title={STRINGS.products.empty}
+              hint={STRINGS.products.emptyHint}
+            />
+          ) : (
+            <EmptyState
+              icon="search"
+              title="No products match your search"
+              hint="Try a different name or SKU."
+            />
+          )
         ) : (
           <div className={cls.tableWrap}>
             <table className={cls.table}>

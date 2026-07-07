@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import cls from './pages.module.css';
 import { Badge, Button, Field, Input, Text, Textarea } from '../components/atoms';
 import { Modal } from '../components/organisms';
-import { MobileNumberField, SearchBar } from '../components/molecules';
+import { EmptyState, MobileNumberField, SearchBar } from '../components/molecules';
 import { PageHeader } from '../components/layout/AppShell';
 import { STRINGS } from '../domain/strings';
 import { digitsOnly, fmtDate, formatPhone, money } from '../domain/format';
@@ -82,12 +82,19 @@ export const CustomersPage: FC = () => {
         </div>
 
         {filtered.length === 0 ? (
-          <div className={cls.cardBody}>
-            <Text tone="subtle" center>
-              {customers.length === 0 ? STRINGS.customers.empty : 'No customers match your search.'}
-            </Text>
-            {customers.length === 0 && <Text size="sm" tone="subtle" center>{STRINGS.customers.emptyHint}</Text>}
-          </div>
+          customers.length === 0 ? (
+            <EmptyState
+              icon="user"
+              title={STRINGS.customers.empty}
+              hint={STRINGS.customers.emptyHint}
+            />
+          ) : (
+            <EmptyState
+              icon="search"
+              title="No customers match your search"
+              hint="Try a different name or mobile number."
+            />
+          )
         ) : (
           <div className={cls.tableWrap}>
             <table className={cls.table}>

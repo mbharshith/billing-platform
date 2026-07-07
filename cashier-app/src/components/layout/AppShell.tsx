@@ -15,13 +15,16 @@ import { useToast } from '../../store/ToastContext';
 /* -------------------------------------------------------------------------- */
 /* NavItem — react-router NavLink with active class                           */
 /* -------------------------------------------------------------------------- */
-interface NavItemProps { to: string; icon: Parameters<typeof Icon>[0]['name']; children: ReactNode }
-const NavItem: FC<NavItemProps> = ({ to, icon, children }) => (
+interface NavItemProps { to: string; icon: Parameters<typeof Icon>[0]['name']; children: ReactNode; label: string }
+const NavItem: FC<NavItemProps> = ({ to, icon, children, label }) => (
   <NavLink
     to={to}
     className={({ isActive }) => [cls.navLink, isActive && cls['navLink--active']].filter(Boolean).join(' ')}
+    title={label}
+    aria-label={label}
   >
-    <Icon name={icon} size={16} /> {children}
+    <Icon name={icon} size={16} />
+    <span className={cls.navLink__label}>{children}</span>
   </NavLink>
 );
 
@@ -127,12 +130,12 @@ const Header: FC = () => {
         </NavLink>
 
         <nav className={cls.nav} aria-label={STRINGS.ariaLabels.navigate}>
-          <NavItem to="/cashier"   icon="store">    {STRINGS.nav.cashier}</NavItem>
-          <NavItem to="/dashboard" icon="chart">    {STRINGS.nav.dashboard}</NavItem>
-          <NavItem to="/sales"     icon="receipt">  {STRINGS.nav.sales}</NavItem>
-          <NavItem to="/customers" icon="user">     {STRINGS.nav.customers}</NavItem>
+          <NavItem to="/cashier"   icon="store"   label={STRINGS.nav.cashier}>{STRINGS.nav.cashier}</NavItem>
+          <NavItem to="/dashboard" icon="chart"   label={STRINGS.nav.dashboard}>{STRINGS.nav.dashboard}</NavItem>
+          <NavItem to="/sales"     icon="receipt" label={STRINGS.nav.sales}>{STRINGS.nav.sales}</NavItem>
+          <NavItem to="/customers" icon="user"    label={STRINGS.nav.customers}>{STRINGS.nav.customers}</NavItem>
           {isAdmin && (
-            <NavItem to="/products" icon="bag">     {STRINGS.nav.products}</NavItem>
+            <NavItem to="/products" icon="bag"    label={STRINGS.nav.products}>{STRINGS.nav.products}</NavItem>
           )}
         </nav>
 

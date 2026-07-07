@@ -45,15 +45,29 @@ export const digitsOnly = (raw: string): string => raw.replace(/\D/g, '');
 export const isValidPhone = (raw: string): boolean =>
   digitsOnly(raw).length === 10;
 
-/** Produce a monogram (1–2 letters) from a product name. */
+/** Produce a 1-2 char monogram from a product name.
+ *  Preserves digits so "Item 1" → "I1" instead of collapsing to "I". */
 export const monogramFor = (name: string): string => {
-  const words = name.replace(/[^A-Za-z ]/g, '').split(/\s+/).filter(Boolean);
+  const tokens = name
+    .replace(/[^A-Za-z0-9 ]/g, ' ')
+    .split(/\s+/)
+    .filter(Boolean);
+  if (tokens.length === 0) return '?';
   const stopWords = new Set(['the', 'of', 'and', 'a']);
-  const first = words[0]?.[0] ?? '?';
-  const second = words.find(
-    (w, idx) => idx > 0 && !stopWords.has(w.toLowerCase()),
-  )?.[0] ?? '';
-  return (first + second).toUpperCase();
+  const first = tokens[0];
+  const rest = tokens.slice(1).filter((w) => !stopWords.has(w.toLowerCase()));
+  // Prefer initial+first-char-of-second-word (e.g. "Ravi Kumar" → "RK").
+  // If the second token is numeric, use the full digit (up to 2 chars) so
+  // "Item 1" → "I1", "Item 12" → "I12" ... capped to 3 chars for fit.
+  const head = first[0].toUpperCase();
+  if (rest.length === 0) {
+    return (first.slice(0, 2)).toUpperCase();
+  }
+  const second = rest[0];
+  if (/^\d+$/.test(second)) {
+    return (head + second).slice(0, 3);
+  }
+  return (head + second[0]).toUpperCase();
 };
 
 /** Human-friendly invoice number. */

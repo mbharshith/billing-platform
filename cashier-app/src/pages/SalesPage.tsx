@@ -5,7 +5,7 @@ import { useMemo, useState, type FC } from 'react';
 import { useNavigate } from 'react-router-dom';
 import cls from './pages.module.css';
 import { Badge, Button, Text } from '../components/atoms';
-import { PaymentBadge, SearchBar } from '../components/molecules';
+import { EmptyState, PaymentBadge, SearchBar } from '../components/molecules';
 import { PageHeader } from '../components/layout/AppShell';
 import { STRINGS } from '../domain/strings';
 import { fmtDateTime, money } from '../domain/format';
@@ -51,7 +51,7 @@ export const SalesPage: FC = () => {
   }, [filtered]);
 
   const chip = (label: string, active: boolean, onClick: () => void) => (
-    <Button variant={active ? 'primary' : 'ghost'} size="sm" onClick={onClick}>
+    <Button variant={active ? 'primary' : 'secondary'} size="sm" onClick={onClick}>
       {label}
     </Button>
   );
@@ -88,12 +88,19 @@ export const SalesPage: FC = () => {
         </div>
 
         {filtered.length === 0 ? (
-          <div className={cls.cardBody}>
-            <Text tone="subtle" center>
-              {sales.length === 0 ? STRINGS.sales.empty : 'No sales match your filters.'}
-            </Text>
-            {sales.length === 0 && <Text size="sm" tone="subtle" center>{STRINGS.sales.emptyHint}</Text>}
-          </div>
+          sales.length === 0 ? (
+            <EmptyState
+              icon="receipt"
+              title={STRINGS.sales.empty}
+              hint={STRINGS.sales.emptyHint}
+            />
+          ) : (
+            <EmptyState
+              icon="search"
+              title="No sales match your filters"
+              hint="Try widening the payment method or status filters."
+            />
+          )
         ) : (
           <div className={cls.tableWrap}>
             <table className={cls.table}>

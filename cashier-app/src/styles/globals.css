@@ -9,6 +9,7 @@ html, body {
   margin: 0;
   padding: 0;
   height: 100%;
+  overflow-x: hidden;
 }
 
 body {
@@ -27,11 +28,18 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; }
 ul, ol { margin: 0; padding: 0; list-style: none; }
 button { font-family: inherit; }
 
-/* Universal focus ring for keyboard users (§10 WCAG) */
+/* Universal focus ring for keyboard users (§10 WCAG).
+ * Form controls inside <.inputShell> get their focus indicator from the shell's
+ * border-color change, so suppress the inner outline to avoid double rings. */
 :focus-visible {
   outline: 2px solid var(--wm-focus-ring);
   outline-offset: 2px;
-  border-radius: var(--wm-radius-sm);
+  border-radius: 4px;
+}
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: none;
 }
 :focus:not(:focus-visible) { outline: none; }
 
