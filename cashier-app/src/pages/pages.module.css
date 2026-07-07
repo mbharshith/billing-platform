@@ -1,0 +1,143 @@
+/* Shared page-level layout patterns — tables, cards, filter toolbars, forms. */
+
+/* --- Layouts --- */
+.cashierLayout {
+  display: grid;
+  gap: var(--wm-space-5);
+  grid-template-columns: 1fr;
+  align-items: start;
+}
+@media (min-width: 1024px) {
+  .cashierLayout { grid-template-columns: minmax(0, 1fr) 380px; }
+}
+
+.dashboardLayout {
+  display: grid;
+  gap: var(--wm-space-5);
+  grid-template-columns: 1fr;
+}
+@media (min-width: 1024px) {
+  .dashboardLayout { grid-template-columns: 3fr 2fr; }
+}
+
+/* --- Card --- */
+.card {
+  background: var(--wm-surface);
+  border: 1px solid var(--wm-border);
+  border-radius: var(--wm-radius-lg);
+  box-shadow: var(--wm-shadow-sm);
+  overflow: hidden;
+}
+.cardHeader {
+  padding: var(--wm-space-5) var(--wm-space-6);
+  border-bottom: 1px solid var(--wm-border);
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--wm-space-3);
+  flex-wrap: wrap;
+}
+.cardBody   { padding: var(--wm-space-5) var(--wm-space-6); }
+.cardActions {
+  padding: var(--wm-space-4) var(--wm-space-6);
+  display: flex;
+  gap: var(--wm-space-2);
+  justify-content: flex-end;
+  border-top: 1px solid var(--wm-border);
+  background: var(--wm-gray-5);
+}
+
+/* --- Filter toolbar --- */
+.toolbar {
+  display: flex;
+  gap: var(--wm-space-3);
+  flex-wrap: wrap;
+  align-items: center;
+  padding: var(--wm-space-4) var(--wm-space-6);
+  border-bottom: 1px solid var(--wm-border);
+  background: var(--wm-gray-5);
+}
+.toolbar__search { flex: 1; min-width: 220px; max-width: 480px; }
+.toolbar__filters { display: inline-flex; gap: var(--wm-space-2); flex-wrap: wrap; }
+
+/* --- Data table --- */
+.tableWrap { overflow-x: auto; }
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--wm-font-size-sm);
+}
+.table th,
+.table td {
+  padding: var(--wm-space-3) var(--wm-space-4);
+  text-align: left;
+  vertical-align: middle;
+}
+.table th {
+  background: var(--wm-gray-5);
+  color: var(--wm-text-subtle);
+  font-weight: var(--wm-font-weight-semibold);
+  font-size: var(--wm-font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border-bottom: 1px solid var(--wm-border);
+}
+.table tbody tr {
+  border-top: 1px solid var(--wm-border);
+  transition: background var(--wm-motion-fast);
+}
+.table tbody tr:hover { background: var(--wm-gray-5); }
+.table tbody tr.clickable { cursor: pointer; }
+.table td.numeric,
+.table th.numeric { text-align: right; font-variant-numeric: tabular-nums; }
+.table td.actions { text-align: right; white-space: nowrap; }
+.table td.actions > * + * { margin-left: var(--wm-space-2); }
+
+.rowChip {
+  display: inline-flex; align-items: center; gap: var(--wm-space-2);
+  min-width: 0;
+}
+
+.mutedRow td { color: var(--wm-text-muted); }
+.mutedRow td:first-child { position: relative; }
+
+/* --- Form grid --- */
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--wm-space-4);
+}
+@media (min-width: 560px) {
+  .formGrid--two { grid-template-columns: 1fr 1fr; }
+}
+
+/* --- Simple KV list (customer detail, etc.) --- */
+.kvList {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--wm-space-4);
+}
+.kv { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+
+/* --- Danger card (Settings danger zone) --- */
+.dangerCard {
+  border: 1px solid var(--wm-danger);
+  background: var(--wm-red-10);
+}
+.dangerCard .cardActions { background: transparent; }
+
+/* --- Big-number balance ribbon --- */
+.balanceRibbon {
+  background: linear-gradient(135deg, var(--wm-primary) 0%, var(--wm-blue-160) 100%);
+  color: var(--wm-text-inverse);
+  padding: var(--wm-space-6);
+  border-radius: var(--wm-radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--wm-space-4);
+  flex-wrap: wrap;
+}
+.balanceRibbon--clear {
+  background: linear-gradient(135deg, var(--wm-success) 0%, #0a7c3e 100%);
+}

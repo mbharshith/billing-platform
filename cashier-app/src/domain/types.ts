@@ -1,0 +1,141 @@
+/**
+ * Domain types — shared vocabulary across features.
+ * All entities carry `id` (uuid) + `createdAt` (ISO) minimally.
+ * Multi-tenancy-ready: when backend arrives, add `tenantId` to every entity.
+ */
+
+/* -------------------------------------------------------------------------- */
+/* Shared primitives                                                          */
+/* -------------------------------------------------------------------------- */
+export type Iso8601 = string;
+export type PaymentMethod = 'cash' | 'card' | 'lending';
+
+/**
+ * Discriminated status union for async state — enforces "handle all 4 states".
+ * (§2 RULE — never render on data alone; render on state.)
+ */
+export type AsyncStatus<T, E = string> =
+  | { readonly kind: 'idle' }
+  | { readonly kind: 'loading' }
+  | { readonly kind: 'success'; readonly data: T }
+  | { readonly kind: 'error';   readonly error: E };
+
+/* -------------------------------------------------------------------------- */
+/* Products                                                                   */
+/* -------------------------------------------------------------------------- */
+export type ProductCategory =
+  | 'Grocery' | 'Produce' | 'Beverages' | 'Snacks'
+  | 'Household' | 'Personal' | 'Meat' | 'Frozen' | 'Electronics' | 'Other';
+
+/** Tone controls the pastel colour tile behind each product monogram. */
+export type BadgeTone =
+  | 'sky' | 'amber' | 'yellow' | 'red' | 'stone'
+  | 'orange' | 'brown' | 'rose' | 'slate';
+
+export interface Product {
+  readonly id: string;
+  readonly sku: string;
+  readonly name: string;
+  readonly price: number;
+  readonly category: ProductCategory;
+  readonly tone: BadgeTone;
+  /** Total stock available (unit count). */
+  readonly stock: number;
+  readonly active: boolean;
+  readonly createdAt: Iso8601;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Sales                                                                      */
+/* -------------------------------------------------------------------------- */
+export interface SaleLine {
+  readonly productId: string;
+  readonly sku: string;
+  readonly name: string;
+  readonly tone: BadgeTone;
+  readonly unitPrice: number;
+  readonly quantity: number;
+  readonly lineTotal: number;
+}
+
+export interface Sale {
+  readonly id: string;
+  readonly invoiceNo: string;
+  readonly completedAt: Iso8601;
+  readonly lines: readonly SaleLine[];
+  readonly subtotal: number;
+  readonly tax: number;
+  readonly total: number;
+  readonly unitCount: number;
+  readonly paymentMethod: PaymentMethod;
+  /** Set when payment method === 'lending'. */
+  readonly customerMobile: string | null;
+  /** FK to customer entity — set for lending sales. */
+  readonly customerId: string | null;
+  /** Who rang up the sale. */
+  readonly cashierId: string;
+  readonly cashierName: string;
+  /** Voided sales stay in history for audit. */
+  readonly voided: boolean;
+  readonly voidedAt: Iso8601 | null;
+  readonly voidedReason: string | null;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Customers                                                                  */
+/* -------------------------------------------------------------------------- */
+export interface Customer {
+  readonly id: string;
+  readonly name: string;
+  /** 10-digit mobile (digits only). Unique per tenant. */
+  readonly mobile: string;
+  readonly email: string | null;
+  readonly notes: string | null;
+  /** Outstanding lending balance in currency units. */
+  readonly lendingBalance: number;
+  readonly createdAt: Iso8601;
+}
+
+export interface CustomerPayment {
+  readonly id: string;
+  readonly customerId: string;
+  readonly amount: number;
+  readonly method: 'cash' | 'card';
+  readonly receivedAt: Iso8601;
+  readonly receivedBy: string;
+  readonly notes: string | null;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Users (staff)                                                              */
+/* -------------------------------------------------------------------------- */
+export type UserRole = 'admin' | 'cashier';
+
+export interface User {
+  readonly id: string;
+  readonly username: string;
+  readonly name: string;
+  readonly role: UserRole;
+  readonly active: boolean;
+  readonly createdAt: Iso8601;
+  /** Password lives here only because this is a mock/frontend-only build.
+   *  When a backend arrives this MUST be moved server-side + hashed (§6). */
+  readonly password: string;
+}
+
+/** Subset of User safe to keep in the browser session. */
+export type SessionUser = Omit<User, 'password'>;
+
+/* -------------------------------------------------------------------------- */
+/* Settings                                                                   */
+/* -------------------------------------------------------------------------- */
+export interface StoreSettings {
+  readonly storeName: string;
+  readonly address: string;
+  readonly phone: string;
+  readonly gstin: string;
+  readonly taxRate: number;
+  /** ISO 4217 currency code, e.g. USD, INR. */
+  readonly currency: string;
+  readonly receiptFooter: string;
+}

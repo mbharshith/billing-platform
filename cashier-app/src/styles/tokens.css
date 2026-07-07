@@ -1,0 +1,124 @@
+/* =========================================================================
+   Walmart Design Tokens — §1 UI & Design System
+   The ONLY source of colors, spacing, type, radii, shadows.
+   Zero hex codes allowed in components or feature CSS.
+   ========================================================================= */
+
+:root {
+  /* --- Brand primitives (Walmart official palette) ------------------------ */
+  --wm-blue-5:    #f2f8fd;
+  --wm-blue-10:   #cfe0ff;
+  --wm-blue-100:  #0053e2;   /* primary */
+  --wm-blue-110:  #0041b8;   /* hover */
+  --wm-blue-130:  #002d80;   /* pressed */
+  --wm-blue-160:  #001a4d;   /* deep ink */
+
+  --wm-spark-5:   #fff8e0;
+  --wm-spark-10:  #fff2cc;
+  --wm-spark-100: #ffc220;   /* accent */
+  --wm-spark-140: #995213;   /* warning text */
+
+  --wm-red-100:   #ea1100;   /* error */
+  --wm-red-10:    #fee2e2;
+
+  --wm-green-100: #2a8703;   /* success */
+  --wm-green-10:  #dcf5cc;
+
+  --wm-gray-0:    #ffffff;
+  --wm-gray-5:    #fafbfc;
+  --wm-gray-10:   #f2f4f7;
+  --wm-gray-30:   #e5e7eb;
+  --wm-gray-50:   #cbd5e1;
+  --wm-gray-80:   #94a3b8;
+  --wm-gray-100:  #6b7280;
+  --wm-gray-140:  #374151;
+  --wm-gray-160:  #1a1a1a;
+
+  /* --- Semantic aliases (prefer these in components) ---------------------- */
+  --wm-bg:              var(--wm-gray-5);
+  --wm-surface:         var(--wm-gray-0);
+  --wm-surface-subtle:  var(--wm-blue-5);
+  --wm-surface-ink:     var(--wm-gray-160);
+  --wm-border:          var(--wm-gray-30);
+  --wm-border-strong:   var(--wm-gray-50);
+  --wm-text:            var(--wm-gray-160);
+  --wm-text-subtle:     var(--wm-gray-100);
+  --wm-text-muted:      var(--wm-gray-80);
+  --wm-text-inverse:    var(--wm-gray-0);
+  --wm-primary:         var(--wm-blue-100);
+  --wm-primary-hover:   var(--wm-blue-110);
+  --wm-primary-press:   var(--wm-blue-130);
+  --wm-accent:          var(--wm-spark-100);
+  --wm-success:         var(--wm-green-100);
+  --wm-danger:          var(--wm-red-100);
+  --wm-focus-ring:      var(--wm-blue-100);
+
+  /* --- Spacing (4pt grid) ------------------------------------------------- */
+  --wm-space-0:    0;
+  --wm-space-1:    4px;
+  --wm-space-2:    8px;
+  --wm-space-3:    12px;
+  --wm-space-4:    16px;
+  --wm-space-5:    20px;
+  --wm-space-6:    24px;
+  --wm-space-8:    32px;
+  --wm-space-10:   40px;
+  --wm-space-12:   48px;
+  --wm-space-16:   64px;
+
+  /* --- Radii -------------------------------------------------------------- */
+  --wm-radius-sm:  6px;
+  --wm-radius-md:  10px;
+  --wm-radius-lg:  16px;
+  --wm-radius-xl:  24px;
+  --wm-radius-pill: 999px;
+
+  /* --- Typography --------------------------------------------------------- */
+  --wm-font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --wm-font-mono:   ui-monospace, 'SF Mono', Menlo, monospace;
+  --wm-font-size-xs:   12px;
+  --wm-font-size-sm:   14px;
+  --wm-font-size-md:   16px;
+  --wm-font-size-lg:   18px;
+  --wm-font-size-xl:   22px;
+  --wm-font-size-2xl:  28px;
+  --wm-font-size-3xl:  36px;
+  --wm-font-weight-regular:  400;
+  --wm-font-weight-medium:   500;
+  --wm-font-weight-semibold: 600;
+  --wm-font-weight-bold:     700;
+  --wm-font-weight-heavy:    800;
+  --wm-line-tight:    1.2;
+  --wm-line-normal:   1.5;
+
+  /* --- Shadows ------------------------------------------------------------ */
+  --wm-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --wm-shadow-sm: 0 2px 8px rgba(0, 83, 226, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --wm-shadow-md: 0 8px 24px rgba(0, 83, 226, 0.10), 0 2px 4px rgba(0, 0, 0, 0.06);
+  --wm-shadow-lg: 0 20px 60px rgba(0, 83, 226, 0.16);
+
+  /* --- Layout ------------------------------------------------------------- */
+  --wm-container-max: 1280px;
+  --wm-header-height: 64px;
+
+  /* --- Motion ------------------------------------------------------------- */
+  --wm-motion-fast:   120ms cubic-bezier(0.4, 0, 0.2, 1);
+  --wm-motion-normal: 240ms cubic-bezier(0.4, 0, 0.2, 1);
+  --wm-motion-slow:   360ms cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* --- Z-indexes ---------------------------------------------------------- */
+  --wm-z-base:    1;
+  --wm-z-sticky:  100;
+  --wm-z-overlay: 900;
+  --wm-z-modal:   1000;
+  --wm-z-toast:   1100;
+}
+
+/* Respect user's reduced-motion preference (§10) */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --wm-motion-fast:   0ms linear;
+    --wm-motion-normal: 0ms linear;
+    --wm-motion-slow:   0ms linear;
+  }
+}

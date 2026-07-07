@@ -1,0 +1,50 @@
+/* Login page — full-screen, centered card. */
+
+.loginPage {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: var(--wm-space-6);
+  background:
+    radial-gradient(circle at top left, var(--wm-blue-10) 0%, transparent 40%),
+    radial-gradient(circle at bottom right, var(--wm-spark-10) 0%, transparent 40%),
+    var(--wm-bg);
+}
+.loginCard {
+  background: var(--wm-surface);
+  border-radius: var(--wm-radius-xl);
+  box-shadow: var(--wm-shadow-lg);
+  padding: var(--wm-space-8);
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--wm-space-5);
+}
+.loginBrand {
+  display: flex;
+  align-items: center;
+  gap: var(--wm-space-3);
+  color: var(--wm-primary);
+}
+.loginBrand__mark {
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  background: var(--wm-accent);
+  color: var(--wm-primary);
+  display: grid; place-items: center;
+  flex-shrink: 0;
+}
+.loginBrand__text { display: flex; flex-direction: column; line-height: 1; gap: 4px; }
+
+.loginForm { display: flex; flex-direction: column; gap: var(--wm-space-4); }
+.loginActions { display: flex; flex-direction: column; gap: var(--wm-space-3); }
+.loginHint {
+  background: var(--wm-blue-10);
+  border-radius: var(--wm-radius-md);
+  padding: var(--wm-space-3);
+  color: var(--wm-primary);
+  font-size: var(--wm-font-size-xs);
+  text-align: center;
+  font-family: var(--wm-font-family-mono, monospace);
+}
