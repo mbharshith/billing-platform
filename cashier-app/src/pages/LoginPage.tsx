@@ -23,8 +23,10 @@ export const LoginPage: FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  // Already signed in? Bounce to cashier.
-  if (currentUser) return <Navigate to="/cashier" replace />;
+  // Already signed in? Bounce vendors to their console, everyone else to cashier.
+  if (currentUser) {
+    return <Navigate to={currentUser.role === 'vendor' ? '/vendor/dashboard' : '/cashier'} replace />;
+  }
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
@@ -34,15 +36,21 @@ export const LoginPage: FC = () => {
     }
     setSubmitting(true);
     setError(null);
-    window.setTimeout(() => {
-      const result = login(username, password);
+    window.setTimeout(async () => {
+      const result = await login(username, password);
       if (!result.ok) {
         setSubmitting(false);
-        setError(result.reason === 'inactive' ? STRINGS.auth.inactive : STRINGS.auth.invalid);
+        setError(
+          result.reason === 'inactive'  ? STRINGS.auth.inactive :
+          result.reason === 'suspended' ? STRINGS.auth.suspended :
+                                          STRINGS.auth.invalid,
+        );
         return;
       }
       toast.success(STRINGS.auth.welcome(username));
-      const dest = (location.state as LocationState | null)?.from ?? '/cashier';
+      // Vendor accounts land on the vendor console; everyone else on cashier.
+      const fallback = result.user.role === 'vendor' ? '/vendor/dashboard' : '/cashier';
+      const dest = (location.state as LocationState | null)?.from ?? fallback;
       navigate(dest, { replace: true });
     }, 350);
   };

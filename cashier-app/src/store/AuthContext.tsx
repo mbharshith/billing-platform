@@ -11,22 +11,25 @@ import {
   type FC, type ReactNode,
 } from 'react';
 import { storage } from '../lib/storage';
-import { can, isAdmin, type Action } from '../domain/permissions';
+import { db } from '../lib/db';
+import { can, isAdmin, isVendor, type Action } from '../domain/permissions';
 import type { SessionUser } from '../domain/types';
+import { VENDOR_SCOPE } from '../domain/types';
 import { toSessionUser, useUsers } from './UsersContext';
 
 const SESSION_KEY = 'session';
 
 export type LoginResult =
   | { readonly ok: true; readonly user: SessionUser }
-  | { readonly ok: false; readonly reason: 'invalid' | 'inactive' };
+  | { readonly ok: false; readonly reason: 'invalid' | 'inactive' | 'suspended' };
 
 interface AuthContextValue {
   readonly currentUser: SessionUser | null;
   /** The tenant id this session is bound to. Null iff not logged in. */
   readonly currentStoreId: string | null;
   readonly isAdmin: boolean;
-  readonly login: (username: string, password: string) => LoginResult;
+  readonly isVendor: boolean;
+  readonly login: (username: string, password: string) => Promise<LoginResult>;
   /** Directly promote a freshly-created user (e.g. right after signup). */
   readonly loginAs: (user: SessionUser) => void;
   readonly logout: () => void;
@@ -65,10 +68,17 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
     else storage.remove(SESSION_KEY);
   }, [currentUser]);
 
-  const login = useCallback((username: string, password: string): LoginResult => {
+  const login = useCallback(async (username: string, password: string): Promise<LoginResult> => {
     const user = findByUsername(username.trim());
     if (!user || user.password !== password) return { ok: false, reason: 'invalid' };
     if (!user.active)                          return { ok: false, reason: 'inactive' };
+    // Tenant-suspended? Block non-vendor logins for that store.
+    if (user.storeId !== VENDOR_SCOPE) {
+      const store = await db.stores.get(user.storeId);
+      if (store && store.status === 'suspended') {
+        return { ok: false, reason: 'suspended' };
+      }
+    }
     const session = toSessionUser(user);
     setCurrentUser(session);
     return { ok: true, user: session };
@@ -84,6 +94,7 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
     currentUser,
     currentStoreId: currentUser?.storeId ?? null,
     isAdmin: isAdmin(currentUser),
+    isVendor: isVendor(currentUser),
     login,
     loginAs,
     logout,

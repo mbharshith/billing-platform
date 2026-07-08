@@ -2,6 +2,7 @@
  * Route guards.
  * - ProtectedRoute: redirects to /login if no session.
  * - AdminRoute:     admin role only (SoD for tenant-management actions).
+ * - VendorRoute:    vendor role only (SaaS-owner-only control plane).
  */
 import type { FC } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
@@ -23,6 +24,13 @@ export const AdminRoute: FC = () => {
   const { currentUser, isAdmin } = useAuth();
   if (!currentUser) return <Navigate to="/login" replace />;
   if (!isAdmin) return <ForbiddenCard message="Only a store admin can view this page." />;
+  return <Outlet />;
+};
+
+export const VendorRoute: FC = () => {
+  const { currentUser, isVendor } = useAuth();
+  if (!currentUser) return <Navigate to="/login" replace />;
+  if (!isVendor) return <ForbiddenCard message="This control plane is for the SaaS vendor only." />;
   return <Outlet />;
 };
 

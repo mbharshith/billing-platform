@@ -30,9 +30,10 @@ export const STRINGS = {
     password:       'Password',
     signIn:         'Sign in',
     signingIn:      'Signing in…',
-    demoHint:       'Demo tenants · myntra/myntra123 · flipkart/flipkart123 · walmart/walmart123',
+    demoHint:       'Demo tenants · myntra/myntra123 · flipkart/flipkart123 · walmart/walmart123 · SaaS owner · vendor/vendor123',
     invalid:        'Invalid username or password.',
     inactive:       'This account is inactive. Contact your admin.',
+    suspended:      'This store has been suspended by the vendor. Please reach out to support.',
     loggedOut:      'You have been signed out.',
     sessionExpired: 'Your session has expired. Please sign in again.',    welcome:        (name: string) => `Welcome, ${name}!`,  },
 

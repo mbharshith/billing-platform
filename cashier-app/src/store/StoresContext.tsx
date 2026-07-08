@@ -37,6 +37,8 @@ interface StoresContextValue {
   readonly create: (input: StoreInput) => Promise<CreateResult>;
   readonly update: (id: string, patch: Partial<StoreInput>) => Promise<CreateResult>;
   readonly setActive: (id: string, active: boolean) => Promise<void>;
+  /** Vendor-only lifecycle: suspended stores block their users at login. */
+  readonly setStatus: (id: string, status: 'active' | 'suspended') => Promise<void>;
   readonly remove: (id: string) => Promise<
     { ok: true } | { ok: false; error: 'notFound' }
   >;
@@ -74,6 +76,7 @@ export const StoresProvider: FC<{ children: ReactNode }> = ({ children }) => {
       taxRate:  input.taxRate,
       currency: input.currency.trim() || 'USD',
       active:   true,
+      status:   'active',
       createdAt: new Date().toISOString(),
     };
     await db.stores.add(store);
@@ -108,6 +111,10 @@ export const StoresProvider: FC<{ children: ReactNode }> = ({ children }) => {
     await db.stores.update(id, { active });
   }, []);
 
+  const setStatus = useCallback<StoresContextValue['setStatus']>(async (id, status) => {
+    await db.stores.update(id, { status });
+  }, []);
+
   const remove: StoresContextValue['remove'] = useCallback(async (id) => {
     const exists = await db.stores.get(id);
     if (!exists) return { ok: false, error: 'notFound' };
@@ -118,8 +125,8 @@ export const StoresProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const value = useMemo<StoresContextValue>(() => ({
     stores: rows,
     activeStores: rows.filter((s) => s.active),
-    byId, create, update, setActive, remove,
-  }), [rows, byId, create, update, setActive, remove]);
+    byId, create, update, setActive, setStatus, remove,
+  }), [rows, byId, create, update, setActive, setStatus, remove]);
 
   return <StoresContext.Provider value={value}>{children}</StoresContext.Provider>;
 };

@@ -41,13 +41,18 @@ const backfillStoreId = <T extends { storeId?: string }>(
   list.map((row) => (row.storeId ? row : { ...row, storeId: fallbackId }));
 
 export const bootstrapDb = async (): Promise<void> => {
-  // Fast path: already migrated on this browser.
+  // Fast path: already migrated on this browser — but still make sure the
+  // vendor account exists (v3 upgrade path for pre-existing installations).
   const already = storage.load<boolean>(MIGRATION_FLAG, false);
-  if (already) return;
+  if (already) {
+    await ensureVendorUser();
+    return;
+  }
 
   // If tables are already populated (e.g. another tab beat us), just flag + go.
   const storeCount = await db.stores.count();
   if (storeCount > 0) {
+    await ensureVendorUser();
     storage.save(MIGRATION_FLAG, true);
     return;
   }
@@ -86,6 +91,17 @@ export const bootstrapDb = async (): Promise<void> => {
   );
 
   storage.save(MIGRATION_FLAG, true);
+  await ensureVendorUser();
+};
+
+/** Idempotent: create the vendor account if it isn't already there. Called
+ *  on every boot so old installs (pre-v3) get the vendor without needing a
+ *  full re-seed. */
+const ensureVendorUser = async (): Promise<void> => {
+  const vendor = SEED_USERS.find((u) => u.role === 'vendor');
+  if (!vendor) return;
+  const existing = await db.users.where('username').equals(vendor.username).first();
+  if (!existing) await db.users.put(vendor);
 };
 
 /** Clear the migration flag AND wipe IDB. Used by the demo-reset UI. */

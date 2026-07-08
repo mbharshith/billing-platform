@@ -26,7 +26,7 @@
 
 import Dexie, { type Table } from 'dexie';
 import type {
-  Customer, CustomerPayment, Product, Sale, Store, User,
+  AuditEntry, Customer, CustomerPayment, Product, Sale, Store, User,
 } from '../domain/types';
 
 /** Schema versions are declared inline via `.version(N).stores({...})`.
@@ -39,6 +39,7 @@ class QuickBillDB extends Dexie {
   customers!:         Table<Customer, string>;
   sales!:             Table<Sale, string>;
   customerPayments!:  Table<CustomerPayment, string>;
+  auditLog!:          Table<AuditEntry, string>;
 
   constructor() {
     super('quickbill');
@@ -75,6 +76,26 @@ class QuickBillDB extends Dexie {
       await tx.table('users').toCollection().modify((u) => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         if ((u as any).role === 'master') (u as any).role = 'admin';
+      });
+    });
+
+    /* -------------------------------------------------------------------- */
+    /* v3 — vendor console: add store.status + auditLog table               */
+    /* -------------------------------------------------------------------- */
+    // Additive changes: existing stores get status='active', new auditLog
+    // table is empty. Vendor user is inserted by db-bootstrap on next boot.
+    this.version(3).stores({
+      stores:            'id, name, status',
+      users:             'id, username, storeId, role',
+      products:          'id, storeId, [storeId+sku], category, active',
+      customers:         'id, storeId, [storeId+mobile]',
+      sales:             'id, storeId, completedAt, customerId, cashierId, voided',
+      customerPayments:  'id, customerId, receivedAt',
+      auditLog:          'id, at, actorUsername, targetStoreId, action',
+    }).upgrade(async (tx) => {
+      await tx.table('stores').toCollection().modify((s) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        if (!(s as any).status) (s as any).status = 'active';
       });
     });
   }

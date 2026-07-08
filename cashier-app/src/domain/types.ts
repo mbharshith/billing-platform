@@ -24,6 +24,8 @@ export interface Store {
   /** ISO 4217 currency code. */
   readonly currency: string;
   readonly active: boolean;
+  /** Vendor-controlled lifecycle: 'suspended' stores can't log in. Defaults to 'active'. */
+  readonly status: 'active' | 'suspended';
   readonly createdAt: Iso8601;
 }
 
@@ -137,12 +139,18 @@ export interface CustomerPayment {
 /* Users (staff)                                                              */
 /* -------------------------------------------------------------------------- */
 /**
+ * vendor  — SaaS owner (us). Cross-tenant. Sees every store, can suspend/
+ *           reactivate/impersonate. Uses a sentinel storeId (VENDOR_SCOPE)
+ *           since they don't belong to any single tenant.
  * admin   — owns their store: edit store settings, CRUD products/customers/users,
  *           creates other admins + cashiers, full sales/lending history, deactivate/delete anything except themselves.
  * cashier — rings up sales at their store, views customers, records lending payments,
  *           only sees TODAY's sales, no destructive actions.
  */
-export type UserRole = 'admin' | 'cashier';
+export type UserRole = 'vendor' | 'admin' | 'cashier';
+
+/** Sentinel storeId for vendor accounts — they don't belong to any tenant. */
+export const VENDOR_SCOPE = '__vendor__';
 
 export interface User {
   readonly id: string;
@@ -173,4 +181,27 @@ export interface StoreSettings {
   /** ISO 4217 currency code, e.g. USD, INR. */
   readonly currency: string;
   readonly receiptFooter: string;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Vendor audit log                                                           */
+/* -------------------------------------------------------------------------- */
+/** Immutable record of a vendor action across the tenant fleet.
+ *  Written server-side in production; here we append to a Dexie table. */
+export type VendorAction =
+  | 'tenant.suspend'
+  | 'tenant.reactivate'
+  | 'tenant.impersonate'
+  | 'tenant.delete'
+  | 'vendor.login'
+  | 'vendor.logout';
+
+export interface AuditEntry {
+  readonly id: string;
+  readonly at: Iso8601;
+  readonly actorUsername: string;
+  readonly action: VendorAction;
+  /** storeId the action targeted (may be VENDOR_SCOPE for self-actions). */
+  readonly targetStoreId: string;
+  readonly detail?: string;
 }

@@ -16,7 +16,7 @@ import {
   BrowserRouter, Navigate, Route, Routes,
 } from 'react-router-dom';
 import { AppShell } from './components/layout/AppShell';
-import { AdminRoute, ProtectedRoute } from './components/layout/RouteGuards';
+import { AdminRoute, ProtectedRoute, VendorRoute } from './components/layout/RouteGuards';
 import { ErrorBoundary, NotFoundPage } from './components/errors';
 import { CashierPage } from './pages/CashierPage';
 import { CustomerDetailPage } from './pages/CustomerDetailPage';
@@ -30,6 +30,9 @@ import { SettingsPage } from './pages/SettingsPage';
 import { SignupPage } from './pages/SignupPage';
 import { StorePage } from './pages/StorePage';
 import { UsersPage } from './pages/UsersPage';
+import {
+  VendorShell, VendorDashboardPage, VendorTenantsPage, VendorAuditPage,
+} from './pages/VendorConsole';
 
 /** Small helper — wraps every route element in its own boundary so a crash
  *  on /products doesn't take down /cashier. */
@@ -43,6 +46,16 @@ export const App: FC = () => (
       <Routes>
         <Route path="/login"  element={R('login',  <LoginPage />)} />
         <Route path="/signup" element={R('signup', <SignupPage />)} />
+
+        {/* Vendor control plane — SaaS owner only, separate shell. */}
+        <Route element={<VendorRoute />}>
+          <Route element={<VendorShell />}>
+            <Route path="/vendor"           element={<Navigate to="/vendor/dashboard" replace />} />
+            <Route path="/vendor/dashboard" element={R('vendor-dashboard', <VendorDashboardPage />)} />
+            <Route path="/vendor/tenants"   element={R('vendor-tenants',   <VendorTenantsPage />)} />
+            <Route path="/vendor/audit"     element={R('vendor-audit',     <VendorAuditPage />)} />
+          </Route>
+        </Route>
 
         <Route element={<ProtectedRoute />}>
           <Route element={<AppShell />}>

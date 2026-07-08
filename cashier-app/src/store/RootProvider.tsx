@@ -12,6 +12,7 @@
 import { useCallback, useEffect, useState, type FC, type ReactNode } from 'react';
 import { bootstrapDb } from '../lib/db-bootstrap';
 import { AppSplash } from '../components/errors';
+import { AuditProvider } from './AuditContext';
 import { AuthProvider } from './AuthContext';
 import { CustomersProvider } from './CustomersContext';
 import { ProductsProvider } from './ProductsContext';
@@ -49,13 +50,15 @@ export const RootProvider: FC<{ children: ReactNode }> = ({ children }) => {
           <StoresProvider>
             <UsersProvider>
               <AuthProvider>
-                <ProductsProvider>
-                  <CustomersProvider>
-                    <SalesProvider>
-                      {children}
-                    </SalesProvider>
-                  </CustomersProvider>
-                </ProductsProvider>
+                <AuditProvider>
+                  <ProductsProvider>
+                    <CustomersProvider>
+                      <SalesProvider>
+                        {children}
+                      </SalesProvider>
+                    </CustomersProvider>
+                  </ProductsProvider>
+                </AuditProvider>
               </AuthProvider>
             </UsersProvider>
           </StoresProvider>

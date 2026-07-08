@@ -1,4 +1,5 @@
 import type { Customer, Store, StoreSettings, User } from './types';
+import { VENDOR_SCOPE } from './types';
 
 /**
  * Seed data — first-run defaults, loaded when localStorage is empty.
@@ -27,6 +28,7 @@ export const SEED_STORES: readonly Store[] = [
     taxRate: 0.18,          // GST 18%
     currency: 'INR',
     active: true,
+    status: 'active' as const,
     createdAt: now(),
   },
   {
@@ -38,6 +40,7 @@ export const SEED_STORES: readonly Store[] = [
     taxRate: 0.18,
     currency: 'INR',
     active: true,
+    status: 'active' as const,
     createdAt: now(),
   },
   {
@@ -49,6 +52,7 @@ export const SEED_STORES: readonly Store[] = [
     taxRate: 0.0825,
     currency: 'USD',
     active: true,
+    status: 'active' as const,
     createdAt: now(),
   },
 ];
@@ -122,6 +126,18 @@ export const SEED_USERS: readonly User[] = [
     createdAt: now(),
     storeId: SEED_STORE_THIRD_ID,
     password: 'cashier123',
+  },
+
+  // --- Vendor (SaaS owner) — cross-tenant, sentinel storeId ------------
+  {
+    id: 'u-vendor-root',
+    username: 'vendor',
+    name: 'QuickBill Vendor Ops',
+    role: 'vendor',
+    active: true,
+    createdAt: now(),
+    storeId: VENDOR_SCOPE,
+    password: 'vendor123',
   },
 ];
 

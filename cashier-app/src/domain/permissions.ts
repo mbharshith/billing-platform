@@ -8,6 +8,9 @@
  *     never checks role strings inline.
  *
  * Roles:
+ *   vendor   — SaaS owner. Cross-tenant control plane. NEVER on the MATRIX
+ *              because they don't operate inside a tenant — vendor actions
+ *              are gated by <VendorRoute> instead.
  *   admin    — tenant owner: edits store settings, CRUD everything in the store,
  *              creates other admins + cashiers, full sales history.
  *   cashier  — front-line staff: rings up sales, records lending payments, sees
@@ -48,6 +51,7 @@ const CASHIER: readonly Action[] = [
 ];
 
 const MATRIX: Record<SessionUser['role'], readonly Action[]> = {
+  vendor:  [],   // vendors never invoke tenant-scoped actions
   admin:   ADMIN,
   cashier: CASHIER,
 };
@@ -57,3 +61,6 @@ export const can = (user: SessionUser | null | undefined, action: Action): boole
 
 export const isAdmin = (u: SessionUser | null | undefined): boolean =>
   u?.role === 'admin';
+
+export const isVendor = (u: SessionUser | null | undefined): boolean =>
+  u?.role === 'vendor';
