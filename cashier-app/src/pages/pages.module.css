@@ -164,6 +164,36 @@
 }
 .dangerCard .cardActions { background: transparent; }
 
+/* --- Locked notice + read-only field grid (Settings > Store profile) --- */
+.lockedNotice {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--app-space-3);
+  padding: var(--app-space-3) var(--app-space-4);
+  margin-bottom: var(--app-space-4);
+  border-radius: var(--app-radius-md);
+  background: var(--app-info-soft, var(--app-blue-10));
+  border: 1px solid var(--app-info-border, var(--app-blue-30));
+  color: var(--app-info-strong, var(--app-blue-160));
+}
+.readOnlyGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--app-space-4);
+  margin: 0;
+}
+.readOnlyField {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--app-space-3);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-md);
+  background: var(--app-surface-subtle, var(--app-gray-5));
+}
+.readOnlyField dt { margin: 0; }
+.readOnlyField dd { margin: 0; }
+
 /* --- Big-number balance ribbon --- */
 .balanceRibbon {
   background: linear-gradient(135deg, var(--app-primary) 0%, var(--app-blue-160) 100%);

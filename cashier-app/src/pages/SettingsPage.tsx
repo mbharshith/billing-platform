@@ -1,37 +1,48 @@
 /**
- * SettingsPage — edit store info, tax rate, currency, receipt footer.
+ * SettingsPage — tenant admin's local preferences + read-only store profile.
+ *
+ * Store profile (name, address, tax rate, currency, GSTIN, phone) is READ-ONLY
+ * here because those fields ripple through every past invoice and every
+ * analytic. A tenant flipping INR -> USD retroactively re-denominates their
+ * entire sales history. Only the SaaS vendor can edit these, via
+ * /vendor/tenants -> Edit dialog.
+ *
+ * Tenants CAN still self-serve:
+ *   * Receipt footer message (cosmetic, forward-looking only)
+ *   * Local data wipe (browser-scoped)
+ *
  * Admin-only (enforced by <AdminRoute> at the router level).
  */
 import { useState, type ChangeEvent, type FC, type FormEvent } from 'react';
 import cls from './pages.module.css';
-import { Button, Field, Input, Select, Text, Textarea } from '../components/atoms';
+import { Button, Field, Icon, Text, Textarea } from '../components/atoms';
 import { PageHeader } from '../components/layout/AppShell';
 import { STRINGS } from '../domain/strings';
 import { useSettings } from '../store/SettingsContext';
+import { useStores } from '../store/StoresContext';
+import { useCurrentStoreId } from '../store/AuthContext';
 import { useToast } from '../store/ToastContext';
 import { storage } from '../lib/storage';
 import { resetDb } from '../lib/db';
 import { resetBootstrap } from '../lib/db-bootstrap';
 
-const CURRENCIES = ['USD', 'INR', 'GBP', 'EUR', 'AUD', 'CAD', 'SGD', 'AED'] as const;
-
 export const SettingsPage: FC = () => {
   const { settings, update } = useSettings();
+  const { byId } = useStores();
+  const currentStoreId = useCurrentStoreId();
+  const currentStore = byId(currentStoreId);
   const toast = useToast();
-  const [form, setForm] = useState(settings);
+  const [footer, setFooter] = useState(settings.receiptFooter);
   const [saving, setSaving] = useState(false);
 
-  const on = <K extends keyof typeof form>(k: K) =>
-    (e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-      const v = k === 'taxRate' ? Number(e.target.value) / 100 : e.target.value;
-      setForm((prev) => ({ ...prev, [k]: v as typeof prev[K] }));
-    };
+  const handleFooterChange = (e: ChangeEvent<HTMLTextAreaElement>) =>
+    setFooter(e.target.value);
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     setSaving(true);
     window.setTimeout(() => {
-      update(form);
+      update({ receiptFooter: footer });
       setSaving(false);
       toast.success(STRINGS.settings.saved);
     }, 250);
@@ -50,56 +61,54 @@ export const SettingsPage: FC = () => {
     <>
       <PageHeader title={STRINGS.settings.pageTitle} subtitle={STRINGS.settings.pageSubtitle} />
 
+      {/* Read-only store profile — mirror of /store, kept in sync via StoreContext. */}
+      <div className={cls.card}>
+        <div className={cls.cardHeader}>
+          <Text as="h2" size="lg" weight="bold">{STRINGS.settings.profileHeading}</Text>
+        </div>
+        <div className={cls.cardBody}>
+          <div className={cls.lockedNotice} role="note">
+            <Icon name="lock" size={16} />
+            <Text size="sm">{STRINGS.settings.profileLockNote}</Text>
+          </div>
+          <dl className={cls.readOnlyGrid}>
+            <ReadOnlyField label={STRINGS.settings.storeName} value={currentStore?.name ?? '—'} />
+            <ReadOnlyField label={STRINGS.settings.address}   value={currentStore?.address || currentStore?.city || '—'} />
+            <ReadOnlyField label={STRINGS.settings.phone}     value={currentStore?.phone || '—'} />
+            <ReadOnlyField label={STRINGS.settings.gstin}     value={settings.gstin || '—'} />
+            <ReadOnlyField label={STRINGS.settings.taxRate}   value={`${((currentStore?.taxRate ?? settings.taxRate) * 100).toFixed(2)}%`} />
+            <ReadOnlyField label={STRINGS.settings.currency}  value={currentStore?.currency || settings.currency} />
+          </dl>
+        </div>
+      </div>
+
+      {/* Editable — receipt footer (cosmetic, forward-looking only). */}
       <form className={cls.card} onSubmit={handleSubmit}>
         <div className={cls.cardHeader}>
-          <Text as="h2" size="lg" weight="bold">Store profile</Text>
+          <Text as="h2" size="lg" weight="bold">{STRINGS.settings.receiptHeading}</Text>
+          <Text size="sm" tone="subtle">{STRINGS.settings.receiptHint}</Text>
         </div>
         <div className={cls.cardBody}>
           <div className={cls.formGrid}>
-            <Field label={STRINGS.settings.storeName} htmlFor="s-name" required>
-              <Input id="s-name" value={form.storeName} onChange={on('storeName')} required />
-            </Field>
-            <Field label={STRINGS.settings.address} htmlFor="s-addr">
-              <Input id="s-addr" value={form.address} onChange={on('address')} />
-            </Field>
-            <div className={[cls.formGrid, cls['formGrid--two']].join(' ')}>
-              <Field label={STRINGS.settings.phone} htmlFor="s-phone">
-                <Input id="s-phone" value={form.phone} onChange={on('phone')} leadingIcon="phone" />
-              </Field>
-              <Field label={STRINGS.settings.gstin} htmlFor="s-gstin">
-                <Input id="s-gstin" value={form.gstin} onChange={on('gstin')} />
-              </Field>
-            </div>
-            <div className={[cls.formGrid, cls['formGrid--two']].join(' ')}>
-              <Field label={STRINGS.settings.taxRate} htmlFor="s-tax">
-                <Input
-                  id="s-tax"
-                  type="number"
-                  min={0}
-                  max={30}
-                  step={0.01}
-                  value={(form.taxRate * 100).toFixed(2)}
-                  onChange={on('taxRate')}
-                />
-              </Field>
-              <Field label={STRINGS.settings.currency} htmlFor="s-cur">
-                <Select id="s-cur" value={form.currency} onChange={on('currency')}>
-                  {CURRENCIES.map((c) => <option key={c} value={c}>{c}</option>)}
-                </Select>
-              </Field>
-            </div>
             <Field label={STRINGS.settings.receiptFooter} htmlFor="s-footer">
-              <Textarea id="s-footer" value={form.receiptFooter} onChange={on('receiptFooter')} rows={3} />
+              <Textarea id="s-footer" value={footer} onChange={handleFooterChange} rows={3} />
             </Field>
           </div>
         </div>
         <div className={cls.cardActions}>
-          <Button type="submit" variant="primary" loading={saving} leadingIcon="check">
+          <Button
+            type="submit"
+            variant="primary"
+            loading={saving}
+            leadingIcon="check"
+            disabled={footer === settings.receiptFooter}
+          >
             {STRINGS.settings.save}
           </Button>
         </div>
       </form>
 
+      {/* Danger zone — always tenant-controllable (browser-scoped only). */}
       <div className={[cls.card, cls.dangerCard].join(' ')}>
         <div className={cls.cardHeader}>
           <Text as="h2" size="lg" weight="bold" tone="danger">{STRINGS.settings.dangerHeading}</Text>
@@ -116,3 +125,11 @@ export const SettingsPage: FC = () => {
     </>
   );
 };
+
+/** Compact <dt>/<dd> pair for read-only display. */
+const ReadOnlyField: FC<{ label: string; value: string }> = ({ label, value }) => (
+  <div className={cls.readOnlyField}>
+    <dt><Text size="xs" tone="subtle" upper weight="semibold">{label}</Text></dt>
+    <dd><Text size="md" weight="semibold">{value}</Text></dd>
+  </div>
+);

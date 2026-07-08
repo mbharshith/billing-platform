@@ -321,7 +321,7 @@ export const STRINGS = {
 
   settings: {
     pageTitle:     'Settings',
-    pageSubtitle:  'Store info, tax, currency, receipt template.',
+    pageSubtitle:  'Your receipt template and local data controls.',
     save:          'Save changes',
     saved:         'Settings saved.',
     storeName:     'Store name',
@@ -331,6 +331,10 @@ export const STRINGS = {
     taxRate:       'Tax rate (%)',
     currency:      'Currency (ISO 4217)',
     receiptFooter: 'Receipt footer message',
+    profileHeading:  'Store profile',
+    profileLockNote: 'These fields are managed by your SaaS provider so past invoices and analytics stay consistent. Contact them to make changes.',
+    receiptHeading:  'Receipt template',
+    receiptHint:     'Shown at the bottom of every printed receipt.',
     dangerHeading: 'Danger zone',
     dangerHint:    'Wipe all locally stored data. Only affects this browser.',
     wipeAll:       'Reset all local data',

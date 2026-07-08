@@ -292,8 +292,8 @@
 .rankBadge--gold   { background: var(--app-spark-10);  color: var(--app-spark-140); }
 .rankBadge--silver { background: var(--app-gray-10);   color: var(--app-gray-140); }
 .rankBadge--bronze { background: #efe4d6; color: #78350f; }
-.productCell { display: inline-flex; align-items: center; gap: var(--app-space-3); }
-.productCell__body { display: flex; flex-direction: column; min-width: 0; line-height: 1.35; }
+.productCell { display: flex; align-items: center; gap: var(--app-space-3); }
+.productCell__body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 
 .stockBar {
   width: 100%;
