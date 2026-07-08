@@ -331,6 +331,12 @@
 @media (max-width: 1023px) {
   .mobileCartBar { display: flex; }
 }
+/* On phones the bottom tab nav (~60px + safe-area) lives at bottom:0, so the
+   cart bar must float above it. On tablets there's no bottom nav, so the bar
+   sits flush at bottom:0. */
+@media (max-width: 767px) {
+  .mobileCartBar { bottom: calc(64px + env(safe-area-inset-bottom, 0)); }
+}
 .mobileCartBar__badge {
   position: relative;
   display: grid;

@@ -63,7 +63,28 @@
 .toolbar__filters { display: inline-flex; gap: var(--app-space-2); flex-wrap: wrap; }
 
 /* --- Data table --- */
-.tableWrap { overflow-x: auto; }
+/* On mobile the horizontal scroll gets a right-edge gradient hint so users
+   know more columns exist, and the .actions cell sticks to the right so
+   Edit/Delete/etc remain reachable without scrolling. */
+.tableWrap {
+  overflow-x: auto;
+  position: relative;
+  -webkit-overflow-scrolling: touch;
+}
+.tableWrap::after {
+  content: '';
+  position: sticky;
+  top: 0; right: 0;
+  float: right;
+  display: none;
+  width: 32px; height: 100%;
+  margin-left: -32px;
+  pointer-events: none;
+  background: linear-gradient(to right, transparent, var(--app-surface));
+}
+@media (max-width: 767px) {
+  .tableWrap::after { display: block; }
+}
 .table {
   width: 100%;
   border-collapse: collapse;
@@ -74,6 +95,10 @@
   padding: var(--app-space-3) var(--app-space-4);
   text-align: left;
   vertical-align: middle;
+}
+@media (max-width: 767px) {
+  .table th,
+  .table td { padding: var(--app-space-2) var(--app-space-3); white-space: nowrap; }
 }
 .table th {
   background: var(--app-gray-5);
@@ -94,6 +119,17 @@
 .table th.numeric { text-align: right; font-variant-numeric: tabular-nums; }
 .table td.actions { text-align: right; white-space: nowrap; }
 .table td.actions > * + * { margin-left: var(--app-space-2); }
+/* On mobile, pin the actions column to the right so Edit/Delete stay
+   reachable without horizontal scrolling. Header cell too, for alignment. */
+@media (max-width: 767px) {
+  .table td.actions,
+  .table th.actions { text-align: right; }
+  .table td.actions button,
+  .table td.actions a {
+    padding: 0.35rem 0.5rem;
+    font-size: 0.75rem;
+  }
+}
 
 .rowChip {
   display: inline-flex; align-items: center; gap: var(--app-space-2);

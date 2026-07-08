@@ -22,8 +22,54 @@
   .appShell__main { padding: var(--app-space-4); }
 }
 @media (max-width: 1023px) {
-  /* Reserve space for the sticky MobileCartBar (~86px). */
-  .appShell__main { padding-bottom: calc(var(--app-space-6) + 96px); }
+  /* Reserve space for the sticky bottom nav (~64px) and any mobile cart bar. */
+  .appShell__main { padding-bottom: calc(var(--app-space-6) + 88px); }
+}
+
+/* -------- BottomNav (mobile-only sticky tab bar) -------- */
+.bottomNav {
+  display: none;              /* hidden by default; shown via media query below */
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  z-index: var(--app-z-sticky);
+  background: var(--app-surface);
+  border-top: 1px solid var(--app-border);
+  box-shadow: 0 -2px 12px rgba(15, 23, 42, 0.06);
+  padding: 4px env(safe-area-inset-right, 0) env(safe-area-inset-bottom, 0) env(safe-area-inset-left, 0);
+  /* Distribute up to 5 items evenly across the width. */
+  justify-content: space-around;
+  align-items: stretch;
+  backdrop-filter: saturate(180%) blur(8px);
+  -webkit-backdrop-filter: saturate(180%) blur(8px);
+}
+.bottomNav__item {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  flex: 1 1 0;
+  min-height: 56px;           /* comfortable thumb target (WCAG 2.5.5) */
+  padding: 6px 4px;
+  color: var(--app-text-subtle);
+  text-decoration: none;
+  font-size: 11px;
+  font-weight: var(--app-font-weight-semibold);
+  transition: color var(--app-motion-fast), background var(--app-motion-fast);
+  border-radius: var(--app-radius-md);
+}
+.bottomNav__item:active { background: var(--app-gray-10); }
+.bottomNav__item--active { color: var(--app-primary); }
+.bottomNav__label {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+@media (max-width: 767px) {
+  .bottomNav { display: flex; }
+  /* Hide the top-header nav pills on phones; brand+tenant+user+theme still remain. */
+  .header .nav { display: none; }
 }
 
 /* -------- Header — modern SaaS style (white + subtle border + colored brand) -------- */
@@ -97,7 +143,7 @@
   font-weight: var(--app-font-weight-semibold);
   cursor: pointer;
   transition: background var(--app-motion-fast), color var(--app-motion-fast);
-  min-height: 40px;
+  min-height: 44px;           /* WCAG 2.5.5 target size */
   font-family: inherit;
   text-decoration: none;
   white-space: nowrap;
@@ -110,7 +156,7 @@
 .themeToggle {
   display: inline-grid;
   place-items: center;
-  width: 40px; height: 40px;
+  width: 44px; height: 44px;
   border-radius: var(--app-radius-pill);
   background: var(--app-gray-10);
   color: var(--app-text);
@@ -141,7 +187,7 @@
   color: var(--app-text);
   border: 1px solid var(--app-border);
   cursor: pointer;
-  min-height: 40px;
+  min-height: 44px;
   font-family: inherit;
   font-size: var(--app-font-size-sm);
   font-weight: var(--app-font-weight-semibold);
@@ -332,7 +378,7 @@
   font-family: inherit;
   font-size: var(--app-font-size-sm);
   font-weight: var(--app-font-weight-semibold);
-  min-height: 40px;
+  min-height: 44px;
   margin-right: auto; /* push nav + menu to the right */
   min-width: 0; /* allow the ellipsis inside .tenantBadge__name to actually kick in */
 }

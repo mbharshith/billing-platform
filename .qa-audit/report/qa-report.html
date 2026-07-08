@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>QuickBill QA + UX Audit Report</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+  tailwind.config = { theme: { extend: {
+    colors: {
+      walmart: { blue: '#0071dc', spark: '#ffc220', navy: '#041e42', ink: '#1a1a1a' },
+      sev: { critical: '#b91c1c', high: '#dc2626', medium: '#d97706', low: '#0369a1', info: '#0f766e' }
+    }
+  } } };
+</script>
+<style>
+  body { font-family: 'Everyday Sans', -apple-system, BlinkMacSystemFont, sans-serif; }
+  .shot { max-height: 480px; object-fit: contain; background: #f3f4f6; }
+  details > summary { list-style: none; cursor: pointer; }
+  details > summary::-webkit-details-marker { display: none; }
+  .chip { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.2rem 0.6rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+</style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+<!-- ===== Header ===== -->
+<header class="bg-walmart-navy text-white px-6 py-5 shadow">
+  <div class="max-w-7xl mx-auto flex items-center justify-between">
+    <div>
+      <div class="text-xs font-semibold tracking-widest text-walmart-spark uppercase">QA + UX Audit</div>
+      <h1 class="text-2xl md:text-3xl font-bold mt-1">QuickBill Multi-Tenant Billing SaaS</h1>
+      <p class="text-slate-300 text-sm mt-1">Chromium sweep across 3 roles &times; 3 viewports &times; 11 pages &mdash; July 8, 2026</p>
+    </div>
+    <div class="text-right">
+      <div class="text-xs text-slate-300">Overall verdict</div>
+      <div class="mt-1 inline-flex items-center px-4 py-2 rounded-lg bg-amber-500 text-white font-bold text-lg">SHIP-BLOCKING ISSUES ON MOBILE</div>
+    </div>
+  </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-6 py-8 space-y-10">
+
+<!-- ===== Executive summary ===== -->
+<section class="bg-white rounded-xl shadow p-6">
+  <h2 class="text-xl font-bold mb-4">Executive summary</h2>
+  <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4">
+    <div class="border-l-4 border-red-600 pl-3">
+      <div class="text-xs uppercase text-slate-500 font-semibold">Critical</div>
+      <div class="text-3xl font-bold text-red-700">3</div>
+      <div class="text-xs text-slate-500">block ship</div>
+    </div>
+    <div class="border-l-4 border-orange-500 pl-3">
+      <div class="text-xs uppercase text-slate-500 font-semibold">High</div>
+      <div class="text-3xl font-bold text-orange-600">5</div>
+      <div class="text-xs text-slate-500">fix this sprint</div>
+    </div>
+    <div class="border-l-4 border-amber-500 pl-3">
+      <div class="text-xs uppercase text-slate-500 font-semibold">Medium</div>
+      <div class="text-3xl font-bold text-amber-600">6</div>
+      <div class="text-xs text-slate-500">next sprint</div>
+    </div>
+    <div class="border-l-4 border-sky-600 pl-3">
+      <div class="text-xs uppercase text-slate-500 font-semibold">Low / Polish</div>
+      <div class="text-3xl font-bold text-sky-700">7</div>
+      <div class="text-xs text-slate-500">nice-to-haves</div>
+    </div>
+    <div class="border-l-4 border-emerald-600 pl-3">
+      <div class="text-xs uppercase text-slate-500 font-semibold">Passing</div>
+      <div class="text-3xl font-bold text-emerald-700">22</div>
+      <div class="text-xs text-slate-500">no defects</div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
+      <div class="font-semibold text-emerald-800 mb-1">What works well</div>
+      <ul class="text-sm text-emerald-900 space-y-1 list-disc pl-4">
+        <li>Desktop layouts (1440px) are clean and polished</li>
+        <li>Dark mode is design-token driven &mdash; flips cleanly</li>
+        <li>Compact KPI values with hover-reveal &mdash; excellent pattern</li>
+        <li>Vendor / tenant separation of duties is enforced</li>
+        <li>All buttons meet 44px on desktop (WCAG 2.5.5)</li>
+      </ul>
+    </div>
+    <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+      <div class="font-semibold text-red-800 mb-1">Ship blockers</div>
+      <ul class="text-sm text-red-900 space-y-1 list-disc pl-4">
+        <li><b>Mobile header nav clips</b> &mdash; primary nav buried under horizontal overflow</li>
+        <li><b>Cart panel disappears on tablet</b> &mdash; can't checkout below 1280px</li>
+        <li><b>Tables overflow horizontally on mobile</b> &mdash; Actions columns invisible</li>
+      </ul>
+    </div>
+    <div class="bg-sky-50 border border-sky-200 rounded-lg p-4">
+      <div class="font-semibold text-sky-800 mb-1">Top UX wins to add</div>
+      <ul class="text-sm text-sky-900 space-y-1 list-disc pl-4">
+        <li>Bottom tab bar on mobile (POS-native pattern)</li>
+        <li>Card-per-row layout for tables under 640px</li>
+        <li>Cart as bottom drawer on tablet/mobile</li>
+        <li>Consistent Edit/Deactivate button treatment on /users</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Test matrix ===== -->
+<section class="bg-white rounded-xl shadow p-6">
+  <h2 class="text-xl font-bold mb-4">Coverage matrix</h2>
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div>
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="text-left text-slate-500 uppercase text-xs">
+            <th class="pb-2">Page</th>
+            <th class="pb-2">Role</th>
+            <th class="pb-2 text-center">Desktop</th>
+            <th class="pb-2 text-center">Tablet</th>
+            <th class="pb-2 text-center">Mobile</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          <tr><td class="py-2">/login</td><td>guest</td><td class="text-center text-emerald-600 font-bold">PASS</td><td class="text-center text-emerald-600 font-bold">PASS</td><td class="text-center text-emerald-600 font-bold">PASS</td></tr>
+          <tr><td class="py-2">/vendor/dashboard</td><td>vendor</td><td class="text-center text-emerald-600 font-bold">PASS</td><td class="text-center text-amber-600 font-bold">WARN</td><td class="text-center text-red-600 font-bold">FAIL</td></tr>
+          <tr><td class="py-2">/vendor/tenants</td><td>vendor</td><td class="text-center text-emerald-600 font-bold">PASS</td><td class="text-center text-amber-600 font-bold">WARN</td><td class="text-center text-red-600 font-bold">FAIL</td></tr>
+          <tr><td class="py-2">/vendor/audit</td><td>vendor</td><td class="text-center text-emerald-600 font-bold">PASS</td><td class="text-center text-amber-600 font-bold">WARN</td><td class="text-center text-red-600 font-bold">FAIL</td></tr>
+          <tr><td class="py-2">/dashboard</td><td>admin</td><td class="text-center text-emerald-600 font-bold">PASS</td><td class="text-center text-emerald-600 font-bold">PASS</td><td class="text-center text-amber-600 font-bold">WARN</td></tr>
+          <tr><td class="py-2">/cashier</td><td>admin</td><td class="text-center text-emerald-600 font-bold">PASS</td><td class="text-center text-red-600 font-bold">FAIL</td><td class="text-center text-red-600 font-bold">FAIL</td></tr>
+          <tr><td class="py-2">/sales</td><td>admin</td><td class="text-center text-emerald-600 font-bold">PASS</td><td class="text-center text-emerald-600 font-bold">PASS</td><td class="text-center text-amber-600 font-bold">WARN</td></tr>
+          <tr><td class="py-2">/customers</td><td>admin</td><td class="text-center text-emerald-600 font-bold">PASS</td><td class="text-center text-emerald-600 font-bold">PASS</td><td class="text-center text-amber-600 font-bold">WARN</td></tr>
+          <tr><td class="py-2">/products</td><td>admin</td><td class="text-center text-emerald-600 font-bold">PASS</td><td class="text-center text-emerald-600 font-bold">PASS</td><td class="text-center text-amber-600 font-bold">WARN</td></tr>
+          <tr><td class="py-2">/users</td><td>admin</td><td class="text-center text-amber-600 font-bold">WARN</td><td class="text-center text-amber-600 font-bold">WARN</td><td class="text-center text-amber-600 font-bold">WARN</td></tr>
+          <tr><td class="py-2">/store</td><td>admin</td><td class="text-center text-emerald-600 font-bold">PASS</td><td class="text-center text-emerald-600 font-bold">PASS</td><td class="text-center text-emerald-600 font-bold">PASS</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div>
+      <canvas id="sevChart" height="220"></canvas>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Findings ===== -->
+<section class="space-y-4">
+  <h2 class="text-2xl font-bold">Findings, ranked by severity</h2>
+
+  <!-- CRITICAL 1 -->
+  <details open class="bg-white rounded-xl shadow overflow-hidden">
+    <summary class="flex items-center justify-between p-5 bg-red-50 border-l-4 border-red-600">
+      <div>
+        <div class="flex items-center gap-2 mb-1">
+          <span class="chip bg-red-600 text-white">CRITICAL</span>
+          <span class="chip bg-slate-200 text-slate-700">MOBILE</span>
+          <span class="chip bg-slate-200 text-slate-700">Navigation</span>
+        </div>
+        <div class="font-bold text-lg">C-01 &mdash; Header navigation clips on mobile (390px)</div>
+      </div>
+      <div class="text-xs text-slate-500">Affects vendor + admin + cashier</div>
+    </summary>
+    <div class="p-5 grid md:grid-cols-2 gap-5">
+      <div>
+        <img src="../mobile/vendor-dashboard.png" alt="Mobile vendor dashboard with clipped nav" class="shot rounded border w-full" />
+        <div class="text-xs text-slate-500 mt-1">Mobile 390&times;844 &mdash; only 'Overview' + partial 'Tenants' visible; Audit log, theme toggle, and user chip are all scrolled off screen.</div>
+      </div>
+      <div class="text-sm">
+        <div class="font-semibold mb-1">What's broken</div>
+        <p class="mb-3">The header nav is a single horizontal row of pills. At mobile widths, the pills overflow horizontally without any visual indicator that more items exist. The theme toggle and user chip are entirely off-screen. Users physically cannot navigate to Audit log / log out on a phone.</p>
+        <div class="font-semibold mb-1">How to reproduce</div>
+        <ol class="list-decimal pl-5 mb-3 space-y-1">
+          <li>Chromium DevTools -> device toolbar -> iPhone 14 (390&times;844)</li>
+          <li>Sign in as vendor</li>
+          <li>Observe header row</li>
+        </ol>
+        <div class="font-semibold mb-1">Recommended fix</div>
+        <ul class="list-disc pl-5 space-y-1">
+          <li><b>Convert to bottom tab bar</b> on &lt;=768px &mdash; standard POS pattern (Square, Toast, Shopify POS)</li>
+          <li>Keep brand + user chip in top bar, move nav to sticky bottom</li>
+          <li>Or: hamburger menu -&gt; sheet, but bottom tabs are ergonomically better for thumbs</li>
+        </ul>
+      </div>
+    </div>
+  </details>
+
+  <!-- CRITICAL 2 -->
+  <details class="bg-white rounded-xl shadow overflow-hidden">
+    <summary class="flex items-center justify-between p-5 bg-red-50 border-l-4 border-red-600">
+      <div>
+        <div class="flex items-center gap-2 mb-1">
+          <span class="chip bg-red-600 text-white">CRITICAL</span>
+          <span class="chip bg-slate-200 text-slate-700">TABLET</span>
+          <span class="chip bg-slate-200 text-slate-700">MOBILE</span>
+          <span class="chip bg-slate-200 text-slate-700">Cart</span>
+        </div>
+        <div class="font-bold text-lg">C-02 &mdash; Cart panel disappears below 1280px on /cashier</div>
+      </div>
+      <div class="text-xs text-slate-500">POS unusable on tablet</div>
+    </summary>
+    <div class="p-5 grid md:grid-cols-3 gap-5">
+      <div><img src="../desktop/admin-cashier.png" class="shot rounded border w-full" alt="Desktop cashier with visible cart"/><div class="text-xs text-slate-500 mt-1">Desktop 1440px: cart on right</div></div>
+      <div><img src="../tablet/admin-cashier.png" class="shot rounded border w-full" alt="Tablet cashier with no cart"/><div class="text-xs text-slate-500 mt-1">Tablet 768px: NO CART</div></div>
+      <div><img src="../mobile/admin-cashier.png" class="shot rounded border w-full" alt="Mobile cashier with no cart"/><div class="text-xs text-slate-500 mt-1">Mobile 390px: NO CART</div></div>
+    </div>
+    <div class="px-5 pb-5 text-sm">
+      <p>Product grid renders full-bleed on tablet/mobile but the &lsquo;Current Sale&rsquo; cart panel is hidden entirely. A cashier tapping &lsquo;Add&rsquo; on a product has no visible feedback and no way to review or check out.</p>
+      <div class="font-semibold mt-3 mb-1">Recommended fix</div>
+      <ul class="list-disc pl-5 space-y-1">
+        <li>Below 1024px: cart becomes a <b>bottom drawer</b> that peeks (~80px visible with count + total) and expands on tap</li>
+        <li>Or: floating cart button (FAB) that opens a full-screen sheet</li>
+        <li>Both patterns are standard in mobile POS apps (Shopify POS, Square Register)</li>
+      </ul>
+    </div>
+  </details>
+
+  <!-- CRITICAL 3 -->
+  <details class="bg-white rounded-xl shadow overflow-hidden">
+    <summary class="flex items-center justify-between p-5 bg-red-50 border-l-4 border-red-600">
+      <div>
+        <div class="flex items-center gap-2 mb-1">
+          <span class="chip bg-red-600 text-white">CRITICAL</span>
+          <span class="chip bg-slate-200 text-slate-700">MOBILE</span>
+          <span class="chip bg-slate-200 text-slate-700">Tables</span>
+        </div>
+        <div class="font-bold text-lg">C-03 &mdash; Data tables clip Actions column on mobile</div>
+      </div>
+      <div class="text-xs text-slate-500">Vendor tenants, sales, customers, products, users</div>
+    </summary>
+    <div class="p-5 grid md:grid-cols-2 gap-5">
+      <div><img src="../mobile/vendor-tenants.png" class="shot rounded border w-full"/></div>
+      <div class="text-sm">
+        <p>Every table page relies on horizontal scroll to expose the Actions column. On the vendor Tenants page a mobile admin literally cannot Edit, Impersonate, or Suspend a tenant &mdash; the buttons are off-screen with no scroll affordance.</p>
+        <div class="font-semibold mt-3 mb-1">Recommended fix</div>
+        <ul class="list-disc pl-5 space-y-1">
+          <li>Below 768px: swap table for a <b>stacked card layout</b> (one card per row, labels above values, actions in a row at the bottom)</li>
+          <li>Or at minimum: sticky-right column for Actions + gradient scroll hint on the edge</li>
+        </ul>
+      </div>
+    </div>
+  </details>
+
+  <!-- HIGH 1 -->
+  <details class="bg-white rounded-xl shadow overflow-hidden">
+    <summary class="flex items-center justify-between p-5 bg-orange-50 border-l-4 border-orange-500">
+      <div>
+        <div class="flex items-center gap-2 mb-1">
+          <span class="chip bg-orange-500 text-white">HIGH</span>
+          <span class="chip bg-slate-200 text-slate-700">A11Y</span>
+          <span class="chip bg-slate-200 text-slate-700">WCAG 2.5.5</span>
+        </div>
+        <div class="font-bold text-lg">H-01 &mdash; Header nav pills are 40&times;40 on mobile (below 44&times;44 touch target)</div>
+      </div>
+    </summary>
+    <div class="p-5 text-sm">
+      <p>DOM measurement on mobile viewport shows every nav link renders at 40&times;40 px. WCAG 2.2 AA (2.5.5) requires 44&times;44. Also affects the Flipkart Bengaluru Central store selector (158&times;40).</p>
+      <div class="font-semibold mt-3 mb-1">Fix</div>
+      <p>Bump min-height / padding on the top-nav pills to 44px. Reserves comfortable tap area for thumbs.</p>
+      <pre class="bg-slate-900 text-slate-100 rounded p-3 text-xs overflow-auto mt-2"><code>.nav__pill { min-height: 44px; padding-block: 0.625rem; }</code></pre>
+    </div>
+  </details>
+
+  <!-- HIGH 2 -->
+  <details class="bg-white rounded-xl shadow overflow-hidden">
+    <summary class="flex items-center justify-between p-5 bg-orange-50 border-l-4 border-orange-500">
+      <div>
+        <div class="flex items-center gap-2 mb-1">
+          <span class="chip bg-orange-500 text-white">HIGH</span>
+          <span class="chip bg-slate-200 text-slate-700">TABLET</span>
+          <span class="chip bg-slate-200 text-slate-700">Discoverability</span>
+        </div>
+        <div class="font-bold text-lg">H-02 &mdash; Tablet nav is icon-only, no labels or tooltips</div>
+      </div>
+    </summary>
+    <div class="p-5 grid md:grid-cols-2 gap-5">
+      <div><img src="../tablet/admin-dashboard.png" class="shot rounded border w-full"/></div>
+      <div class="text-sm">
+        <p>Between 768 and ~1100px the nav pills collapse to icons only. A cashier looking at "store / chart / receipt / user / bag" has to hover or guess which is Sales vs Products. Screen readers still work (aria-labels are present) but sighted users get zero affordance.</p>
+        <div class="font-semibold mt-3 mb-1">Fix</div>
+        <ul class="list-disc pl-5 space-y-1">
+          <li>Either keep labels visible until they truly can't fit (dynamic breakpoints based on container query)</li>
+          <li>Or add explicit CSS <code>title=&quot;Cashier&quot;</code> tooltip fallbacks</li>
+          <li>Bonus: highlight active tab more strongly (currently subtle background only)</li>
+        </ul>
+      </div>
+    </div>
+  </details>
+
+  <!-- HIGH 3 -->
+  <details class="bg-white rounded-xl shadow overflow-hidden">
+    <summary class="flex items-center justify-between p-5 bg-orange-50 border-l-4 border-orange-500">
+      <div>
+        <div class="flex items-center gap-2 mb-1">
+          <span class="chip bg-orange-500 text-white">HIGH</span>
+          <span class="chip bg-slate-200 text-slate-700">MOBILE</span>
+          <span class="chip bg-slate-200 text-slate-700">Cashier</span>
+        </div>
+        <div class="font-bold text-lg">H-03 &mdash; Category chips row overflows on cashier</div>
+      </div>
+    </summary>
+    <div class="p-5 grid md:grid-cols-2 gap-5">
+      <div><img src="../mobile/admin-cashier.png" class="shot rounded border w-full"/></div>
+      <div class="text-sm">
+        <p>Category filter shows All / Grocery / Produce / Beverages on mobile. Snacks / Household / Personal / Meat / Frozen are all clipped without a scroll indicator or wrap.</p>
+        <div class="font-semibold mt-3 mb-1">Fix</div>
+        <p>Either wrap chips (2 rows on mobile) or make the row horizontally scrollable with visible edge gradient + a "..." affordance.</p>
+      </div>
+    </div>
+  </details>
+
+  <!-- HIGH 4 -->
+  <details class="bg-white rounded-xl shadow overflow-hidden">
+    <summary class="flex items-center justify-between p-5 bg-orange-50 border-l-4 border-orange-500">
+      <div>
+        <div class="flex items-center gap-2 mb-1">
+          <span class="chip bg-orange-500 text-white">HIGH</span>
+          <span class="chip bg-slate-200 text-slate-700">Cross-viewport</span>
+          <span class="chip bg-slate-200 text-slate-700">Cell wrap</span>
+        </div>
+        <div class="font-bold text-lg">H-04 &mdash; Tabular values wrap awkwardly (dates, phones, SKUs)</div>
+      </div>
+    </summary>
+    <div class="p-5 grid md:grid-cols-3 gap-3">
+      <div><img src="../mobile/admin-products.png" class="shot rounded border w-full"/><div class="text-xs mt-1">SKU 'ELE-\\n0001'</div></div>
+      <div><img src="../mobile/admin-customers.png" class="shot rounded border w-full"/><div class="text-xs mt-1">Phone '901-\\n234-\\n5678'</div></div>
+      <div><img src="../mobile/admin-sales.png" class="shot rounded border w-full"/><div class="text-xs mt-1">Date wrapping 3 lines</div></div>
+    </div>
+    <div class="px-5 pb-5 text-sm">
+      <p>Values that should be single-token (SKUs, phone numbers, timestamps) wrap on hyphens and word boundaries when the column is narrow. Fix with <code>white-space: nowrap</code> + horizontal scroll on the row OR the card-per-row layout from C-03.</p>
+    </div>
+  </details>
+
+  <!-- HIGH 5 -->
+  <details class="bg-white rounded-xl shadow overflow-hidden">
+    <summary class="flex items-center justify-between p-5 bg-orange-50 border-l-4 border-orange-500">
+      <div>
+        <div class="flex items-center gap-2 mb-1">
+          <span class="chip bg-orange-500 text-white">HIGH</span>
+          <span class="chip bg-slate-200 text-slate-700">Consistency</span>
+        </div>
+        <div class="font-bold text-lg">H-05 &mdash; Edit is plain text link on /users, but a button everywhere else</div>
+      </div>
+    </summary>
+    <div class="p-5 grid md:grid-cols-2 gap-5">
+      <div><img src="../desktop/admin-users.png" class="shot rounded border w-full"/></div>
+      <div class="text-sm">
+        <p>On the Staff / Users page, "Edit" is a bare text link with no visual weight, but sits next to a proper "Deactivate" button. Mismatched affordance for equally-important actions.</p>
+        <div class="font-semibold mt-3 mb-1">Fix</div>
+        <p>Wrap Edit in the same <code>Button variant=&quot;secondary&quot; size=&quot;sm&quot;</code> as Deactivate. Consider adding an "edit" pencil icon for scanability.</p>
+      </div>
+    </div>
+  </details>
+
+  <!-- MEDIUM issues (grouped compact) -->
+  <details class="bg-white rounded-xl shadow overflow-hidden">
+    <summary class="flex items-center justify-between p-5 bg-amber-50 border-l-4 border-amber-500">
+      <div>
+        <div class="flex items-center gap-2 mb-1">
+          <span class="chip bg-amber-500 text-white">MEDIUM &times; 6</span>
+        </div>
+        <div class="font-bold text-lg">M-01 through M-06 &mdash; Polish issues</div>
+      </div>
+    </summary>
+    <div class="p-5 text-sm">
+      <ul class="space-y-3">
+        <li><b>M-01</b> &mdash; Store selector shows "Flipkart Be..." truncated. Add explicit <code>title</code> attribute + consider showing only the initials with a fuller label in the dropdown.</li>
+        <li><b>M-02</b> &mdash; "Frozen" category chip visibly clipped even on desktop. Either shrink typography or allow chip row to wrap after ~8 chips.</li>
+        <li><b>M-03</b> &mdash; Dotted underline hover cue on KPI values shows even when the value hasn't been compacted (e.g. "30", "8"). Only add the cue when compact != full.</li>
+        <li><b>M-04</b> &mdash; Filter chip counts (All 3, Active 3, Suspended 0) don't visually pop &mdash; consider inline badge styling with contrasting bg per state.</li>
+        <li><b>M-05</b> &mdash; Empty states are generic on many pages (Users has none at all). Standardize with icon + copy + primary CTA.</li>
+        <li><b>M-06</b> &mdash; Sales table's "CUSTOMER" column shows "&mdash;" (em-dash) for guest sales. Use "Guest" or "Walk-in" for clearer semantics.</li>
+      </ul>
+    </div>
+  </details>
+
+  <!-- LOW / polish -->
+  <details class="bg-white rounded-xl shadow overflow-hidden">
+    <summary class="flex items-center justify-between p-5 bg-sky-50 border-l-4 border-sky-600">
+      <div>
+        <div class="flex items-center gap-2 mb-1">
+          <span class="chip bg-sky-600 text-white">LOW &times; 7</span>
+        </div>
+        <div class="font-bold text-lg">L-01 through L-07 &mdash; UX polish nice-to-haves</div>
+      </div>
+    </summary>
+    <div class="p-5 text-sm">
+      <ul class="space-y-2">
+        <li><b>L-01</b> &mdash; Login page 'Demo tenants' block reads as monospace. Consider softening to sans + inline code chips for the credentials.</li>
+        <li><b>L-02</b> &mdash; Vendor console purple gradient is beautiful but slightly inconsistent with tenant's blue &mdash; consider a "role indicator" strip below the header on tenant views so context is unmistakable.</li>
+        <li><b>L-03</b> &mdash; Product cards on /cashier have wildly different tint backgrounds (blue, yellow, pink, tan) &mdash; delightful but random. Tie tint to category for visual grouping.</li>
+        <li><b>L-04</b> &mdash; "Impersonate" is a strong word. Consider "View as tenant" &mdash; less alarming for auditors reading logs.</li>
+        <li><b>L-05</b> &mdash; No breadcrumbs anywhere. Deep detail pages (Sale detail) leave user unsure of where they are.</li>
+        <li><b>L-06</b> &mdash; The QuickBill brand mark differs between vendor (shield) and tenant (spark) &mdash; intentional? If yes, document. If accidental, unify.</li>
+        <li><b>L-07</b> &mdash; No global search / cmd-K. For a POS with growing catalogs this becomes essential.</li>
+      </ul>
+    </div>
+  </details>
+
+</section>
+
+<!-- ===== Visual gallery ===== -->
+<section class="bg-white rounded-xl shadow p-6">
+  <h2 class="text-xl font-bold mb-4">Screenshot gallery</h2>
+  <p class="text-sm text-slate-500 mb-4">Every page &times; every viewport. Click a thumbnail to open full size in a new tab.</p>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div>
+      <div class="font-semibold mb-2 text-slate-700">Desktop 1440&times;900</div>
+      <div class="grid grid-cols-2 gap-2">
+        <a href="../desktop/admin-cashier.png" target="_blank" class="block hover:opacity-90"><img src="../desktop/admin-cashier.png" class="shot rounded border w-full" alt="admin-cashier.png" loading="lazy"/><div class="text-xs text-slate-500 mt-1">admin-cashier</div></a>
+<a href="../desktop/admin-customers.png" target="_blank" class="block hover:opacity-90"><img src="../desktop/admin-customers.png" class="shot rounded border w-full" alt="admin-customers.png" loading="lazy"/><div class="text-xs text-slate-500 mt-1">admin-customers</div></a>
+<a href="../desktop/admin-dashboard.png" target="_blank" class="block hover:opacity-90"><img src="../desktop/admin-dashboard.png" class="shot rounded border w-full" alt="admin-dashboard.png" loading="lazy"/><div class="text-xs text-slate-500 mt-1">admin-dashboard</div></a>
+<a href="../desktop/admin-products.png" target="_blank" class="block hover:opacity-90"><img src="../desktop/admin-products.png" class="shot rounded border w-full" alt="admin-products.png" loading="lazy"/><div class="text-xs text-slate-500 mt-1">admin-products</div></a>
+<a href="../desktop/admin-sales.png" target="_blank" class="block hover:opacity-90"><img src="../desktop/admin-sales.png" class="shot rounded border w-full" alt="admin-sales.png" loading="lazy"/><div class="text-xs text-slate-500 mt-1">admin-sales</div></a>
+<a href="../desktop/admin-store.png" target="_blank" class="block hover:opacity-90"><img src="../desktop/admin-store.png" class="shot rounded border w-full" alt="admin-store.png" loading="lazy"/><div class="text-xs text-slate-500 mt-1">admin-store</div></a>
+<a href="../desktop/admin-users.png" target="_blank" class="block hover:opacity-90"><img src="../desktop/admin-users.png" class="shot rounded border w-full" alt="admin-users.png" loading="lazy"/><div class="text-xs text-slate-500 mt-1">admin-users</div></a>
+<a href="../desktop/guest-login.png" target="_blank" class="block hover:opacity-90"><img src="../desktop/guest-login.png" class="shot rounded border w-full" alt="guest-login.png" loading="lazy"/><div class="text-xs text-slate-500 mt-1">guest-login</div></a>
+<a href="../desktop/vendor-audit.png" target="_blank" class="block hover:opacity-90"><img src="../desktop/vendor-audit.png" class="shot rounded border w-full" alt="vendor-audit.png" loading="lazy"/><div class="text-xs text-slate-500 mt-1">vendor-audit</div></a>
+<a href="../desktop/vendor-dashboard.png" target="_blank" class="block hover:opacity-90"><img src="../desktop/vendor-dashboard.png" class="shot rounded border w-full" alt="vendor-dashboard.png" loading="lazy"/><div class="text-xs text-slate-500 mt-1">vendor-dashboard</div></a>
+<a href="../desktop/vendor-tenants.png" target="_blank" class="block hover:opacity-90"><img src="../desktop/vendor-tenants.png" class="shot rounded border w-full" alt="vendor-tenants.png" loading="lazy"/><div class="text-xs text-slate-500 mt-1">vendor-tenants</div></a>
+
+      </div>
+    </div>
+    <div>
+      <div class="font-semibold mb-2 text-slate-700">Tablet 768&times;1024</div>
+      <div class="grid grid-cols-2 gap-2">
+        <a href="../tablet/admin-cashier.png" target="_blank" class="block hover:opacity-90"><img src="../tablet/admin-cashier.png" class="shot rounded border w-full" alt="admin-cashier.png" loading="lazy"/><div class="text-xs text-slate-500 mt-1">admin-cashier</div></a>
+<a href="../tablet/admin-customers.png" target="_blank" class="block hover:opacity-90"><img src="../tablet/admin-customers.png" class="shot rounded border w-full" alt="admin-customers.png" loading="lazy"/><div class="text-xs text-slate-500 mt-1">admin-customers</div></a>
+<a href="../tablet/admin-dashboard.png" target="_blank" class="block hover:opacity-90"><img src="../tablet/admin-dashboard.png" class="shot rounded border w-full" alt="admin-dashboard.png" loading="lazy"/><div class="text-xs text-slate-500 mt-1">admin-dashboard</div></a>
+<a href="../tablet/admin-products.png" target="_blank" class="block hover:opacity-90"><img src="../tablet/admin-products.png" class="shot rounded border w-full" alt="admin-products.png" loading="lazy"/><div class="text-xs text-slate-500 mt-1">admin-products</div></a>
+<a href="../tablet/admin-sales.png" target="_blank" class="block hover:opacity-90"><img src="../tablet/admin-sales.png" class="shot rounded border w-full" alt="admin-sales.png" loading="lazy"/><div class="text-xs text-slate-500 mt-1">admin-sales</div></a>
+<a href="../tablet/admin-store.png" target="_blank" class="block hover:opacity-90"><img src="../tablet/admin-store.png" class="shot rounded border w-full" alt="admin-store.png" loading="lazy"/><div class="text-xs text-slate-500 mt-1">admin-store</div></a>
+<a href="../tablet/admin-users.png" target="_blank" class="block hover:opacity-90"><img src="../tablet/admin-users.png" class="shot rounded border w-full" alt="admin-users.png" loading="lazy"/><div class="text-xs text-slate-500 mt-1">admin-users</div></a>
+<a href="../tablet/guest-login.png" target="_blank" class="block hover:opacity-90"><img src="../tablet/guest-login.png" class="shot rounded border w-full" alt="guest-login.png" loading="lazy"/><div class="text-xs text-slate-500 mt-1">guest-login</div></a>
+<a href="../tablet/vendor-audit.png" target="_blank" class="block hover:opacity-90"><img src="../tablet/vendor-audit.png" class="shot rounded border w-full" alt="vendor-audit.png" loading="lazy"/><div class="text-xs text-slate-500 mt-1">vendor-audit</div></a>
+<a href="../tablet/vendor-dashboard.png" target="_blank" class="block hover:opacity-90"><img src="../tablet/vendor-dashboard.png" class="shot rounded border w-full" alt="vendor-dashboard.png" loading="lazy"/><div class="text-xs text-slate-500 mt-1">vendor-dashboard</div></a>
+<a href="../tablet/vendor-tenants.png" target="_blank" class="block hover:opacity-90"><img src="../tablet/vendor-tenants.png" class="shot rounded border w-full" alt="vendor-tenants.png" loading="lazy"/><div class="text-xs text-slate-500 mt-1">vendor-tenants</div></a>
+
+      </div>
+    </div>
+    <div>
+      <div class="font-semibold mb-2 text-slate-700">Mobile 390&times;844</div>
+      <div class="grid grid-cols-2 gap-2">
+        <a href="../mobile/admin-cashier.png" target="_blank" class="block hover:opacity-90"><img src="../mobile/admin-cashier.png" class="shot rounded border w-full" alt="admin-cashier.png" loading="lazy"/><div class="text-xs text-slate-500 mt-1">admin-cashier</div></a>
+<a href="../mobile/admin-customers.png" target="_blank" class="block hover:opacity-90"><img src="../mobile/admin-customers.png" class="shot rounded border w-full" alt="admin-customers.png" loading="lazy"/><div class="text-xs text-slate-500 mt-1">admin-customers</div></a>
+<a href="../mobile/admin-dashboard.png" target="_blank" class="block hover:opacity-90"><img src="../mobile/admin-dashboard.png" class="shot rounded border w-full" alt="admin-dashboard.png" loading="lazy"/><div class="text-xs text-slate-500 mt-1">admin-dashboard</div></a>
+<a href="../mobile/admin-products.png" target="_blank" class="block hover:opacity-90"><img src="../mobile/admin-products.png" class="shot rounded border w-full" alt="admin-products.png" loading="lazy"/><div class="text-xs text-slate-500 mt-1">admin-products</div></a>
+<a href="../mobile/admin-sales.png" target="_blank" class="block hover:opacity-90"><img src="../mobile/admin-sales.png" class="shot rounded border w-full" alt="admin-sales.png" loading="lazy"/><div class="text-xs text-slate-500 mt-1">admin-sales</div></a>
+<a href="../mobile/admin-store.png" target="_blank" class="block hover:opacity-90"><img src="../mobile/admin-store.png" class="shot rounded border w-full" alt="admin-store.png" loading="lazy"/><div class="text-xs text-slate-500 mt-1">admin-store</div></a>
+<a href="../mobile/admin-users.png" target="_blank" class="block hover:opacity-90"><img src="../mobile/admin-users.png" class="shot rounded border w-full" alt="admin-users.png" loading="lazy"/><div class="text-xs text-slate-500 mt-1">admin-users</div></a>
+<a href="../mobile/guest-login.png" target="_blank" class="block hover:opacity-90"><img src="../mobile/guest-login.png" class="shot rounded border w-full" alt="guest-login.png" loading="lazy"/><div class="text-xs text-slate-500 mt-1">guest-login</div></a>
+<a href="../mobile/vendor-audit.png" target="_blank" class="block hover:opacity-90"><img src="../mobile/vendor-audit.png" class="shot rounded border w-full" alt="vendor-audit.png" loading="lazy"/><div class="text-xs text-slate-500 mt-1">vendor-audit</div></a>
+<a href="../mobile/vendor-dashboard.png" target="_blank" class="block hover:opacity-90"><img src="../mobile/vendor-dashboard.png" class="shot rounded border w-full" alt="vendor-dashboard.png" loading="lazy"/><div class="text-xs text-slate-500 mt-1">vendor-dashboard</div></a>
+<a href="../mobile/vendor-tenants.png" target="_blank" class="block hover:opacity-90"><img src="../mobile/vendor-tenants.png" class="shot rounded border w-full" alt="vendor-tenants.png" loading="lazy"/><div class="text-xs text-slate-500 mt-1">vendor-tenants</div></a>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== UX principles review ===== -->
+<section class="bg-white rounded-xl shadow p-6">
+  <h2 class="text-xl font-bold mb-4">Senior UX review &mdash; heuristic evaluation (Nielsen 10)</h2>
+  <div class="grid md:grid-cols-2 gap-4 text-sm">
+    <div class="border rounded p-4"><b>1. Visibility of system status</b> &mdash; STRONG. Toasts on save, active state on nav, live-updating tables. Missing on tablet/mobile cart adds.</div>
+    <div class="border rounded p-4"><b>2. Match system-real-world</b> &mdash; GOOD. "Onboard tenant", "Impersonate", "Lending" all match retail vernacular. "Impersonate" could soften.</div>
+    <div class="border rounded p-4"><b>3. User control &amp; freedom</b> &mdash; PARTIAL. Cancel/close everywhere, but no undo on Suspend (only Reactivate). No back-button-safe modal history.</div>
+    <div class="border rounded p-4"><b>4. Consistency &amp; standards</b> &mdash; STRONG on desktop. Edit-as-link on /users breaks it. Vendor purple vs tenant blue is intentional and works.</div>
+    <div class="border rounded p-4"><b>5. Error prevention</b> &mdash; EXCELLENT. Confirm dialogs for suspend, no-op detection on edit, 8-char password rule, duplicate-name inline error.</div>
+    <div class="border rounded p-4"><b>6. Recognition over recall</b> &mdash; GOOD. Sidebar nav is stable, icons paired with labels (desktop). Tablet icons-only breaks this.</div>
+    <div class="border rounded p-4"><b>7. Flexibility &amp; efficiency</b> &mdash; WEAK. No keyboard shortcuts, no cmd-K search, no bulk actions on tables.</div>
+    <div class="border rounded p-4"><b>8. Aesthetic &amp; minimalist design</b> &mdash; STRONG. Whitespace, tabular-nums, subtle borders. Purple gradient brand marks are chef's kiss.</div>
+    <div class="border rounded p-4"><b>9. Help users recover from errors</b> &mdash; GOOD. Toast copy is human ("This store has been suspended by the vendor"). Login errors surface inline.</div>
+    <div class="border rounded p-4"><b>10. Help &amp; documentation</b> &mdash; MISSING. No inline help, no docs, no first-time tour. Would land better with a subtle "Learn more" affordance on core pages.</div>
+  </div>
+</section>
+
+<!-- ===== Roadmap ===== -->
+<section class="bg-white rounded-xl shadow p-6">
+  <h2 class="text-xl font-bold mb-4">Suggested fix roadmap</h2>
+  <div class="space-y-3 text-sm">
+    <div class="flex gap-4 items-start"><span class="chip bg-red-600 text-white shrink-0">SPRINT 0</span><div><b>Ship-blockers</b> &mdash; Mobile bottom tab bar (C-01), Cart bottom drawer on tablet/mobile (C-02), Card-per-row tables under 768px (C-03). Est. 2-3 days.</div></div>
+    <div class="flex gap-4 items-start"><span class="chip bg-orange-500 text-white shrink-0">SPRINT 1</span><div><b>A11y + consistency</b> &mdash; 44px touch targets (H-01), tablet nav labels or tooltips (H-02), category chip overflow (H-03), consistent Edit button on /users (H-05), nowrap on tabular tokens (H-04). Est. 1-2 days.</div></div>
+    <div class="flex gap-4 items-start"><span class="chip bg-amber-500 text-white shrink-0">SPRINT 2</span><div><b>Polish batch</b> &mdash; All medium issues (empty states, chip counts, dotted underlines, guest label). Est. 1 day.</div></div>
+    <div class="flex gap-4 items-start"><span class="chip bg-sky-600 text-white shrink-0">BACKLOG</span><div><b>Delight layer</b> &mdash; Global cmd-K search, breadcrumbs, keyboard shortcuts, first-run tour, undo on suspend.</div></div>
+  </div>
+</section>
+
+<!-- ===== Executive close ===== -->
+<section class="bg-walmart-navy text-white rounded-xl p-6">
+  <h2 class="text-xl font-bold mb-3">The one thing to remember</h2>
+  <p class="text-slate-200">QuickBill is a <b>desktop-first SaaS</b> masquerading as a POS. Every desktop view is production-ready and looks polished. Every mobile view has at least one blocking issue. The fastest way to a shippable v1 is a focused 2-3 day sprint on the three CRITICAL items above &mdash; after that, this ships as-is for a launch to design-partner tenants who are on desktop.</p>
+</section>
+
+</main>
+
+<footer class="text-center text-xs text-slate-500 py-6">Generated by Code Puppy | agent-browser sweep | 33 screenshots | 21 findings</footer>
+
+<script>
+  new Chart(document.getElementById('sevChart'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Critical', 'High', 'Medium', 'Low', 'Passing'],
+      datasets: [{
+        data: [3, 5, 6, 7, 22],
+        backgroundColor: ['#b91c1c', '#f97316', '#f59e0b', '#0284c7', '#059669'],
+      }],
+    },
+    options: { plugins: { legend: { position: 'bottom' } }, cutout: '55%' },
+  });
+</script>
+</body>
+</html>

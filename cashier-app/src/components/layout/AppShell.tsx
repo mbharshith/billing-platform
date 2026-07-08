@@ -254,6 +254,42 @@ export const PageHeader: FC<PageHeaderProps> = ({ title, subtitle, actions }) =>
 );
 
 /* -------------------------------------------------------------------------- */
+/* BottomNav — mobile-only sticky tab bar (POS-native pattern)                */
+/* Hidden above 768px via CSS. Mirrors the top nav's role-scoped items so     */
+/* thumb-reachable navigation works on phones, which is the ergonomic sweet   */
+/* spot for handheld POS use.                                                 */
+/* -------------------------------------------------------------------------- */
+const BottomNavItem: FC<NavItemProps> = ({ to, icon, children, label }) => (
+  <NavLink
+    to={to}
+    className={({ isActive }) => [cls.bottomNav__item, isActive && cls['bottomNav__item--active']].filter(Boolean).join(' ')}
+    aria-label={label}
+  >
+    <Icon name={icon} size={22} />
+    <span className={cls.bottomNav__label}>{children}</span>
+  </NavLink>
+);
+
+const BottomNav: FC = () => {
+  const { isAdmin, can } = useAuth();
+  return (
+    <nav className={cls.bottomNav} aria-label={STRINGS.ariaLabels.navigate}>
+      <BottomNavItem to="/cashier"   icon="store"   label={STRINGS.nav.cashier}>{STRINGS.nav.cashier}</BottomNavItem>
+      {isAdmin && (
+        <BottomNavItem to="/dashboard" icon="chart" label={STRINGS.nav.dashboard}>{STRINGS.nav.dashboard}</BottomNavItem>
+      )}
+      {(can('sale:viewAllTime') || can('sale:viewToday')) && (
+        <BottomNavItem to="/sales"    icon="receipt" label={STRINGS.nav.sales}>{STRINGS.nav.sales}</BottomNavItem>
+      )}
+      <BottomNavItem to="/customers" icon="user"    label={STRINGS.nav.customers}>{STRINGS.nav.customers}</BottomNavItem>
+      {isAdmin && (
+        <BottomNavItem to="/products" icon="bag"    label={STRINGS.nav.products}>{STRINGS.nav.products}</BottomNavItem>
+      )}
+    </nav>
+  );
+};
+
+/* -------------------------------------------------------------------------- */
 /* AppShell                                                                   */
 /* -------------------------------------------------------------------------- */
 export const AppShell: FC = () => {
@@ -266,6 +302,7 @@ export const AppShell: FC = () => {
       <main className={cls.appShell__main}>
         <Outlet />
       </main>
+      <BottomNav />
       <ToastStack />
     </div>
   );

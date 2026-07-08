@@ -172,6 +172,20 @@
   --app-gray-140:        #c9d1e3;
   --app-gray-160:        #e6edf7;
 
+  /* Badge tint surfaces — light-mode pastels (#dcf5cc, #fee2e2, #fef3c7)
+     have near-zero contrast on dark fills. Each value is a dark-tinted
+     counterpart that keeps the hue but works on --app-surface (#131a2b). */
+  --app-green-10:        #132d18;
+  --app-red-10:          #2d1517;
+  --app-spark-10:        #2c1d09;
+
+  /* Semantic success/danger/accent text — boosted for WCAG AA on dark
+     surfaces (luminance ~0.01). Current #2a8703 and #ea1100 both fail
+     the 4.5:1 threshold against --app-surface in dark mode. */
+  --app-success:         #4ade80;
+  --app-danger:          #f87171;
+  --app-spark-140:       #fcd34d;
+
   /* Shadows: swap tinted-blue drops for pure-black at higher opacity */
   --app-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
   --app-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.35), 0 1px 2px rgba(0, 0, 0, 0.3);
