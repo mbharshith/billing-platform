@@ -17,6 +17,7 @@ import { EmptyState, Pagination, usePagination } from './hooks';
 
 const ACTION_LABEL: Record<VendorAction, string> = {
   'tenant.create':       'Onboarded tenant',
+  'tenant.edit':         'Edited tenant',
   'tenant.suspend':      'Suspended tenant',
   'tenant.reactivate':   'Reactivated tenant',
   'tenant.impersonate':  'Impersonated admin',
@@ -27,6 +28,7 @@ const ACTION_LABEL: Record<VendorAction, string> = {
 
 const ACTION_VARIANT: Record<VendorAction, 'neutral' | 'primary' | 'danger' | 'success'> = {
   'tenant.create':       'success',
+  'tenant.edit':         'primary',
   'tenant.suspend':      'danger',
   'tenant.reactivate':   'success',
   'tenant.impersonate':  'primary',
@@ -40,6 +42,7 @@ type ActionFilter = 'all' | VendorAction;
 const FILTER_CHIPS: readonly { key: ActionFilter; label: string }[] = [
   { key: 'all',                label: 'All' },
   { key: 'tenant.create',      label: 'Onboards' },
+  { key: 'tenant.edit',        label: 'Edits' },
   { key: 'tenant.suspend',     label: 'Suspends' },
   { key: 'tenant.reactivate',  label: 'Reactivates' },
   { key: 'tenant.impersonate', label: 'Impersonations' },

@@ -19,6 +19,7 @@ import { useStores } from '../../store/StoresContext';
 import { useToast } from '../../store/ToastContext';
 import { VENDOR_SCOPE, type Store, type User } from '../../domain/types';
 import { CreateTenantModal } from './CreateTenantModal';
+import { EditTenantModal } from './EditTenantModal';
 import { EmptyState, Pagination, StatusPill, usePagination, useTenantStats } from './hooks';
 
 type StatusFilter = 'all' | 'active' | 'suspended';
@@ -34,6 +35,7 @@ export const TenantsPage: FC = () => {
 
   const [confirmSuspend, setConfirmSuspend] = useState<Store | null>(null);
   const [showCreate, setShowCreate] = useState(false);
+  const [editing, setEditing] = useState<Store | null>(null);
   const [query, setQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
 
@@ -205,6 +207,14 @@ export const TenantsPage: FC = () => {
                           <Button
                             variant="secondary"
                             size="sm"
+                            leadingIcon="edit"
+                            onClick={() => setEditing(store)}
+                          >
+                            Edit
+                          </Button>
+                          <Button
+                            variant="secondary"
+                            size="sm"
                             leadingIcon="user"
                             onClick={() => doImpersonate(store)}
                             disabled={!admin || suspended}
@@ -244,6 +254,14 @@ export const TenantsPage: FC = () => {
       )}
 
       {showCreate && <CreateTenantModal onClose={() => setShowCreate(false)} />}
+
+      {editing && (
+        <EditTenantModal
+          store={editing}
+          admin={adminByStoreId.get(editing.id)}
+          onClose={() => setEditing(null)}
+        />
+      )}
     </>
   );
 };

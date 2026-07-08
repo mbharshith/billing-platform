@@ -190,6 +190,7 @@ export interface StoreSettings {
  *  Written server-side in production; here we append to a Dexie table. */
 export type VendorAction =
   | 'tenant.create'
+  | 'tenant.edit'
   | 'tenant.suspend'
   | 'tenant.reactivate'
   | 'tenant.impersonate'

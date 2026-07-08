@@ -8,7 +8,7 @@ export type IconName =
   | 'search' | 'close' | 'plus' | 'minus' | 'trash' | 'check'
   | 'bag' | 'cart' | 'receipt' | 'print' | 'phone' | 'user'
   | 'shield' | 'zap' | 'chart' | 'arrow' | 'lock' | 'cash'
-  | 'card' | 'coins' | 'spark' | 'store' | 'sun' | 'moon';
+  | 'card' | 'coins' | 'spark' | 'store' | 'sun' | 'moon' | 'edit';
 
 interface IconProps extends Omit<SVGProps<SVGSVGElement>, 'name'> {
   name: IconName;
@@ -41,6 +41,7 @@ const PATHS: Record<IconName, JSX.Element> = {
   store:   <path d="M4 4h16l1 5a2.5 2.5 0 01-5 0 2.5 2.5 0 01-5 0 2.5 2.5 0 01-5 0 2.5 2.5 0 01-3 0L4 4zm0 8a4.5 4.5 0 004-1.3A4.5 4.5 0 0012 12a4.5 4.5 0 004-1.3 4.5 4.5 0 004 1.3v8H4v-8z"/>,
   sun:     <path d="M12 7a5 5 0 100 10 5 5 0 000-10zm0-5a1 1 0 011 1v2a1 1 0 11-2 0V3a1 1 0 011-1zm0 17a1 1 0 011 1v2a1 1 0 11-2 0v-2a1 1 0 011-1zM4.22 4.22a1 1 0 011.42 0l1.4 1.4a1 1 0 11-1.41 1.42l-1.41-1.41a1 1 0 010-1.41zm12.72 12.72a1 1 0 011.42 0l1.41 1.41a1 1 0 11-1.41 1.42l-1.42-1.42a1 1 0 010-1.41zM2 12a1 1 0 011-1h2a1 1 0 110 2H3a1 1 0 01-1-1zm17 0a1 1 0 011-1h2a1 1 0 110 2h-2a1 1 0 01-1-1zM4.22 19.78a1 1 0 010-1.42l1.41-1.4a1 1 0 011.42 1.41l-1.41 1.41a1 1 0 01-1.42 0zm12.72-12.72a1 1 0 010-1.42l1.41-1.41a1 1 0 111.42 1.42l-1.42 1.41a1 1 0 01-1.41 0z"/>,
   moon:    <path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/>,
+  edit:    <path d="M14.06 4.94l3.75 3.75L7.62 18.87 3 20l1.12-4.62 9.94-9.94zm4.62-.94a2.12 2.12 0 013 3l-1.5 1.5-3-3 1.5-1.5z"/>,
 };
 
 export const Icon: FC<IconProps> = ({
