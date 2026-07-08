@@ -182,7 +182,7 @@ export const SalesPage: FC = () => {
                       <td><Text size="sm" tone="subtle">{fmtDateTime(s.completedAt)}</Text></td>
                       <td className="numeric"><Text size="sm">{s.unitCount}</Text></td>
                       <td><PaymentBadge method={s.paymentMethod} /></td>
-                      <td><Text size="sm" tone={s.customerMobile ? 'default' : 'muted'}>{s.customerMobile ?? '—'}</Text></td>
+                      <td><Text size="sm" tone={s.customerMobile ? 'default' : 'muted'}>{s.customerMobile ?? 'Walk-in'}</Text></td>
                       <td><Text size="sm" tone="subtle">{s.cashierName}</Text></td>
                       <td>
                         {s.voided

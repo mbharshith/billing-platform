@@ -548,7 +548,7 @@ export const RecentSalesTable: FC<RecentSalesTableProps> = ({ sales }) => {
                 <td><PaymentBadge method={s.paymentMethod} /></td>
                 <td>
                   <Text size="sm" tone={s.customerMobile ? 'default' : 'muted'}>
-                    {s.customerMobile ?? '—'}
+                    {s.customerMobile ?? 'Walk-in'}
                   </Text>
                 </td>
                 <td className="numeric"><Text weight="bold" size="sm">{money(s.total)}</Text></td>
@@ -620,9 +620,9 @@ export const TopProductsTable: FC<TopProductsTableProps> = ({ aggregates }) => {
                   <td>
                     <div className={cls.productCell}>
                       <ProductBadge name={a.name} tone={a.tone} size="sm" />
-                      <div>
-                        <Text weight="semibold" size="sm">{a.name}</Text>
-                        <Text size="xs" tone="subtle">{a.sku}</Text>
+                      <div className={cls.productCell__body}>
+                        <Text as="div" weight="semibold" size="sm">{a.name}</Text>
+                        <Text as="div" size="xs" tone="subtle">{a.sku}</Text>
                       </div>
                     </div>
                   </td>

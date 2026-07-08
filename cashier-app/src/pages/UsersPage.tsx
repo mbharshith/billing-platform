@@ -165,7 +165,7 @@ export const UsersPage: FC = () => {
                         {isSelf && <Text size="xs" tone="subtle"> (you)</Text>}
                       </td>
                       <td className="actions">
-                        <Button variant="ghost" size="sm" onClick={() => openEdit(u)}>
+                        <Button variant="secondary" size="sm" leadingIcon="edit" onClick={() => openEdit(u)}>
                           {STRINGS.users.edit}
                         </Button>
                         <Button

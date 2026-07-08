@@ -46,7 +46,7 @@
   color: var(--app-primary);
   font-size: var(--app-font-size-xs);
   text-align: center;
-  font-family: var(--app-font-family-mono, monospace);
+  line-height: 1.6;
 }
 
 /* --- Signup (wide variant of the login card) --------------------------- */

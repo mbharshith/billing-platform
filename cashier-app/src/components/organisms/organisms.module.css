@@ -293,6 +293,7 @@
 .rankBadge--silver { background: var(--app-gray-10);   color: var(--app-gray-140); }
 .rankBadge--bronze { background: #efe4d6; color: #78350f; }
 .productCell { display: inline-flex; align-items: center; gap: var(--app-space-3); }
+.productCell__body { display: flex; flex-direction: column; min-width: 0; line-height: 1.35; }
 
 .stockBar {
   width: 100%;
@@ -331,10 +332,10 @@
 @media (max-width: 1023px) {
   .mobileCartBar { display: flex; }
 }
-/* On phones the bottom tab nav (~60px + safe-area) lives at bottom:0, so the
-   cart bar must float above it. On tablets there's no bottom nav, so the bar
-   sits flush at bottom:0. */
-@media (max-width: 767px) {
+/* On phone + tablet-portrait the bottom tab nav (~64px + safe-area) lives at
+   bottom:0, so the cart bar must float above it. Above 900px the bar sits
+   flush at bottom:0 (no bottom nav in the way). */
+@media (max-width: 900px) {
   .mobileCartBar { bottom: calc(64px + env(safe-area-inset-bottom, 0)); }
 }
 .mobileCartBar__badge {

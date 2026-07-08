@@ -200,30 +200,36 @@ interface StatCardProps {
   hint?: string;
 }
 
-export const StatCard: FC<StatCardProps> = ({ label, value, fullValue, icon, tone = 'primary', hint }) => (
-  <div className={cls.statCard}>
-    <div className={cls.statCard__topRow}>
-      <Text size="sm" weight="semibold" tone="subtle" upper>{label}</Text>
-      <span
-        className={[
-          cls.statCard__iconWrap,
-          tone !== 'primary' && cls[`statCard__iconWrap--${tone}`],
-        ].filter(Boolean).join(' ')}
-        aria-hidden="true"
+export const StatCard: FC<StatCardProps> = ({ label, value, fullValue, icon, tone = 'primary', hint }) => {
+  // Only show the 'hover for exact value' cue when the compact value actually
+  // differs from the full value — otherwise the dotted underline is a false
+  // affordance for numbers that are already displayed literally (M-03).
+  const isCompacted = fullValue !== undefined && fullValue !== value;
+  return (
+    <div className={cls.statCard}>
+      <div className={cls.statCard__topRow}>
+        <Text size="sm" weight="semibold" tone="subtle" upper>{label}</Text>
+        <span
+          className={[
+            cls.statCard__iconWrap,
+            tone !== 'primary' && cls[`statCard__iconWrap--${tone}`],
+          ].filter(Boolean).join(' ')}
+          aria-hidden="true"
+        >
+          <Icon name={icon} size={20} />
+        </span>
+      </div>
+      <div
+        className={cls.statCard__value}
+        title={isCompacted ? fullValue : undefined}
+        aria-label={isCompacted ? `${label}: ${fullValue}` : undefined}
       >
-        <Icon name={icon} size={20} />
-      </span>
+        {value}
+      </div>
+      {hint && <Text size="xs" tone="subtle">{hint}</Text>}
     </div>
-    <div
-      className={cls.statCard__value}
-      title={fullValue}
-      aria-label={fullValue ? `${label}: ${fullValue}` : undefined}
-    >
-      {value}
-    </div>
-    {hint && <Text size="xs" tone="subtle">{hint}</Text>}
-  </div>
-);
+  );
+};
 
 /* -------------------------------------------------------------------------- */
 /* EmptyState                                                                 */

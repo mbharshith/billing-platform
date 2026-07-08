@@ -34,12 +34,63 @@
     </div>
     <div class="text-right">
       <div class="text-xs text-slate-300">Overall verdict</div>
-      <div class="mt-1 inline-flex items-center px-4 py-2 rounded-lg bg-amber-500 text-white font-bold text-lg">SHIP-BLOCKING ISSUES ON MOBILE</div>
+      <div class="mt-1 inline-flex items-center px-4 py-2 rounded-lg bg-emerald-500 text-white font-bold text-lg">SHIP-BLOCKERS RESOLVED (b25ab52)</div>
     </div>
   </div>
 </header>
 
 <main class="max-w-7xl mx-auto px-6 py-8 space-y-10">
+
+<!-- ===== AFTER: fixes shipped ===== -->
+<section class="bg-white rounded-xl shadow p-6 border-2 border-emerald-500">
+  <div class="flex items-center gap-3 mb-4">
+    <span class="chip bg-emerald-600 text-white text-base px-3 py-1">SHIPPED</span>
+    <h2 class="text-xl font-bold">All 3 ship-blockers fixed &mdash; commit <code class="bg-slate-100 px-2 py-0.5 rounded text-sm">b25ab52</code></h2>
+  </div>
+  <p class="text-sm text-slate-600 mb-6">Full-sweep re-verification via agent-browser at 390&times;844. Before/after side-by-side below.</p>
+
+  <div class="grid md:grid-cols-3 gap-6">
+    <div class="border rounded-lg overflow-hidden">
+      <div class="bg-emerald-50 p-3 border-b">
+        <div class="font-bold text-emerald-800">C-01 &mdash; Mobile bottom tab bar</div>
+        <div class="text-xs text-slate-600 mt-1">Sticky bottom nav w/ icon + label; top pills hidden below 767px</div>
+      </div>
+      <div class="grid grid-cols-2 gap-1 p-2">
+        <div><div class="text-xs text-red-600 font-semibold text-center mb-1">BEFORE</div><img src="../mobile/admin-dashboard.png" class="shot rounded border w-full"/></div>
+        <div><div class="text-xs text-emerald-600 font-semibold text-center mb-1">AFTER</div><img src="../after/AFTER-admin-dashboard.png" class="shot rounded border w-full"/></div>
+      </div>
+    </div>
+
+    <div class="border rounded-lg overflow-hidden">
+      <div class="bg-emerald-50 p-3 border-b">
+        <div class="font-bold text-emerald-800">C-02 &mdash; Cart drawer restored</div>
+        <div class="text-xs text-slate-600 mt-1">Cart bar floats above bottom nav; tap opens full-height sheet</div>
+      </div>
+      <div class="grid grid-cols-2 gap-1 p-2">
+        <div><div class="text-xs text-red-600 font-semibold text-center mb-1">BEFORE (no cart)</div><img src="../mobile/admin-cashier.png" class="shot rounded border w-full"/></div>
+        <div><div class="text-xs text-emerald-600 font-semibold text-center mb-1">AFTER (item added)</div><img src="../after/FIX-admin-cashier-with-cart.png" class="shot rounded border w-full"/></div>
+      </div>
+    </div>
+
+    <div class="border rounded-lg overflow-hidden">
+      <div class="bg-emerald-50 p-3 border-b">
+        <div class="font-bold text-emerald-800">C-03 &mdash; Tables usable on mobile</div>
+        <div class="text-xs text-slate-600 mt-1">Tight padding, nowrap tokens, horizontal scroll with gradient hint</div>
+      </div>
+      <div class="grid grid-cols-2 gap-1 p-2">
+        <div><div class="text-xs text-red-600 font-semibold text-center mb-1">BEFORE</div><img src="../mobile/vendor-tenants.png" class="shot rounded border w-full"/></div>
+        <div><div class="text-xs text-emerald-600 font-semibold text-center mb-1">AFTER</div><img src="../after/FIX-vendor-tenants.png" class="shot rounded border w-full"/></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-6 bg-slate-50 rounded-lg p-4 text-sm">
+    <div class="font-semibold mb-2">Bonus fix: H-01 (WCAG 2.5.5 touch targets)</div>
+    <p>Every interactive element in both consoles (nav pills, theme toggle, user chip, tenant badge, vendor icon buttons) bumped from 40&times;40 to 44&times;44 px min-height. Zero visual change on desktop, comfortable thumb targets on mobile.</p>
+  </div>
+
+  <div class="mt-4 text-sm text-slate-600"><b>Bundle impact:</b> 431 KB JS (unchanged), 67.5 KB CSS (+3.5 KB for the new BottomNav + responsive tweaks). Zero new deps.</div>
+</section>
 
 <!-- ===== Executive summary ===== -->
 <section class="bg-white rounded-xl shadow p-6">

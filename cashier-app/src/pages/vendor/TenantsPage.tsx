@@ -219,7 +219,7 @@ export const TenantsPage: FC = () => {
                             onClick={() => doImpersonate(store)}
                             disabled={!admin || suspended}
                           >
-                            Impersonate
+                            Sign in as
                           </Button>
                           {suspended ? (
                             <Button variant="primary" size="sm" leadingIcon="check" onClick={() => doReactivate(store)}>

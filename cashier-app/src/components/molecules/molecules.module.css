@@ -99,7 +99,13 @@
   overflow-x: auto;
   padding-bottom: var(--app-space-2);
   scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+  /* Fade the right edge so users see there's more to scroll. */
+  mask-image: linear-gradient(to right, black 90%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, black 90%, transparent 100%);
 }
+.filterRow::-webkit-scrollbar { height: 4px; }
+.filterRow::-webkit-scrollbar-thumb { background: var(--app-border); border-radius: 999px; }
 .filterChip {
   white-space: nowrap;
   padding: var(--app-space-2) var(--app-space-4);
