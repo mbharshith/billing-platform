@@ -11,7 +11,7 @@ import {
   type FC, type ReactNode,
 } from 'react';
 import { storage } from '../lib/storage';
-import { can, isMaster, type Action } from '../domain/permissions';
+import { can, isAdmin, type Action } from '../domain/permissions';
 import type { SessionUser } from '../domain/types';
 import { toSessionUser, useUsers } from './UsersContext';
 
@@ -25,7 +25,7 @@ interface AuthContextValue {
   readonly currentUser: SessionUser | null;
   /** The tenant id this session is bound to. Null iff not logged in. */
   readonly currentStoreId: string | null;
-  readonly isMaster: boolean;
+  readonly isAdmin: boolean;
   readonly login: (username: string, password: string) => LoginResult;
   /** Directly promote a freshly-created user (e.g. right after signup). */
   readonly loginAs: (user: SessionUser) => void;
@@ -83,7 +83,7 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const value = useMemo<AuthContextValue>(() => ({
     currentUser,
     currentStoreId: currentUser?.storeId ?? null,
-    isMaster: isMaster(currentUser),
+    isAdmin: isAdmin(currentUser),
     login,
     loginAs,
     logout,

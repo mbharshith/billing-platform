@@ -55,15 +55,15 @@ export const SEED_STORES: readonly Store[] = [
 
 /**
  * Every user is bound to exactly ONE tenant.
- * Demo credentials — one master + one cashier per tenant.
+ * Demo credentials — one admin + one cashier per tenant.
  */
 export const SEED_USERS: readonly User[] = [
   // --- Myntra Mumbai ------------------------------------------------------
   {
-    id: 'u-myntra-master',
+    id: 'u-myntra-admin',
     username: 'myntra',
     name: 'Aditi Rao',
-    role: 'master',
+    role: 'admin',
     active: true,
     createdAt: now(),
     storeId: SEED_STORE_MAIN_ID,
@@ -82,10 +82,10 @@ export const SEED_USERS: readonly User[] = [
 
   // --- Flipkart Bengaluru -------------------------------------------------
   {
-    id: 'u-flipkart-master',
+    id: 'u-flipkart-admin',
     username: 'flipkart',
     name: 'Vikram Shetty',
-    role: 'master',
+    role: 'admin',
     active: true,
     createdAt: now(),
     storeId: SEED_STORE_BRANCH_ID,
@@ -104,10 +104,10 @@ export const SEED_USERS: readonly User[] = [
 
   // --- Walmart Springfield ------------------------------------------------
   {
-    id: 'u-walmart-master',
+    id: 'u-walmart-admin',
     username: 'walmart',
     name: 'Marcus Bennett',
-    role: 'master',
+    role: 'admin',
     active: true,
     createdAt: now(),
     storeId: SEED_STORE_THIRD_ID,

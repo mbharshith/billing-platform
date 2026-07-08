@@ -29,8 +29,8 @@ import type {
   Customer, CustomerPayment, Product, Sale, Store, User,
 } from '../domain/types';
 
-/** Bumped when the schema evolves. Each version needs a `.upgrade()` block. */
-const DB_VERSION = 1;
+/** Schema versions are declared inline via `.version(N).stores({...})`.
+ *  Each new version needs its own `.upgrade()` block for legacy data. */
 
 class QuickBillDB extends Dexie {
   stores!:            Table<Store, string>;
@@ -51,13 +51,31 @@ class QuickBillDB extends Dexie {
     // We keep uniqueness rules at the app layer (create()/update()) rather
     // than as & unique indexes — that way we can return typed error codes
     // ('duplicateSku', 'duplicateMobile') instead of a raw Dexie throw.
-    this.version(DB_VERSION).stores({
+    this.version(1).stores({
       stores:            'id, name',
       users:             'id, username, storeId',
       products:          'id, storeId, [storeId+sku], category, active',
       customers:         'id, storeId, [storeId+mobile]',
       sales:             'id, storeId, completedAt, customerId, cashierId, voided',
       customerPayments:  'id, customerId, receivedAt',
+    });
+
+    /* -------------------------------------------------------------------- */
+    /* v2 — rename UserRole `master` → `admin`                              */
+    /* -------------------------------------------------------------------- */
+    // Same shape as v1; the upgrade callback rewrites in-place.
+    this.version(2).stores({
+      stores:            'id, name',
+      users:             'id, username, storeId',
+      products:          'id, storeId, [storeId+sku], category, active',
+      customers:         'id, storeId, [storeId+mobile]',
+      sales:             'id, storeId, completedAt, customerId, cashierId, voided',
+      customerPayments:  'id, customerId, receivedAt',
+    }).upgrade(async (tx) => {
+      await tx.table('users').toCollection().modify((u) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        if ((u as any).role === 'master') (u as any).role = 'admin';
+      });
     });
   }
 }

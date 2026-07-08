@@ -1,7 +1,7 @@
 /**
  * SignupPage — self-serve tenant onboarding.
  *
- * A new company (tenant) creates their store + first Master account in ONE
+ * A new company (tenant) creates their store + first Admin account in ONE
  * form. On success they are auto-logged-in as the tenant owner and dropped
  * into the app. Same pattern Jira / Notion / Shopify use for signup.
  *
@@ -86,7 +86,7 @@ export const SignupPage: FC = () => {
       name: form.ownerName,
       username: form.ownerUsername.trim(),
       password: form.ownerPassword,
-      role: 'master',
+      role: 'admin',
       storeId: storeRes.store.id,
     });
     if (!userRes.ok) {
@@ -119,7 +119,7 @@ export const SignupPage: FC = () => {
           <Text as="h1" size="2xl" weight="heavy">Create your tenant</Text>
           <Text tone="subtle">
             Spin up a brand-new QuickBill workspace for your company. You'll be its
-            Master and can invite cashiers once you're in.
+            Admin and can invite cashiers once you're in.
           </Text>
         </div>
 
@@ -159,9 +159,9 @@ export const SignupPage: FC = () => {
             </div>
           </div>
 
-          {/* -------- Master account -------- */}
+          {/* -------- Admin account -------- */}
           <div className={cls.signupSection}>
-            <Text weight="heavy" size="sm" upper tone="primary">Master account</Text>
+            <Text weight="heavy" size="sm" upper tone="primary">Admin account</Text>
             <Field label="Full name" htmlFor="u-name" required>
               <Input id="u-name" required value={form.ownerName}
                      onChange={(e) => set('ownerName', e.target.value)} />

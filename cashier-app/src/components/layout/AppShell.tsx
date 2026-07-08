@@ -6,7 +6,7 @@
  *   Brand · TenantBadge · Nav (role-scoped) · ThemeToggle · UserMenu
  *
  * The TenantBadge is the SaaS "workspace name" (like Jira's site name).
- * It's read-only for cashiers; masters can click to jump to /store.
+ * It's read-only for cashiers; admins can click to jump to /store.
  */
 import { useEffect, useRef, useState, type FC, type ReactNode } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
@@ -57,10 +57,10 @@ const ThemeToggle: FC = () => {
 
 /* -------------------------------------------------------------------------- */
 /* TenantBadge — shows the current tenant name in the header.                 */
-/* Masters can click to jump straight to /store; cashiers see it read-only.   */
+/* Admins can click to jump straight to /store; cashiers see it read-only.   */
 /* -------------------------------------------------------------------------- */
 const TenantBadge: FC = () => {
-  const { currentStoreId, isMaster } = useAuth();
+  const { currentStoreId, isAdmin } = useAuth();
   const { byId } = useStores();
   const navigate = useNavigate();
   const store = byId(currentStoreId);
@@ -68,17 +68,17 @@ const TenantBadge: FC = () => {
 
   // Full store name goes on `title` so long tenant names still resolve on
   // hover even when the visible label ellipsises.
-  const tooltip = isMaster ? `${store.name} — manage your tenant` : store.name;
+  const tooltip = isAdmin ? `${store.name} — manage your tenant` : store.name;
 
   const content = (
     <>
       <Icon name="store" size={14} />
       <span className={cls.tenantBadge__name}>{store.name}</span>
-      {isMaster && <Icon name="arrow" size={12} />}
+      {isAdmin && <Icon name="arrow" size={12} />}
     </>
   );
 
-  if (!isMaster) {
+  if (!isAdmin) {
     return (
       <div
         className={cls.tenantBadge}
@@ -106,7 +106,7 @@ const TenantBadge: FC = () => {
 /* UserMenu                                                                   */
 /* -------------------------------------------------------------------------- */
 const UserMenu: FC = () => {
-  const { currentUser, isMaster, logout } = useAuth();
+  const { currentUser, isAdmin, logout } = useAuth();
   const { byId: storeById } = useStores();
   const toast = useToast();
   const navigate = useNavigate();
@@ -162,7 +162,7 @@ const UserMenu: FC = () => {
             <Text size="xs" tone="subtle" upper>{currentUser.role}</Text>
             {myStore && <Text size="xs" tone="primary">{myStore.name}</Text>}
           </div>
-          {isMaster && (
+          {isAdmin && (
             <>
               <button type="button" role="menuitem" className={cls.userDropdown__item}
                       onClick={() => go('/store')}>
@@ -196,7 +196,7 @@ const UserMenu: FC = () => {
 /* Header                                                                     */
 /* -------------------------------------------------------------------------- */
 const Header: FC = () => {
-  const { isMaster, can } = useAuth();
+  const { isAdmin, can } = useAuth();
   return (
     <header className={cls.header} role="banner">
       <div className={cls.header__inner}>
@@ -216,14 +216,14 @@ const Header: FC = () => {
 
         <nav className={cls.nav} aria-label={STRINGS.ariaLabels.navigate}>
           <NavItem to="/cashier"   icon="store"   label={STRINGS.nav.cashier}>{STRINGS.nav.cashier}</NavItem>
-          {isMaster && (
+          {isAdmin && (
             <NavItem to="/dashboard" icon="chart" label={STRINGS.nav.dashboard}>{STRINGS.nav.dashboard}</NavItem>
           )}
           {(can('sale:viewAllTime') || can('sale:viewToday')) && (
             <NavItem to="/sales"     icon="receipt" label={STRINGS.nav.sales}>{STRINGS.nav.sales}</NavItem>
           )}
           <NavItem to="/customers" icon="user"    label={STRINGS.nav.customers}>{STRINGS.nav.customers}</NavItem>
-          {isMaster && (
+          {isAdmin && (
             <NavItem to="/products" icon="bag"    label={STRINGS.nav.products}>{STRINGS.nav.products}</NavItem>
           )}
         </nav>

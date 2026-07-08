@@ -21,13 +21,16 @@ import type {
 
 const MIGRATION_FLAG = 'db-bootstrap::v1';
 
-/** Same legacy-role migration the old UsersContext used to do. */
+/** Same legacy-role migration as before, but flipped: legacy 'super_admin'
+ *  users are dropped (no cross-tenant role exists any more), and the older
+ *  'master' role — which lived through v1 of the app — is renamed to 'admin'
+ *  so it matches the current UserRole union. */
 const migrateUsers = (list: readonly User[]): readonly User[] =>
   list
     .filter((u) => u.role !== ('super_admin' as UserRole))
     .map((u) => ({
       ...u,
-      role: (u.role === ('admin' as UserRole) ? 'master' : u.role) as UserRole,
+      role: (u.role === ('master' as UserRole) ? 'admin' : u.role) as UserRole,
     }));
 
 /** Backfill missing storeId on legacy pre-multi-tenant rows. */

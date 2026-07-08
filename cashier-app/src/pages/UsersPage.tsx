@@ -1,8 +1,8 @@
 /**
- * UsersPage — staff management for the Master of a single tenant.
+ * UsersPage — staff management for the Admin of a single tenant.
  *
- * Every user shown here belongs to THIS tenant. Master can:
- *   - invite new masters (co-owners) or cashiers to their store
+ * Every user shown here belongs to THIS tenant. Admin can:
+ *   - invite new admins (co-owners) or cashiers to their store
  *   - edit name/role/password of anyone in their store
  *   - deactivate anyone except themselves
  *
@@ -109,13 +109,16 @@ export const UsersPage: FC = () => {
   };
 
   const roleBadgeVariant = (r: UserRole): 'primary' | 'neutral' =>
-    r === 'master' ? 'primary' : 'neutral';
+    r === 'admin' ? 'primary' : 'neutral';
+
+  const roleLabel = (r: UserRole): string =>
+    r === 'admin' ? STRINGS.users.roleAdmin : STRINGS.users.roleCashier;
 
   return (
     <>
       <PageHeader
         title={STRINGS.users.pageTitle}
-        subtitle="Everyone here works at this tenant. Add masters (co-owners) or cashiers."
+        subtitle="Everyone here works at this tenant. Add admins (co-owners) or cashiers."
         actions={
           <Button variant="primary" leadingIcon="plus" onClick={openCreate}>
             {STRINGS.users.addNew}
@@ -154,7 +157,7 @@ export const UsersPage: FC = () => {
                         </div>
                       </td>
                       <td><Text size="sm">{u.username}</Text></td>
-                      <td><Badge variant={roleBadgeVariant(u.role)}>{u.role}</Badge></td>
+                      <td><Badge variant={roleBadgeVariant(u.role)}>{roleLabel(u.role)}</Badge></td>
                       <td>
                         <Badge variant={u.active ? 'success' : 'danger'}>
                           {u.active ? STRINGS.users.active : STRINGS.users.inactive}
@@ -224,7 +227,7 @@ export const UsersPage: FC = () => {
                 onChange={(e) => setForm({ ...form, role: e.target.value as UserRole })}
               >
                 <option value="cashier">{STRINGS.users.roleCashier}</option>
-                <option value="master">Master (co-owner)</option>
+                <option value="admin">{STRINGS.users.roleAdmin} (co-owner)</option>
               </Select>
             </Field>
             {/* Hidden submit so <Enter> in inputs submits the form. */}

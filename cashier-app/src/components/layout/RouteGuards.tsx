@@ -1,7 +1,7 @@
 /**
  * Route guards.
  * - ProtectedRoute: redirects to /login if no session.
- * - MasterRoute:    master role only (SoD for tenant-management actions).
+ * - AdminRoute:     admin role only (SoD for tenant-management actions).
  */
 import type { FC } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
@@ -19,10 +19,10 @@ export const ProtectedRoute: FC = () => {
   return <Outlet />;
 };
 
-export const MasterRoute: FC = () => {
-  const { currentUser, isMaster } = useAuth();
+export const AdminRoute: FC = () => {
+  const { currentUser, isAdmin } = useAuth();
   if (!currentUser) return <Navigate to="/login" replace />;
-  if (!isMaster) return <ForbiddenCard message="Only the store master can view this page." />;
+  if (!isAdmin) return <ForbiddenCard message="Only a store admin can view this page." />;
   return <Outlet />;
 };
 

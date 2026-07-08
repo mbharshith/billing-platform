@@ -24,7 +24,7 @@ export const SaleDetailPage: FC = () => {
   const { byId, voidSale } = useSales();
   const { byId: customerById, addLending } = useCustomers();
   const { incrementStock } = useProducts();
-  const { isMaster } = useAuth();
+  const { isAdmin } = useAuth();
   const toast = useToast();
 
   const [voidOpen, setVoidOpen] = useState(false);
@@ -66,7 +66,7 @@ export const SaleDetailPage: FC = () => {
             <Button variant="secondary" leadingIcon="print" onClick={() => window.print()}>
               {STRINGS.receipt.print}
             </Button>
-            {isMaster && !sale.voided && (
+            {isAdmin && !sale.voided && (
               <Button variant="danger" leadingIcon="trash" onClick={() => setVoidOpen(true)}>
                 {STRINGS.sales.void}
               </Button>

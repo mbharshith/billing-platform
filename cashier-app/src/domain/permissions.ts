@@ -8,8 +8,8 @@
  *     never checks role strings inline.
  *
  * Roles:
- *   master   — tenant owner: edits store settings, CRUD everything in the store,
- *              creates other masters + cashiers, full sales history.
+ *   admin    — tenant owner: edits store settings, CRUD everything in the store,
+ *              creates other admins + cashiers, full sales history.
  *   cashier  — front-line staff: rings up sales, records lending payments, sees
  *              customers, TODAY-only sales view, no destructive actions.
  */
@@ -31,7 +31,7 @@ export type Action =
   // Settings
   | 'settings:edit';
 
-const MASTER: readonly Action[] = [
+const ADMIN: readonly Action[] = [
   'store:update',
   'user:create', 'user:update', 'user:deactivate',
   'product:create', 'product:update', 'product:delete',
@@ -48,12 +48,12 @@ const CASHIER: readonly Action[] = [
 ];
 
 const MATRIX: Record<SessionUser['role'], readonly Action[]> = {
-  master:  MASTER,
+  admin:   ADMIN,
   cashier: CASHIER,
 };
 
 export const can = (user: SessionUser | null | undefined, action: Action): boolean =>
   !!user && MATRIX[user.role].includes(action);
 
-export const isMaster = (u: SessionUser | null | undefined): boolean =>
-  u?.role === 'master';
+export const isAdmin = (u: SessionUser | null | undefined): boolean =>
+  u?.role === 'admin';

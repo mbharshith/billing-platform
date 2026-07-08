@@ -1,11 +1,11 @@
 /**
- * StorePage — the Master's "my store" management page.
+ * StorePage — the Admin's "my store" management page.
  *
  * Shows the tenant's identity (name, city, address, phone, tax, currency)
- * and lets the Master edit it in-place. Also displays quick stats about
+ * and lets the Admin edit it in-place. Also displays quick stats about
  * the store: user count, product count, customer count, sales-to-date.
  *
- * SoD: only masters can access this route (guarded by <MasterRoute>).
+ * SoD: only admins can access this route (guarded by <AdminRoute>).
  */
 import { useMemo, useState, type FC, type FormEvent } from 'react';
 import cls from './pages.module.css';

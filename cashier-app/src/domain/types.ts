@@ -137,12 +137,12 @@ export interface CustomerPayment {
 /* Users (staff)                                                              */
 /* -------------------------------------------------------------------------- */
 /**
- * master  — owns their store: edit store settings, CRUD products/customers/users,
- *           full sales/lending history, deactivate/delete anything except themselves.
+ * admin   — owns their store: edit store settings, CRUD products/customers/users,
+ *           creates other admins + cashiers, full sales/lending history, deactivate/delete anything except themselves.
  * cashier — rings up sales at their store, views customers, records lending payments,
  *           only sees TODAY's sales, no destructive actions.
  */
-export type UserRole = 'master' | 'cashier';
+export type UserRole = 'admin' | 'cashier';
 
 export interface User {
   readonly id: string;

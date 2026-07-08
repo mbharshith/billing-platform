@@ -4,14 +4,14 @@
  * Public:                     /login, /signup
  * Protected (any signed-in):  /, /cashier, /sales, /sales/:id,
  *                             /customers, /customers/:id
- * Master only:                /dashboard, /products, /users, /settings, /store
+ * Admin only:                /dashboard, /products, /users, /settings, /store
  */
 import type { FC } from 'react';
 import {
   BrowserRouter, Navigate, Route, Routes,
 } from 'react-router-dom';
 import { AppShell } from './components/layout/AppShell';
-import { MasterRoute, ProtectedRoute } from './components/layout/RouteGuards';
+import { AdminRoute, ProtectedRoute } from './components/layout/RouteGuards';
 import { CashierPage } from './pages/CashierPage';
 import { CustomerDetailPage } from './pages/CustomerDetailPage';
 import { CustomersPage } from './pages/CustomersPage';
@@ -40,7 +40,7 @@ export const App: FC = () => (
           <Route path="/customers"         element={<CustomersPage />} />
           <Route path="/customers/:id"     element={<CustomerDetailPage />} />
 
-          <Route element={<MasterRoute />}>
+          <Route element={<AdminRoute />}>
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/products"  element={<ProductsPage />} />
             <Route path="/users"     element={<UsersPage />} />
