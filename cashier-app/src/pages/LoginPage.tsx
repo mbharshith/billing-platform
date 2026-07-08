@@ -3,7 +3,7 @@
  * Uses AuthContext. Redirects to /cashier (or the intended path) on success.
  */
 import { useState, type FC, type FormEvent } from 'react';
-import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import cls from './LoginPage.module.css';
 import { Button, Field, Icon, Input, Text } from '../components/atoms';
 import { STRINGS } from '../domain/strings';
@@ -17,6 +17,9 @@ export const LoginPage: FC = () => {
   const toast = useToast();
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Anyone landing from a stale /signup link gets a friendly banner.
+  const showOnboardHint = new URLSearchParams(location.search).get('onboard') === '1';
 
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -112,8 +115,23 @@ export const LoginPage: FC = () => {
             </Button>
             <div className={cls.loginHint}>{STRINGS.auth.demoHint}</div>
             <div className={cls.loginHint} style={{ textAlign: 'center' }}>
-              New here? <Link to="/signup" className={cls.authLink}>Create your tenant</Link>
+              New here? <strong>Contact your SaaS provider</strong> to be onboarded.
             </div>
+            {showOnboardHint && (
+              <div
+                className={cls.loginHint}
+                style={{
+                  textAlign: 'center',
+                  background: 'var(--app-blue-5, #eff6ff)',
+                  border: '1px solid var(--app-blue-10, #dbeafe)',
+                  padding: '0.5rem 0.75rem',
+                  borderRadius: 'var(--radius-md)',
+                }}
+                role="note"
+              >
+                Self-signup has moved. Ask your SaaS vendor to provision a tenant for you.
+              </div>
+            )}
           </div>
         </form>
       </div>

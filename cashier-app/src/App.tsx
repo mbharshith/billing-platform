@@ -27,7 +27,6 @@ import { ProductsPage } from './pages/ProductsPage';
 import { SaleDetailPage } from './pages/SaleDetailPage';
 import { SalesPage } from './pages/SalesPage';
 import { SettingsPage } from './pages/SettingsPage';
-import { SignupPage } from './pages/SignupPage';
 import { StorePage } from './pages/StorePage';
 import { UsersPage } from './pages/UsersPage';
 import {
@@ -45,7 +44,11 @@ export const App: FC = () => (
     <ErrorBoundary label="root">
       <Routes>
         <Route path="/login"  element={R('login',  <LoginPage />)} />
-        <Route path="/signup" element={R('signup', <SignupPage />)} />
+        {/* Self-signup is intentionally disabled — tenants are provisioned
+            by the SaaS vendor (single source of truth). Any stale bookmark
+            or link lands back on /login with a friendly message via the
+            login page copy. */}
+        <Route path="/signup" element={<Navigate to="/login?onboard=1" replace />} />
 
         {/* Vendor control plane — SaaS owner only, separate shell. */}
         <Route element={<VendorRoute />}>

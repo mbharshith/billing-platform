@@ -189,6 +189,7 @@ export interface StoreSettings {
 /** Immutable record of a vendor action across the tenant fleet.
  *  Written server-side in production; here we append to a Dexie table. */
 export type VendorAction =
+  | 'tenant.create'
   | 'tenant.suspend'
   | 'tenant.reactivate'
   | 'tenant.impersonate'

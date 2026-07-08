@@ -22,6 +22,7 @@ import cls from '../components/layout/layout.module.css';
 import { Badge, Button, Icon, Text } from '../components/atoms';
 import { PageHeader } from '../components/layout/AppShell';
 import { ConfirmDialog } from '../components/feedback';
+import { CreateTenantModal } from './VendorCreateTenantModal';
 import { STRINGS } from '../domain/strings';
 import { fmtDate, fmtDateTime, formatMoney } from '../domain/format';
 import { useAuth } from '../store/AuthContext';
@@ -280,6 +281,7 @@ export const VendorTenantsPage: FC = () => {
   const navigate = useNavigate();
 
   const [confirmSuspend, setConfirmSuspend] = useState<Store | null>(null);
+  const [showCreate, setShowCreate] = useState(false);
 
   const tenantsExVendor = stores.filter((s) => s.id !== VENDOR_SCOPE);
   const adminByStoreId = useMemo(() => {
@@ -335,12 +337,17 @@ export const VendorTenantsPage: FC = () => {
     <>
       <PageHeader
         title="Tenants"
-        subtitle={`${tenantsExVendor.length} store${tenantsExVendor.length === 1 ? '' : 's'} \u00b7 suspend, reactivate, or impersonate as their admin`}
+        subtitle={`${tenantsExVendor.length} store${tenantsExVendor.length === 1 ? '' : 's'} · you are the only one who can onboard new ones`}
+        actions={
+          <Button variant="primary" leadingIcon="plus" onClick={() => setShowCreate(true)}>
+            New tenant
+          </Button>
+        }
       />
 
       {tenantsExVendor.length === 0 ? (
-        <div style={{ padding: '3rem', textAlign: 'center' }}>
-          <Text tone="subtle">No tenants have signed up yet.</Text>
+        <div style={{ padding: '3rem', textAlign: 'center', border: '1px dashed var(--app-border)', borderRadius: 'var(--radius-md)' }}>
+          <Text tone="subtle">No tenants yet. Click <strong>New tenant</strong> to onboard your first customer.</Text>
         </div>
       ) : (
         <table style={tableStyle}>
@@ -415,6 +422,10 @@ export const VendorTenantsPage: FC = () => {
           onCancel={() => setConfirmSuspend(null)}
         />
       )}
+
+      {showCreate && (
+        <CreateTenantModal onClose={() => setShowCreate(false)} />
+      )}
     </>
   );
 };
@@ -423,6 +434,7 @@ export const VendorTenantsPage: FC = () => {
 /* /vendor/audit                                                              */
 /* -------------------------------------------------------------------------- */
 const ACTION_LABEL: Record<VendorAction, string> = {
+  'tenant.create':       'Onboarded tenant',
   'tenant.suspend':      'Suspended tenant',
   'tenant.reactivate':   'Reactivated tenant',
   'tenant.impersonate':  'Impersonated tenant admin',
@@ -432,6 +444,7 @@ const ACTION_LABEL: Record<VendorAction, string> = {
 };
 
 const ACTION_VARIANT: Record<VendorAction, 'neutral' | 'primary' | 'danger' | 'success'> = {
+  'tenant.create':       'success',
   'tenant.suspend':      'danger',
   'tenant.reactivate':   'success',
   'tenant.impersonate':  'primary',
