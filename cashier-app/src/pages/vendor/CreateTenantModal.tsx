@@ -15,15 +15,15 @@
  * Dexie doesn't span our contexts in a transaction, so we compensate.
  */
 import { useState, type FC, type FormEvent } from 'react';
-import { Button, Field, Icon, Input, Text } from '../components/atoms';
-import { Modal } from '../components/organisms';
-import { db } from '../lib/db';
-import { STRINGS } from '../domain/strings';
-import { useAudit } from '../store/AuditContext';
-import { useAuth } from '../store/AuthContext';
-import { useStores } from '../store/StoresContext';
-import { useToast } from '../store/ToastContext';
-import { useUsers } from '../store/UsersContext';
+import { Button, Field, Icon, Input, Text } from '../../components/atoms';
+import { Modal } from '../../components/organisms';
+import { db } from '../../lib/db';
+import { STRINGS } from '../../domain/strings';
+import { useAudit } from '../../store/AuditContext';
+import { useAuth } from '../../store/AuthContext';
+import { useStores } from '../../store/StoresContext';
+import { useToast } from '../../store/ToastContext';
+import { useUsers } from '../../store/UsersContext';
 
 interface CreateTenantModalProps {
   readonly onClose: () => void;

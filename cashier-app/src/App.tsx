@@ -31,7 +31,7 @@ import { StorePage } from './pages/StorePage';
 import { UsersPage } from './pages/UsersPage';
 import {
   VendorShell, VendorDashboardPage, VendorTenantsPage, VendorAuditPage,
-} from './pages/VendorConsole';
+} from './pages/vendor';
 
 /** Small helper — wraps every route element in its own boundary so a crash
  *  on /products doesn't take down /cashier. */
