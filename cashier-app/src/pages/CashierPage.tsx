@@ -118,17 +118,17 @@ export const CashierPage: FC = () => {
     setPaymentOpen(true);
   };
 
-  const completeSale = (method: PaymentMethod, mobile: string | null) => {
+  const completeSale = async (method: PaymentMethod, mobile: string | null) => {
     if (!currentUser || !currentStoreId) return;
     let customerId: string | null = null;
     if (method === 'lending' && mobile) {
-      const customer = ensureFromMobile(mobile);
+      const customer = await ensureFromMobile(mobile);
       if (!customer) {
         toast.error(STRINGS.cashier.noActiveStore);
         return;
       }
       customerId = customer.id;
-      addLending(customerId, totals.total);
+      await addLending(customerId, totals.total);
     }
     const sale = buildSale({
       lines: cartLines,
@@ -141,8 +141,8 @@ export const CashierPage: FC = () => {
       cashierName: currentUser.name,
       storeId: currentStoreId,
     });
-    recordSale(sale);
-    decrementStock(cartLines.map((l) => ({ productId: l.productId, qty: l.quantity })));
+    await recordSale(sale);
+    await decrementStock(cartLines.map((l) => ({ productId: l.productId, qty: l.quantity })));
     setLastSale(sale);
     setCart({});
     setPaymentOpen(false);

@@ -1,21 +1,23 @@
 /**
- * ProductsContext — store-scoped catalog CRUD + stock adjustments.
+ * ProductsContext — Dexie-backed catalog, store-scoped.
  *
- * All reads (`products`, `activeProducts`) are filtered to the current store.
- * All writes require a `storeId` (defaults to the current store).
- * The full unfiltered list is exposed as `allProducts` for super-admin views.
+ * `products` / `activeProducts` are live-queried on the compound index
+ * `[storeId+sku]` for the current tenant. Uniqueness (case-insensitive SKU
+ * within a tenant) is enforced by an app-layer lookup so we can return a
+ * typed 'duplicateSku' error instead of a raw Dexie throw.
+ *
+ * Stock adjustments (`decrementStock` / `incrementStock`) run inside a
+ * single Dexie transaction so a mid-write reload never leaves an
+ * inconsistent basket.
  */
 import {
-  createContext, useCallback, useContext, useEffect, useMemo, useState,
+  createContext, useCallback, useContext, useMemo,
   type FC, type ReactNode,
 } from 'react';
-import { SEED_PRODUCTS } from '../domain/catalog';
-import { SEED_STORE_MAIN_ID } from '../domain/seed';
-import { storage } from '../lib/storage';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db } from '../lib/db';
 import type { BadgeTone, Product, ProductCategory } from '../domain/types';
 import { useCurrentStoreId } from './AuthContext';
-
-const STORAGE_KEY = 'products';
 
 export interface ProductInput {
   readonly sku: string;
@@ -24,7 +26,6 @@ export interface ProductInput {
   readonly category: ProductCategory;
   readonly tone: BadgeTone;
   readonly stock: number;
-  /** Defaults to the current store. Only super_admin should override. */
   readonly storeId?: string;
 }
 
@@ -33,52 +34,59 @@ type CreateResult =
   | { readonly ok: false; readonly error: 'duplicateSku' | 'noStore' };
 
 interface ProductsContextValue {
-  /** Store-scoped view (filtered by currentStoreId). */
   readonly products: readonly Product[];
   readonly activeProducts: readonly Product[];
-  /** Unfiltered — for super-admin cross-store views. */
   readonly allProducts: readonly Product[];
   readonly byId: (id: string) => Product | undefined;
-  readonly create: (input: ProductInput) => CreateResult;
-  readonly update: (id: string, patch: Partial<ProductInput>) => CreateResult;
-  readonly setActive: (id: string, active: boolean) => void;
-  readonly decrementStock: (deltas: ReadonlyArray<{ productId: string; qty: number }>) => void;
-  readonly incrementStock: (deltas: ReadonlyArray<{ productId: string; qty: number }>) => void;
+  readonly create: (input: ProductInput) => Promise<CreateResult>;
+  readonly update: (id: string, patch: Partial<ProductInput>) => Promise<CreateResult>;
+  readonly setActive: (id: string, active: boolean) => Promise<void>;
+  readonly decrementStock: (
+    deltas: ReadonlyArray<{ productId: string; qty: number }>,
+  ) => Promise<void>;
+  readonly incrementStock: (
+    deltas: ReadonlyArray<{ productId: string; qty: number }>,
+  ) => Promise<void>;
 }
 
 const ProductsContext = createContext<ProductsContextValue | null>(null);
-
-/** Migration: any pre-multi-tenant product without a storeId lands in the main store. */
-const migrate = (list: readonly Product[]): readonly Product[] =>
-  list.map((p) => p.storeId ? p : { ...p, storeId: SEED_STORE_MAIN_ID });
+const EMPTY: readonly Product[] = [];
 
 export const ProductsProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const currentStoreId = useCurrentStoreId();
 
-  const [products, setProducts] = useState<readonly Product[]>(
-    () => migrate(storage.load<readonly Product[]>(STORAGE_KEY, SEED_PRODUCTS)),
-  );
+  const scoped = useLiveQuery(
+    async () => {
+      if (!currentStoreId) return EMPTY;
+      return db.products.where('storeId').equals(currentStoreId).toArray();
+    },
+    [currentStoreId],
+    EMPTY,
+  ) ?? EMPTY;
 
-  useEffect(() => { storage.save(STORAGE_KEY, products); }, [products]);
-
-  const scoped = useMemo(
-    () => currentStoreId ? products.filter((p) => p.storeId === currentStoreId) : [],
-    [products, currentStoreId],
-  );
+  const all = useLiveQuery(() => db.products.toArray(), [], EMPTY) ?? EMPTY;
 
   const byId = useCallback(
-    (id: string) => products.find((p) => p.id === id),
-    [products],
+    (id: string) => scoped.find((p) => p.id === id) ?? all.find((p) => p.id === id),
+    [scoped, all],
   );
 
-  const create = useCallback((input: ProductInput): CreateResult => {
+  const create: ProductsContextValue['create'] = useCallback(async (input) => {
     const storeId = input.storeId ?? currentStoreId;
     if (!storeId) return { ok: false, error: 'noStore' };
     const sku = input.sku.trim();
-    const duplicate = products.some(
-      (p) => p.storeId === storeId && p.sku.toLowerCase() === sku.toLowerCase(),
-    );
-    if (duplicate) return { ok: false, error: 'duplicateSku' };
+
+    // Case-insensitive uniqueness within the tenant. The compound index
+    // ('[storeId+sku]') gives us the fast common case; a case-difference
+    // collision falls through to the filter scan (rare).
+    const exact = await db.products
+      .where('[storeId+sku]').equals([storeId, sku]).first();
+    const dup = exact ?? await db.products
+      .where('storeId').equals(storeId)
+      .filter((p) => p.sku.toLowerCase() === sku.toLowerCase())
+      .first();
+    if (dup) return { ok: false, error: 'duplicateSku' };
+
     const product: Product = {
       id: crypto.randomUUID(),
       sku,
@@ -91,51 +99,66 @@ export const ProductsProvider: FC<{ children: ReactNode }> = ({ children }) => {
       createdAt: new Date().toISOString(),
       storeId,
     };
-    setProducts((prev) => [product, ...prev]);
+    await db.products.add(product);
     return { ok: true, product };
-  }, [products, currentStoreId]);
+  }, [currentStoreId]);
 
-  const update = useCallback((id: string, patch: Partial<ProductInput>): CreateResult => {
-    const target = products.find((p) => p.id === id);
+  const update: ProductsContextValue['update'] = useCallback(async (id, patch) => {
+    const target = await db.products.get(id);
     if (!target) return { ok: false, error: 'duplicateSku' };
+
     if (patch.sku && patch.sku.trim().toLowerCase() !== target.sku.toLowerCase()) {
-      const duplicate = products.some(
-        (p) => p.id !== id && p.storeId === target.storeId
-          && p.sku.toLowerCase() === patch.sku!.trim().toLowerCase(),
-      );
-      if (duplicate) return { ok: false, error: 'duplicateSku' };
+      const dup = await db.products
+        .where('storeId').equals(target.storeId)
+        .filter((p) => p.id !== id
+          && p.sku.toLowerCase() === patch.sku!.trim().toLowerCase())
+        .first();
+      if (dup) return { ok: false, error: 'duplicateSku' };
     }
     const next: Product = { ...target, ...patch, sku: (patch.sku ?? target.sku).trim() };
-    setProducts((prev) => prev.map((p) => p.id === id ? next : p));
+    await db.products.put(next);
     return { ok: true, product: next };
-  }, [products]);
-
-  const setActive = useCallback((id: string, active: boolean) => {
-    setProducts((prev) => prev.map((p) => p.id === id ? { ...p, active } : p));
   }, []);
 
-  const decrementStock: ProductsContextValue['decrementStock'] = useCallback((deltas) => {
-    setProducts((prev) => prev.map((p) => {
-      const d = deltas.find((x) => x.productId === p.id);
-      if (!d) return p;
-      return { ...p, stock: Math.max(p.stock - d.qty, 0) };
-    }));
+  const setActive = useCallback(async (id: string, active: boolean) => {
+    await db.products.update(id, { active });
   }, []);
 
-  const incrementStock: ProductsContextValue['incrementStock'] = useCallback((deltas) => {
-    setProducts((prev) => prev.map((p) => {
-      const d = deltas.find((x) => x.productId === p.id);
-      if (!d) return p;
-      return { ...p, stock: p.stock + d.qty };
-    }));
-  }, []);
+  // Bulk stock adjustments — one transaction, one round-trip.
+  const applyDeltas = useCallback(
+    async (
+      deltas: ReadonlyArray<{ productId: string; qty: number }>,
+      direction: 1 | -1,
+    ) => {
+      if (deltas.length === 0) return;
+      await db.transaction('rw', db.products, async () => {
+        for (const d of deltas) {
+          const p = await db.products.get(d.productId);
+          if (!p) continue;
+          const next = direction === 1
+            ? p.stock + d.qty
+            : Math.max(p.stock - d.qty, 0);
+          await db.products.update(d.productId, { stock: next });
+        }
+      });
+    },
+    [],
+  );
+  const decrementStock = useCallback(
+    (deltas: ReadonlyArray<{ productId: string; qty: number }>) => applyDeltas(deltas, -1),
+    [applyDeltas],
+  );
+  const incrementStock = useCallback(
+    (deltas: ReadonlyArray<{ productId: string; qty: number }>) => applyDeltas(deltas, 1),
+    [applyDeltas],
+  );
 
   const value = useMemo<ProductsContextValue>(() => ({
     products: scoped,
     activeProducts: scoped.filter((p) => p.active),
-    allProducts: products,
+    allProducts: all,
     byId, create, update, setActive, decrementStock, incrementStock,
-  }), [scoped, products, byId, create, update, setActive, decrementStock, incrementStock]);
+  }), [scoped, all, byId, create, update, setActive, decrementStock, incrementStock]);
 
   return <ProductsContext.Provider value={value}>{children}</ProductsContext.Provider>;
 };

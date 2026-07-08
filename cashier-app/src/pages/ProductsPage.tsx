@@ -41,7 +41,7 @@ export const ProductsPage: FC = () => {
       p.name.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q));
   }, [products, query]);
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!form) return;
     if (!form.sku.trim() || !form.name.trim()) {
@@ -52,7 +52,7 @@ export const ProductsPage: FC = () => {
       sku: form.sku, name: form.name.trim(), price: Number(form.price) || 0,
       category: form.category, tone: form.tone, stock: Math.max(Math.floor(Number(form.stock) || 0), 0),
     };
-    const result = form.id === null ? create(payload) : update(form.id, payload);
+    const result = form.id === null ? await create(payload) : await update(form.id, payload);
     if (!result.ok) {
       toast.error(STRINGS.products.duplicateSku);
       return;
@@ -61,10 +61,10 @@ export const ProductsPage: FC = () => {
     setForm(null);
   };
 
-  const handleToggle = (p: Product) => {
+  const handleToggle = async (p: Product) => {
     if (p.active) setConfirming(p);
     else {
-      setActive(p.id, true);
+      await setActive(p.id, true);
       toast.success(STRINGS.products.reactivated(p.name));
     }
   };
@@ -207,8 +207,8 @@ export const ProductsPage: FC = () => {
           message={STRINGS.products.deleteConfirm}
           confirmLabel={STRINGS.products.deactivate}
           danger
-          onConfirm={() => {
-            setActive(confirming.id, false);
+          onConfirm={async () => {
+            await setActive(confirming.id, false);
             toast.success(`${confirming.name} deactivated.`);
             setConfirming(null);
           }}

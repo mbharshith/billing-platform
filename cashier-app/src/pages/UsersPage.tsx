@@ -59,11 +59,11 @@ export const UsersPage: FC = () => {
     id: u.id, name: u.name, username: u.username, password: '', role: u.role,
   });
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!form || !currentStoreId) return;
     if (form.id === null) {
-      const res = create({
+      const res = await create({
         name: form.name, username: form.username,
         password: form.password, role: form.role,
         storeId: currentStoreId,  // always this tenant, never other
@@ -83,27 +83,27 @@ export const UsersPage: FC = () => {
       const patch: Partial<Pick<User, 'name' | 'role' | 'password'>> = form.password
         ? { name: form.name, role: form.role, password: form.password }
         : { name: form.name, role: form.role };
-      update(form.id, patch);
+      await update(form.id, patch);
       toast.success(STRINGS.users.updated);
     }
     setForm(null);
   };
 
-  const handleToggle = (u: User) => {
+  const handleToggle = async (u: User) => {
     if (u.id === currentUser?.id) {
       toast.error(STRINGS.users.cannotDeactivateSelf);
       return;
     }
     if (u.active) setConfirmingDeactivate(u);
     else {
-      setActive(u.id, true);
+      await setActive(u.id, true);
       toast.success(STRINGS.users.reactivated(u.name));
     }
   };
 
-  const doDeactivate = () => {
+  const doDeactivate = async () => {
     if (!confirmingDeactivate) return;
-    setActive(confirmingDeactivate.id, false);
+    await setActive(confirmingDeactivate.id, false);
     toast.success(STRINGS.users.deactivated(confirmingDeactivate.name));
     setConfirmingDeactivate(null);
   };

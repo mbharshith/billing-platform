@@ -7,7 +7,7 @@
  * This is the same pattern Jira / Shopify / Notion enforce.
  */
 import {
-  createContext, useCallback, useContext, useEffect, useMemo, useState,
+  createContext, useCallback, useContext, useEffect, useMemo, useRef, useState,
   type FC, type ReactNode,
 } from 'react';
 import { storage } from '../lib/storage';
@@ -36,15 +36,21 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
-  const { findByUsername } = useUsers();
+  const { users, findByUsername } = useUsers();
 
   const [currentUser, setCurrentUser] = useState<SessionUser | null>(
     () => storage.load<SessionUser | null>(SESSION_KEY, null),
   );
 
-  // Re-hydrate: if the persisted session references a user record that has
-  // since been updated (or deleted), reconcile it. Runs once on mount.
+  // Re-hydrate the persisted session against the LIVE users list once it's
+  // actually loaded from IndexedDB. Guarded by a ref so we only run the
+  // reconciliation the first time we see a non-empty users array — otherwise
+  // the empty first-render list would spuriously log the user out.
+  const reconciledRef = useRef(false);
   useEffect(() => {
+    if (reconciledRef.current) return;
+    if (users.length === 0) return;      // users still hydrating from Dexie
+    reconciledRef.current = true;
     if (!currentUser) return;
     const fresh = findByUsername(currentUser.username);
     if (!fresh) { setCurrentUser(null); return; }
@@ -52,7 +58,7 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
       setCurrentUser(toSessionUser(fresh));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [users]);
 
   useEffect(() => {
     if (currentUser) storage.save(SESSION_KEY, currentUser);

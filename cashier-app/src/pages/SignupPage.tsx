@@ -51,7 +51,7 @@ export const SignupPage: FC = () => {
   const set = <K extends keyof FormState,>(k: K, v: FormState[K]) =>
     setForm((prev) => ({ ...prev, [k]: v }));
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError(null);
 
@@ -70,7 +70,7 @@ export const SignupPage: FC = () => {
     }
 
     setSubmitting(true);
-    const storeRes = createStore({
+    const storeRes = await createStore({
       name: form.storeName, city: form.city, phone: form.phone,
       address: form.address, taxRate: tax, currency: form.currency,
     });
@@ -82,7 +82,7 @@ export const SignupPage: FC = () => {
       return;
     }
 
-    const userRes = createUser({
+    const userRes = await createUser({
       name: form.ownerName,
       username: form.ownerUsername.trim(),
       password: form.ownerPassword,

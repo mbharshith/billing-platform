@@ -61,10 +61,10 @@ export const StorePage: FC = () => {
     address: store.address, taxRate: store.taxRate, currency: store.currency,
   });
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!form) return;
-    const res = update(store.id, form);
+    const res = await update(store.id, form);
     if (!res.ok) {
       toast.error(res.error === 'duplicateName'
         ? 'That name is already used by another tenant.'

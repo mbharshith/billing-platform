@@ -1,53 +1,39 @@
 /**
- * UsersContext — staff records (CRUD).
+ * UsersContext — Dexie-backed staff CRUD.
  *
- * Every user belongs to exactly one tenant (storeId is required, never null).
- * Passwords live plain-text in localStorage because this is a mock/frontend
- * build. A real backend MUST hash + never send them to the client (§6).
+ * Passwords still live plain-text in the browser because this is a
+ * mock/frontend-only build. A real backend MUST hash them (§6).
+ *
+ * Uniqueness on `username` is global (case-insensitive) — enforced
+ * app-side so we can return a typed 'duplicate' error.
  */
 import {
-  createContext, useCallback, useContext, useEffect, useMemo, useState,
+  createContext, useCallback, useContext, useMemo,
   type FC, type ReactNode,
 } from 'react';
-import { SEED_USERS } from '../domain/seed';
-import { storage } from '../lib/storage';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db } from '../lib/db';
 import type { SessionUser, User, UserRole } from '../domain/types';
 
-const STORAGE_KEY = 'users';
-
 interface UsersContextValue {
-  /** Full list — unscoped. Consumers filter by storeId as needed. */
   readonly users: readonly User[];
   readonly findByUsername: (username: string) => User | undefined;
   readonly create: (input: {
     name: string; username: string; password: string; role: UserRole;
     storeId: string;
-  }) => { ok: true; user: User } | { ok: false; error: 'duplicate' | 'weakPassword' };
-  readonly update: (id: string, patch: Partial<Pick<User, 'name' | 'password' | 'role'>>) => void;
-  readonly setActive: (id: string, active: boolean) => void;
+  }) => Promise<{ ok: true; user: User } | { ok: false; error: 'duplicate' | 'weakPassword' }>;
+  readonly update: (
+    id: string,
+    patch: Partial<Pick<User, 'name' | 'password' | 'role'>>,
+  ) => Promise<void>;
+  readonly setActive: (id: string, active: boolean) => Promise<void>;
 }
 
 const UsersContext = createContext<UsersContextValue | null>(null);
-
-/** Migration: users from the pre-SAP-refactor era with 'super_admin' or
- *  'admin' roles get demoted/renamed. 'super_admin' users lose their
- *  cross-tenant status entirely — they become masters of the first tenant
- *  they created, or are simply dropped. */
-const migrate = (list: readonly User[]): readonly User[] =>
-  list
-    .filter((u) => u.role !== ('super_admin' as UserRole))
-    .map((u) => {
-      // Rename legacy 'admin' role → 'master'.
-      const role: UserRole = u.role === ('admin' as UserRole) ? 'master' : u.role;
-      return { ...u, role };
-    });
+const EMPTY: readonly User[] = [];
 
 export const UsersProvider: FC<{ children: ReactNode }> = ({ children }) => {
-  const [users, setUsers] = useState<readonly User[]>(
-    () => migrate(storage.load<readonly User[]>(STORAGE_KEY, SEED_USERS)),
-  );
-
-  useEffect(() => { storage.save(STORAGE_KEY, users); }, [users]);
+  const users = useLiveQuery(() => db.users.toArray(), [], EMPTY) ?? EMPTY;
 
   const findByUsername = useCallback(
     (username: string) => users.find(
@@ -56,15 +42,18 @@ export const UsersProvider: FC<{ children: ReactNode }> = ({ children }) => {
     [users],
   );
 
-  const create: UsersContextValue['create'] = useCallback((input) => {
-    const duplicate = users.some(
-      (u) => u.username.toLowerCase() === input.username.toLowerCase(),
-    );
-    if (duplicate) return { ok: false, error: 'duplicate' };
+  const create: UsersContextValue['create'] = useCallback(async (input) => {
     if (input.password.length < 8) return { ok: false, error: 'weakPassword' };
+    // Case-insensitive uniqueness — index lookup + filter for case variants.
+    const uname = input.username.trim();
+    const dup = await db.users
+      .filter((u) => u.username.toLowerCase() === uname.toLowerCase())
+      .first();
+    if (dup) return { ok: false, error: 'duplicate' };
+
     const user: User = {
       id: crypto.randomUUID(),
-      username: input.username.trim(),
+      username: uname,
       name: input.name.trim(),
       role: input.role,
       active: true,
@@ -72,16 +61,16 @@ export const UsersProvider: FC<{ children: ReactNode }> = ({ children }) => {
       storeId: input.storeId,
       password: input.password,
     };
-    setUsers((prev) => [...prev, user]);
+    await db.users.add(user);
     return { ok: true, user };
-  }, [users]);
-
-  const update: UsersContextValue['update'] = useCallback((id, patch) => {
-    setUsers((prev) => prev.map((u) => u.id === id ? { ...u, ...patch } : u));
   }, []);
 
-  const setActive = useCallback((id: string, active: boolean) => {
-    setUsers((prev) => prev.map((u) => u.id === id ? { ...u, active } : u));
+  const update: UsersContextValue['update'] = useCallback(async (id, patch) => {
+    await db.users.update(id, patch);
+  }, []);
+
+  const setActive = useCallback(async (id: string, active: boolean) => {
+    await db.users.update(id, { active });
   }, []);
 
   const value = useMemo<UsersContextValue>(

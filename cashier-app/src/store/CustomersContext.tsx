@@ -1,21 +1,20 @@
 /**
- * CustomersContext — store-scoped customer CRUD + lending payments.
+ * CustomersContext — Dexie-backed CRUD + lending payments.
  *
- * All reads are filtered by currentStoreId.
- * `create`, `ensureFromMobile`, `remove` operate on the current store.
- * Payments are scoped by lookup through the customer's storeId.
+ * Uniqueness on `mobile` is per-tenant, enforced app-side so we can return
+ * a typed 'duplicateMobile' error.
+ *
+ * `recordPayment` runs inside a Dexie transaction so the payment row and
+ * the customer's lending-balance decrement land atomically.
  */
 import {
-  createContext, useCallback, useContext, useEffect, useMemo, useState,
+  createContext, useCallback, useContext, useMemo,
   type FC, type ReactNode,
 } from 'react';
-import { SEED_CUSTOMERS, SEED_STORE_MAIN_ID } from '../domain/seed';
-import { storage } from '../lib/storage';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db } from '../lib/db';
 import type { Customer, CustomerPayment } from '../domain/types';
 import { useCurrentStoreId } from './AuthContext';
-
-const CUSTOMERS_KEY = 'customers';
-const PAYMENTS_KEY  = 'customer-payments';
 
 type CreateResult =
   | { readonly ok: true; readonly customer: Customer }
@@ -26,58 +25,55 @@ interface CustomerInput {
   readonly mobile: string;
   readonly email?: string | null;
   readonly notes?: string | null;
-  readonly storeId?: string;   // optional override (super_admin)
+  readonly storeId?: string;
 }
 
 interface CustomersContextValue {
-  readonly customers: readonly Customer[];       // scoped
-  readonly allCustomers: readonly Customer[];    // unscoped
+  readonly customers: readonly Customer[];
+  readonly allCustomers: readonly Customer[];
   readonly payments: readonly CustomerPayment[];
   readonly byId: (id: string) => Customer | undefined;
   readonly byMobile: (mobile: string) => Customer | undefined;
   readonly paymentsFor: (customerId: string) => readonly CustomerPayment[];
-  readonly create: (input: CustomerInput) => CreateResult;
-  readonly update: (id: string, patch: Partial<CustomerInput>) => CreateResult;
-  readonly remove: (id: string) =>
-    | { ok: true }
-    | { ok: false; error: 'notFound' | 'hasBalance' };
-  readonly addLending: (customerId: string, amount: number) => void;
+  readonly create: (input: CustomerInput) => Promise<CreateResult>;
+  readonly update: (id: string, patch: Partial<CustomerInput>) => Promise<CreateResult>;
+  readonly remove: (id: string) => Promise<
+    { ok: true } | { ok: false; error: 'notFound' | 'hasBalance' }
+  >;
+  readonly addLending: (customerId: string, amount: number) => Promise<void>;
   readonly recordPayment: (input: {
     customerId: string;
     amount: number;
     method: 'cash' | 'card';
     receivedBy: string;
     notes?: string | null;
-  }) => { ok: true } | { ok: false; error: 'tooHigh' | 'invalid' | 'notFound' };
-  /** Ensure a customer exists for a lending sale (in the current store); return the record. */
-  readonly ensureFromMobile: (mobile: string, defaultName?: string) => Customer | null;
+  }) => Promise<
+    { ok: true } | { ok: false; error: 'tooHigh' | 'invalid' | 'notFound' }
+  >;
+  readonly ensureFromMobile: (mobile: string, defaultName?: string) => Promise<Customer | null>;
 }
 
 const CustomersContext = createContext<CustomersContextValue | null>(null);
-
-const migrate = (list: readonly Customer[]): readonly Customer[] =>
-  list.map((c) => c.storeId ? c : { ...c, storeId: SEED_STORE_MAIN_ID });
+const EMPTY_C: readonly Customer[] = [];
+const EMPTY_P: readonly CustomerPayment[] = [];
 
 export const CustomersProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const currentStoreId = useCurrentStoreId();
 
-  const [customers, setCustomers] = useState<readonly Customer[]>(
-    () => migrate(storage.load<readonly Customer[]>(CUSTOMERS_KEY, SEED_CUSTOMERS)),
-  );
-  const [payments, setPayments] = useState<readonly CustomerPayment[]>(
-    () => storage.load<readonly CustomerPayment[]>(PAYMENTS_KEY, []),
-  );
+  const scoped = useLiveQuery(
+    async () => {
+      if (!currentStoreId) return EMPTY_C;
+      return db.customers.where('storeId').equals(currentStoreId).toArray();
+    },
+    [currentStoreId],
+    EMPTY_C,
+  ) ?? EMPTY_C;
 
-  useEffect(() => { storage.save(CUSTOMERS_KEY, customers); }, [customers]);
-  useEffect(() => { storage.save(PAYMENTS_KEY,  payments);  }, [payments]);
+  const all = useLiveQuery(() => db.customers.toArray(), [], EMPTY_C) ?? EMPTY_C;
+  const payments = useLiveQuery(() => db.customerPayments.toArray(), [], EMPTY_P) ?? EMPTY_P;
 
-  const scoped = useMemo(
-    () => currentStoreId ? customers.filter((c) => c.storeId === currentStoreId) : [],
-    [customers, currentStoreId],
-  );
-
-  const byId      = useCallback((id: string)     => customers.find((c) => c.id === id),         [customers]);
-  const byMobile  = useCallback(
+  const byId     = useCallback((id: string) => all.find((c) => c.id === id), [all]);
+  const byMobile = useCallback(
     (mobile: string) => scoped.find((c) => c.mobile === mobile),
     [scoped],
   );
@@ -86,13 +82,15 @@ export const CustomersProvider: FC<{ children: ReactNode }> = ({ children }) => 
     [payments],
   );
 
-  const create = useCallback((input: CustomerInput): CreateResult => {
+  const create: CustomersContextValue['create'] = useCallback(async (input) => {
     const storeId = input.storeId ?? currentStoreId;
     if (!storeId) return { ok: false, error: 'noStore' };
     const mobile = input.mobile.trim();
-    if (customers.some((c) => c.storeId === storeId && c.mobile === mobile)) {
-      return { ok: false, error: 'duplicateMobile' };
-    }
+
+    const dup = await db.customers
+      .where('[storeId+mobile]').equals([storeId, mobile]).first();
+    if (dup) return { ok: false, error: 'duplicateMobile' };
+
     const customer: Customer = {
       id: crypto.randomUUID(),
       name:  input.name.trim(),
@@ -103,19 +101,20 @@ export const CustomersProvider: FC<{ children: ReactNode }> = ({ children }) => 
       createdAt: new Date().toISOString(),
       storeId,
     };
-    setCustomers((prev) => [customer, ...prev]);
+    await db.customers.add(customer);
     return { ok: true, customer };
-  }, [customers, currentStoreId]);
+  }, [currentStoreId]);
 
-  const update = useCallback((id: string, patch: Partial<CustomerInput>): CreateResult => {
-    const target = customers.find((c) => c.id === id);
+  const update: CustomersContextValue['update'] = useCallback(async (id, patch) => {
+    const target = await db.customers.get(id);
     if (!target) return { ok: false, error: 'duplicateMobile' };
+
     if (patch.mobile && patch.mobile.trim() !== target.mobile) {
-      if (customers.some(
-        (c) => c.id !== id && c.storeId === target.storeId && c.mobile === patch.mobile!.trim(),
-      )) {
-        return { ok: false, error: 'duplicateMobile' };
-      }
+      const dup = await db.customers
+        .where('[storeId+mobile]')
+        .equals([target.storeId, patch.mobile.trim()])
+        .first();
+      if (dup && dup.id !== id) return { ok: false, error: 'duplicateMobile' };
     }
     const next: Customer = {
       ...target,
@@ -124,30 +123,35 @@ export const CustomersProvider: FC<{ children: ReactNode }> = ({ children }) => 
       email:  patch.email === undefined ? target.email : (patch.email?.trim() || null),
       notes:  patch.notes === undefined ? target.notes : (patch.notes?.trim() || null),
     };
-    setCustomers((prev) => prev.map((c) => c.id === id ? next : c));
+    await db.customers.put(next);
     return { ok: true, customer: next };
-  }, [customers]);
-
-  const remove: CustomersContextValue['remove'] = useCallback((id) => {
-    const target = customers.find((c) => c.id === id);
-    if (!target) return { ok: false, error: 'notFound' };
-    if (target.lendingBalance > 0.001) return { ok: false, error: 'hasBalance' };
-    setCustomers((prev) => prev.filter((c) => c.id !== id));
-    setPayments((prev)  => prev.filter((p) => p.customerId !== id));
-    return { ok: true };
-  }, [customers]);
-
-  const addLending = useCallback((customerId: string, amount: number) => {
-    setCustomers((prev) => prev.map((c) =>
-      c.id === customerId ? { ...c, lendingBalance: c.lendingBalance + amount } : c,
-    ));
   }, []);
 
-  const recordPayment: CustomersContextValue['recordPayment'] = useCallback((input) => {
+  const remove: CustomersContextValue['remove'] = useCallback(async (id) => {
+    const target = await db.customers.get(id);
+    if (!target) return { ok: false, error: 'notFound' };
+    if (target.lendingBalance > 0.001) return { ok: false, error: 'hasBalance' };
+
+    await db.transaction('rw', [db.customers, db.customerPayments], async () => {
+      await db.customers.delete(id);
+      await db.customerPayments.where('customerId').equals(id).delete();
+    });
+    return { ok: true };
+  }, []);
+
+  const addLending = useCallback(async (customerId: string, amount: number) => {
+    await db.transaction('rw', db.customers, async () => {
+      const c = await db.customers.get(customerId);
+      if (!c) return;
+      await db.customers.update(customerId, { lendingBalance: c.lendingBalance + amount });
+    });
+  }, []);
+
+  const recordPayment: CustomersContextValue['recordPayment'] = useCallback(async (input) => {
     if (!Number.isFinite(input.amount) || input.amount <= 0) {
       return { ok: false, error: 'invalid' };
     }
-    const customer = customers.find((c) => c.id === input.customerId);
+    const customer = await db.customers.get(input.customerId);
     if (!customer) return { ok: false, error: 'notFound' };
     if (input.amount > customer.lendingBalance + 0.001) {
       return { ok: false, error: 'tooHigh' };
@@ -161,21 +165,20 @@ export const CustomersProvider: FC<{ children: ReactNode }> = ({ children }) => 
       receivedBy: input.receivedBy,
       notes: input.notes?.trim() || null,
     };
-    setPayments((prev) => [payment, ...prev]);
-    setCustomers((prev) => prev.map((c) =>
-      c.id === input.customerId
-        ? { ...c, lendingBalance: Math.max(c.lendingBalance - payment.amount, 0) }
-        : c,
-    ));
+    await db.transaction('rw', [db.customers, db.customerPayments], async () => {
+      await db.customerPayments.add(payment);
+      await db.customers.update(input.customerId, {
+        lendingBalance: Math.max(customer.lendingBalance - payment.amount, 0),
+      });
+    });
     return { ok: true };
-  }, [customers]);
+  }, []);
 
   const ensureFromMobile = useCallback(
-    (mobile: string, defaultName?: string): Customer | null => {
+    async (mobile: string, defaultName?: string): Promise<Customer | null> => {
       if (!currentStoreId) return null;
-      const existing = customers.find(
-        (c) => c.storeId === currentStoreId && c.mobile === mobile,
-      );
+      const existing = await db.customers
+        .where('[storeId+mobile]').equals([currentStoreId, mobile]).first();
       if (existing) return existing;
       const customer: Customer = {
         id: crypto.randomUUID(),
@@ -187,19 +190,19 @@ export const CustomersProvider: FC<{ children: ReactNode }> = ({ children }) => 
         createdAt: new Date().toISOString(),
         storeId: currentStoreId,
       };
-      setCustomers((prev) => [customer, ...prev]);
+      await db.customers.add(customer);
       return customer;
     },
-    [customers, currentStoreId],
+    [currentStoreId],
   );
 
   const value = useMemo<CustomersContextValue>(() => ({
     customers: scoped,
-    allCustomers: customers,
+    allCustomers: all,
     payments,
     byId, byMobile, paymentsFor,
     create, update, remove, addLending, recordPayment, ensureFromMobile,
-  }), [scoped, customers, payments, byId, byMobile, paymentsFor,
+  }), [scoped, all, payments, byId, byMobile, paymentsFor,
        create, update, remove, addLending, recordPayment, ensureFromMobile]);
 
   return <CustomersContext.Provider value={value}>{children}</CustomersContext.Provider>;

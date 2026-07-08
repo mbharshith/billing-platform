@@ -45,7 +45,7 @@ export const CustomersPage: FC = () => {
       c.name.toLowerCase().includes(q) || c.mobile.includes(q));
   }, [customers, query]);
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!form) return;
     const mobile = digitsOnly(form.mobile);
@@ -57,7 +57,7 @@ export const CustomersPage: FC = () => {
       toast.error(STRINGS.customers.nameRequired);
       return;
     }
-    const res = create({
+    const res = await create({
       name: form.name,
       mobile,
       email: form.email.trim() || null,
@@ -198,8 +198,8 @@ export const CustomersPage: FC = () => {
           }
           confirmLabel="Delete customer"
           danger
-          onConfirm={() => {
-            const res = remove(confirmingDelete.id);
+          onConfirm={async () => {
+            const res = await remove(confirmingDelete.id);
             if (!res.ok) {
               toast.error(res.error === 'hasBalance'
                 ? 'Cannot delete — outstanding balance.'

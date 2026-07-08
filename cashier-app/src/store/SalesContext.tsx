@@ -1,66 +1,43 @@
 /**
- * SalesContext — recorded sales, store-scoped.
- * Void = keep the record for audit (§14 audit trail intent).
+ * SalesContext — Dexie-backed sales ledger, store-scoped.
+ *
+ * All reads use `useLiveQuery` so the dashboard/history pages update in
+ * real time whenever a sale is recorded or voided (including from another
+ * tab). Store-scoping is done at the index level:
+ *   db.sales.where('storeId').equals(currentStoreId)
+ * — which is an O(log n) B-tree lookup, not an O(n) array filter.
+ *
+ * The demo-seed effect runs exactly once when the sales table is empty
+ * and the required parents (products + customers + stores) have loaded.
  */
 import {
-  createContext, useCallback, useContext, useEffect, useMemo, useReducer,
+  createContext, useCallback, useContext, useEffect, useMemo,
   type FC, type ReactNode,
 } from 'react';
-import { SEED_STORE_MAIN_ID } from '../domain/seed';
+import { useLiveQuery } from 'dexie-react-hooks';
 import { buildDemoSales } from '../domain/demoSales';
-import { storage } from '../lib/storage';
+import { db } from '../lib/db';
 import type { Sale } from '../domain/types';
 import { useCurrentStoreId } from './AuthContext';
 import { useCustomers } from './CustomersContext';
 import { useProducts } from './ProductsContext';
 import { useStores } from './StoresContext';
 
-const STORAGE_KEY = 'sales';
-
-interface SalesState { readonly sales: readonly Sale[] }
-
-type SalesAction =
-  | { type: 'sale/recorded'; sale: Sale }
-  | { type: 'sale/voided'; id: string; at: string; reason: string }
-  | { type: 'sales/cleared' }
-  | { type: 'sales/hydrated'; sales: readonly Sale[] };
-
-const reducer = (state: SalesState, action: SalesAction): SalesState => {
-  switch (action.type) {
-    case 'sale/recorded':
-      return { sales: [action.sale, ...state.sales] };
-    case 'sale/voided':
-      return {
-        sales: state.sales.map((s) => s.id === action.id
-          ? { ...s, voided: true, voidedAt: action.at, voidedReason: action.reason }
-          : s),
-      };
-    case 'sales/cleared':
-      return { sales: [] };
-    case 'sales/hydrated':
-      return { sales: action.sales };
-    default: {
-      const _exhaustive: never = action;
-      void _exhaustive;
-      return state;
-    }
-  }
-};
-
 interface SalesContextValue {
-  readonly sales: readonly Sale[];        // scoped to current store
-  readonly allSales: readonly Sale[];     // unscoped (super_admin analytics)
+  /** Sales for the current tenant, newest first. */
+  readonly sales: readonly Sale[];
+  /** Every sale, unscoped (rarely used — kept for parity with old API). */
+  readonly allSales: readonly Sale[];
   readonly byId: (id: string) => Sale | undefined;
   readonly forCustomer: (customerId: string) => readonly Sale[];
-  readonly recordSale: (sale: Sale) => void;
-  readonly voidSale: (id: string, reason: string) => void;
-  readonly clearSales: () => void;
+  readonly recordSale: (sale: Sale) => Promise<void>;
+  readonly voidSale: (id: string, reason: string) => Promise<void>;
+  readonly clearSales: () => Promise<void>;
 }
 
 const SalesContext = createContext<SalesContextValue | null>(null);
 
-const migrate = (list: readonly Sale[]): readonly Sale[] =>
-  list.map((s) => s.storeId ? s : { ...s, storeId: SEED_STORE_MAIN_ID });
+const EMPTY: readonly Sale[] = [];
 
 export const SalesProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const currentStoreId = useCurrentStoreId();
@@ -68,52 +45,76 @@ export const SalesProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const { allCustomers } = useCustomers();
   const { stores } = useStores();
 
-  const [state, dispatch] = useReducer(
-    reducer,
-    undefined,
-    () => ({ sales: migrate(storage.load<readonly Sale[]>(STORAGE_KEY, [])) }),
-  );
+  /* -- scoped read (dashboard / sales page / etc.) ---------------------- */
+  const scoped = useLiveQuery(
+    async () => {
+      if (!currentStoreId) return EMPTY;
+      // Fetch the tenant's rows via the `storeId` index, then order by
+      // completedAt descending in memory (per-tenant list, not global).
+      const rows = await db.sales
+        .where('storeId').equals(currentStoreId).toArray();
+      return rows.sort((a, b) => b.completedAt.localeCompare(a.completedAt));
+    },
+    [currentStoreId],
+    EMPTY,
+  ) ?? EMPTY;
 
-  // Demo seeder — runs once when sales list is empty AND we have products +
-  // customers loaded. Idempotent by storage: after first save, list is
-  // non-empty and won't reseed. Adds ~60 sales across both stores.
+  /* -- unscoped (rare, for legacy consumers) ---------------------------- */
+  const all = useLiveQuery(
+    () => db.sales.orderBy('completedAt').reverse().toArray(),
+    [],
+    EMPTY,
+  ) ?? EMPTY;
+
+  /* -- one-shot demo seeder --------------------------------------------- */
+  // Fires once when: no sales exist AND products/customers/stores are ready.
+  // `db.sales.count()` gate makes it idempotent across reloads.
   useEffect(() => {
-    if (state.sales.length > 0) return;
-    if (allProducts.length === 0) return;
-    const customerIdsByStore: Record<string, { id: string; mobile: string }[]> = {};
-    allCustomers.forEach((c) => {
-      const list = customerIdsByStore[c.storeId] ?? (customerIdsByStore[c.storeId] = []);
-      list.push({ id: c.id, mobile: c.mobile });
-    });
-    const taxRateByStore: Record<string, number> = {};
-    stores.forEach((s) => { taxRateByStore[s.id] = s.taxRate; });
-    const demo = buildDemoSales({
-      products: allProducts,
-      customerIdsByStore,
-      taxRateByStore,
-    });
-    if (demo.length > 0) {
-      dispatch({ type: 'sales/hydrated', sales: demo });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [allProducts.length, allCustomers.length, stores.length]);
+    if (allProducts.length === 0 || stores.length === 0) return;
+    let cancelled = false;
+    (async () => {
+      const existing = await db.sales.count();
+      if (existing > 0 || cancelled) return;
 
-  useEffect(() => { storage.save(STORAGE_KEY, state.sales); }, [state.sales]);
+      const customerIdsByStore: Record<string, { id: string; mobile: string }[]> = {};
+      allCustomers.forEach((c) => {
+        (customerIdsByStore[c.storeId] ??= []).push({ id: c.id, mobile: c.mobile });
+      });
+      const taxRateByStore: Record<string, number> = {};
+      stores.forEach((s) => { taxRateByStore[s.id] = s.taxRate; });
 
-  const recordSale = useCallback((sale: Sale) => {
-    dispatch({ type: 'sale/recorded', sale });
+      const demo = buildDemoSales({
+        products: allProducts,
+        customerIdsByStore,
+        taxRateByStore,
+      });
+      if (demo.length > 0) await db.sales.bulkAdd(demo);
+    })();
+    return () => { cancelled = true; };
+  }, [allProducts, allCustomers, stores]);
+
+  /* -- writes ------------------------------------------------------------ */
+  const recordSale = useCallback(async (sale: Sale) => {
+    await db.sales.add(sale);
   }, []);
-  const voidSale = useCallback((id: string, reason: string) => {
-    dispatch({ type: 'sale/voided', id, at: new Date().toISOString(), reason });
-  }, []);
-  const clearSales = useCallback(() => dispatch({ type: 'sales/cleared' }), []);
 
-  const scoped = useMemo(
-    () => currentStoreId ? state.sales.filter((s) => s.storeId === currentStoreId) : [],
-    [state.sales, currentStoreId],
+  const voidSale = useCallback(async (id: string, reason: string) => {
+    await db.sales.update(id, {
+      voided: true,
+      voidedAt: new Date().toISOString(),
+      voidedReason: reason,
+    });
+  }, []);
+
+  const clearSales = useCallback(async () => {
+    await db.sales.clear();
+  }, []);
+
+  /* -- selectors (in-memory over the already-scoped list) --------------- */
+  const byId = useCallback(
+    (id: string) => scoped.find((s) => s.id === id) ?? all.find((s) => s.id === id),
+    [scoped, all],
   );
-
-  const byId = useCallback((id: string) => state.sales.find((s) => s.id === id), [state.sales]);
   const forCustomer = useCallback(
     (customerId: string) => scoped.filter((s) => s.customerId === customerId),
     [scoped],
@@ -121,9 +122,9 @@ export const SalesProvider: FC<{ children: ReactNode }> = ({ children }) => {
 
   const value = useMemo<SalesContextValue>(() => ({
     sales: scoped,
-    allSales: state.sales,
+    allSales: all,
     byId, forCustomer, recordSale, voidSale, clearSales,
-  }), [scoped, state.sales, byId, forCustomer, recordSale, voidSale, clearSales]);
+  }), [scoped, all, byId, forCustomer, recordSale, voidSale, clearSales]);
 
   return <SalesContext.Provider value={value}>{children}</SalesContext.Provider>;
 };

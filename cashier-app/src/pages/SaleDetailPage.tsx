@@ -43,9 +43,9 @@ export const SaleDetailPage: FC = () => {
 
   const customer = sale.customerId ? customerById(sale.customerId) : undefined;
 
-  const handleVoid = () => {
+  const handleVoid = async () => {
     if (!reason.trim()) return;
-    voidSale(sale.id, reason.trim());
+    await voidSale(sale.id, reason.trim());
     incrementStock(sale.lines.map((l) => ({ productId: l.productId, qty: l.quantity })));
     if (sale.paymentMethod === 'lending' && sale.customerId) {
       addLending(sale.customerId, -sale.total);

@@ -10,6 +10,8 @@ import { STRINGS } from '../domain/strings';
 import { useSettings } from '../store/SettingsContext';
 import { useToast } from '../store/ToastContext';
 import { storage } from '../lib/storage';
+import { resetDb } from '../lib/db';
+import { resetBootstrap } from '../lib/db-bootstrap';
 
 const CURRENCIES = ['USD', 'INR', 'GBP', 'EUR', 'AUD', 'CAD', 'SGD', 'AED'] as const;
 
@@ -35,9 +37,11 @@ export const SettingsPage: FC = () => {
     }, 250);
   };
 
-  const handleWipe = () => {
+  const handleWipe = async () => {
     if (!window.confirm(STRINGS.settings.wipeConfirm)) return;
-    storage.clearAll();
+    storage.clearAll();     // theme, session, migration flag
+    resetBootstrap();       // let the next boot re-seed from scratch
+    await resetDb();        // drop every IndexedDB table
     toast.info(STRINGS.settings.wipeDone);
     window.setTimeout(() => window.location.reload(), 800);
   };

@@ -1,16 +1,21 @@
 /**
- * StoresContext — CRUD for stores. Only super_admin should call mutations
- * (the UI gates via `can(user, 'store:create')` etc.).
+ * StoresContext — Dexie-backed tenant catalog.
+ *
+ * All reads go through `useLiveQuery` so the UI reactively updates whenever
+ * a store row changes — including changes made in another tab.
+ * All writes go straight to `db.stores` (async, non-blocking).
+ *
+ * Uniqueness (case-insensitive name) is enforced at the app layer, not
+ * as an IDB `& unique` index, so we can return a typed 'duplicateName'
+ * error instead of a raw Dexie throw.
  */
 import {
-  createContext, useCallback, useContext, useEffect, useMemo, useState,
+  createContext, useCallback, useContext, useMemo,
   type FC, type ReactNode,
 } from 'react';
-import { SEED_STORES } from '../domain/seed';
-import { storage } from '../lib/storage';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db } from '../lib/db';
 import type { Store } from '../domain/types';
-
-const STORAGE_KEY = 'stores';
 
 export interface StoreInput {
   readonly name: string;
@@ -29,32 +34,37 @@ interface StoresContextValue {
   readonly stores: readonly Store[];
   readonly activeStores: readonly Store[];
   readonly byId: (id: string | null | undefined) => Store | undefined;
-  readonly create: (input: StoreInput) => CreateResult;
-  readonly update: (id: string, patch: Partial<StoreInput>) => CreateResult;
-  readonly setActive: (id: string, active: boolean) => void;
-  readonly remove: (id: string) => { ok: true } | { ok: false; error: 'notFound' };
+  readonly create: (input: StoreInput) => Promise<CreateResult>;
+  readonly update: (id: string, patch: Partial<StoreInput>) => Promise<CreateResult>;
+  readonly setActive: (id: string, active: boolean) => Promise<void>;
+  readonly remove: (id: string) => Promise<
+    { ok: true } | { ok: false; error: 'notFound' }
+  >;
 }
 
 const StoresContext = createContext<StoresContextValue | null>(null);
 
-export const StoresProvider: FC<{ children: ReactNode }> = ({ children }) => {
-  const [stores, setStores] = useState<readonly Store[]>(
-    () => storage.load<readonly Store[]>(STORAGE_KEY, SEED_STORES),
-  );
+const EMPTY: readonly Store[] = [];
 
-  useEffect(() => { storage.save(STORAGE_KEY, stores); }, [stores]);
+export const StoresProvider: FC<{ children: ReactNode }> = ({ children }) => {
+  // Live query — re-runs whenever the stores table changes.
+  const stores = useLiveQuery(() => db.stores.orderBy('name').toArray(), [], EMPTY);
+  const rows = stores ?? EMPTY;
 
   const byId = useCallback(
-    (id: string | null | undefined) => (id ? stores.find((s) => s.id === id) : undefined),
-    [stores],
+    (id: string | null | undefined) => (id ? rows.find((s) => s.id === id) : undefined),
+    [rows],
   );
 
-  const create: StoresContextValue['create'] = useCallback((input) => {
+  const create: StoresContextValue['create'] = useCallback(async (input) => {
     const name = input.name.trim();
     if (!name || input.taxRate < 0) return { ok: false, error: 'invalid' };
-    if (stores.some((s) => s.name.toLowerCase() === name.toLowerCase())) {
-      return { ok: false, error: 'duplicateName' };
-    }
+
+    const existing = await db.stores
+      .filter((s) => s.name.toLowerCase() === name.toLowerCase())
+      .first();
+    if (existing) return { ok: false, error: 'duplicateName' };
+
     const store: Store = {
       id: crypto.randomUUID(),
       name,
@@ -66,17 +76,19 @@ export const StoresProvider: FC<{ children: ReactNode }> = ({ children }) => {
       active:   true,
       createdAt: new Date().toISOString(),
     };
-    setStores((prev) => [...prev, store]);
+    await db.stores.add(store);
     return { ok: true, store };
-  }, [stores]);
+  }, []);
 
-  const update: StoresContextValue['update'] = useCallback((id, patch) => {
-    const target = stores.find((s) => s.id === id);
+  const update: StoresContextValue['update'] = useCallback(async (id, patch) => {
+    const target = await db.stores.get(id);
     if (!target) return { ok: false, error: 'invalid' };
+
     if (patch.name && patch.name.trim().toLowerCase() !== target.name.toLowerCase()) {
-      const dup = stores.some(
-        (s) => s.id !== id && s.name.toLowerCase() === patch.name!.trim().toLowerCase(),
-      );
+      const dup = await db.stores
+        .filter((s) => s.id !== id
+          && s.name.toLowerCase() === patch.name!.trim().toLowerCase())
+        .first();
       if (dup) return { ok: false, error: 'duplicateName' };
     }
     const next: Store = {
@@ -88,25 +100,26 @@ export const StoresProvider: FC<{ children: ReactNode }> = ({ children }) => {
       taxRate:  patch.taxRate ?? target.taxRate,
       currency: patch.currency?.trim() ?? target.currency,
     };
-    setStores((prev) => prev.map((s) => s.id === id ? next : s));
+    await db.stores.put(next);
     return { ok: true, store: next };
-  }, [stores]);
-
-  const setActive = useCallback((id: string, active: boolean) => {
-    setStores((prev) => prev.map((s) => s.id === id ? { ...s, active } : s));
   }, []);
 
-  const remove: StoresContextValue['remove'] = useCallback((id) => {
-    if (!stores.some((s) => s.id === id)) return { ok: false, error: 'notFound' };
-    setStores((prev) => prev.filter((s) => s.id !== id));
+  const setActive = useCallback(async (id: string, active: boolean) => {
+    await db.stores.update(id, { active });
+  }, []);
+
+  const remove: StoresContextValue['remove'] = useCallback(async (id) => {
+    const exists = await db.stores.get(id);
+    if (!exists) return { ok: false, error: 'notFound' };
+    await db.stores.delete(id);
     return { ok: true };
-  }, [stores]);
+  }, []);
 
   const value = useMemo<StoresContextValue>(() => ({
-    stores,
-    activeStores: stores.filter((s) => s.active),
+    stores: rows,
+    activeStores: rows.filter((s) => s.active),
     byId, create, update, setActive, remove,
-  }), [stores, byId, create, update, setActive, remove]);
+  }), [rows, byId, create, update, setActive, remove]);
 
   return <StoresContext.Provider value={value}>{children}</StoresContext.Provider>;
 };

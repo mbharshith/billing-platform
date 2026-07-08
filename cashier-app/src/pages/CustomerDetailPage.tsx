@@ -50,11 +50,11 @@ export const CustomerDetailPage: FC = () => {
     );
   }
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!currentUser) return;
     const amt = Number(amount);
-    const res = recordPayment({
+    const res = await recordPayment({
       customerId: customer.id, amount: amt, method,
       receivedBy: currentUser.name, notes: notes || null,
     });
@@ -264,8 +264,8 @@ export const CustomerDetailPage: FC = () => {
           }
           confirmLabel={STRINGS.customers.deleteLabel}
           danger
-          onConfirm={() => {
-            const res = remove(customer.id);
+          onConfirm={async () => {
+            const res = await remove(customer.id);
             if (!res.ok) {
               toast.error(res.error === 'hasBalance'
                 ? STRINGS.customers.hasBalanceError
