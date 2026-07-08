@@ -26,7 +26,11 @@ import { useStores } from './StoresContext';
 interface SalesContextValue {
   /** Sales for the current tenant, newest first. */
   readonly sales: readonly Sale[];
-  /** Every sale, unscoped (rarely used — kept for parity with old API). */
+  /**
+   * All sales across every store, newest-first. Unscoped by tenant.
+   * Only needed by vendor/super-admin views that require cross-tenant
+   * visibility. Regular pages should use the scoped `sales` array.
+   */
   readonly allSales: readonly Sale[];
   readonly byId: (id: string) => Sale | undefined;
   readonly forCustomer: (customerId: string) => readonly Sale[];
@@ -59,7 +63,7 @@ export const SalesProvider: FC<{ children: ReactNode }> = ({ children }) => {
     EMPTY,
   ) ?? EMPTY;
 
-  /* -- unscoped (rare, for legacy consumers) ---------------------------- */
+  /* -- unscoped: vendor dashboard + cross-store reporting only ---------- */
   const all = useLiveQuery(
     () => db.sales.orderBy('completedAt').reverse().toArray(),
     [],

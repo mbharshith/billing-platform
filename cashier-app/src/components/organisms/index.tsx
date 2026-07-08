@@ -1,6 +1,9 @@
 /**
- * Organisms — page-region compositions.
- * Header, product grid, cart panel, payment modal, receipt.
+ * Organisms — self-contained page-region compositions.
+ * Each organism owns a complete functional area (navigation header,
+ * product grid, cart panel, payment flow, receipt) and wires together
+ * molecules and atoms. Organisms may read from React Context directly.
+ * Pages compose organisms; they never reach past them to import atoms.
  */
 import { useEffect, useMemo, useState, type FC, type ReactNode } from 'react';
 import cls from './organisms.module.css';
@@ -10,7 +13,7 @@ import {
   PaymentBadge, PaymentMethodOption, ProductBadge, ProductCard, SearchBar, StatCard,
 } from '../molecules';
 import { STRINGS } from '../../domain/strings';
-import { fmtDateTime, fmtTime, num, digitsOnly, nextInvoiceNo } from '../../domain/format';
+import { fmtDateTime, fmtTime, num, formatNumberCompact, digitsOnly, nextInvoiceNo } from '../../domain/format';
 import { useMoney } from '../../hooks/useMoney';
 import type { PaymentMethod, Product, Sale, SaleLine } from '../../domain/types';
 import { TAX_RATE } from '../../domain/catalog';
@@ -732,7 +735,7 @@ interface DashboardKpisProps {
 export const DashboardKpis: FC<DashboardKpisProps> = ({
   revenue, saleCount, unitsSold, uniqueSkus, lendingBalance,
 }) => {
-  const { money } = useMoney();
+  const { money, moneyCompact } = useMoney();
   return (
   <div
     style={{
@@ -741,11 +744,21 @@ export const DashboardKpis: FC<DashboardKpisProps> = ({
       gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
     }}
   >
-    <StatCard label={STRINGS.dashboard.kpiRevenue}   value={money(revenue)}         icon="coins" tone="success" />
-    <StatCard label={STRINGS.dashboard.kpiSales}     value={num(saleCount)}         icon="receipt" />
-    <StatCard label={STRINGS.dashboard.kpiUnits}     value={num(unitsSold)}         icon="bag" tone="accent" />
-    <StatCard label={STRINGS.dashboard.kpiUniqueSku} value={num(uniqueSkus)}        icon="chart" />
-    <StatCard label={STRINGS.dashboard.kpiLendingWO} value={money(lendingBalance)}  icon="phone" tone="danger" hint="Buy-now-pay-later outstanding" />
+    <StatCard label={STRINGS.dashboard.kpiRevenue}
+              value={moneyCompact(revenue)}       fullValue={money(revenue)}
+              icon="coins" tone="success" />
+    <StatCard label={STRINGS.dashboard.kpiSales}
+              value={formatNumberCompact(saleCount)} fullValue={num(saleCount)}
+              icon="receipt" />
+    <StatCard label={STRINGS.dashboard.kpiUnits}
+              value={formatNumberCompact(unitsSold)} fullValue={num(unitsSold)}
+              icon="bag" tone="accent" />
+    <StatCard label={STRINGS.dashboard.kpiUniqueSku}
+              value={formatNumberCompact(uniqueSkus)} fullValue={num(uniqueSkus)}
+              icon="chart" />
+    <StatCard label={STRINGS.dashboard.kpiLendingWO}
+              value={moneyCompact(lendingBalance)} fullValue={money(lendingBalance)}
+              icon="phone" tone="danger" hint="Buy-now-pay-later outstanding" />
   </div>
   );
 };

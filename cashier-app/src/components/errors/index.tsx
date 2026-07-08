@@ -42,7 +42,8 @@ export class ErrorBoundary extends Component<BoundaryProps, BoundaryState> {
   }
 
   componentDidCatch(error: Error, info: ErrorInfo): void {
-    // Keep the console signal loud — no telemetry in this app (yet).
+    // Log loudly to the console. When Sentry (or equivalent) is wired in,
+    // forward `error` and `info.componentStack` there before this line.
     // eslint-disable-next-line no-console
     console.error(
       `[ErrorBoundary${this.props.label ? `:${this.props.label}` : ''}]`,

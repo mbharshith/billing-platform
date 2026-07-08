@@ -14,7 +14,7 @@ import { useMemo, type FC } from 'react';
 import cls from './pages.module.css';
 import { Badge, Icon, Text } from '../components/atoms';
 import { PageHeader } from '../components/layout/AppShell';
-import { fmtDate } from '../domain/format';
+import { fmtDate, formatNumberCompact, num } from '../domain/format';
 import { useMoney } from '../hooks/useMoney';
 import { useAuth } from '../store/AuthContext';
 import { useCustomers } from '../store/CustomersContext';
@@ -24,7 +24,7 @@ import { useStores } from '../store/StoresContext';
 import { useUsers } from '../store/UsersContext';
 
 export const StorePage: FC = () => {
-  const { money } = useMoney();
+  const { money, moneyCompact } = useMoney();
   const { currentStoreId } = useAuth();
   const { byId } = useStores();
   const { users } = useUsers();
@@ -81,11 +81,11 @@ export const StorePage: FC = () => {
       {/* --- Stats ---------------------------------------------------------- */}
       {stats && (
         <div className={cls.storeStats}>
-          <StatCard label="Staff"        value={String(stats.staffCount)}    hint="users in this tenant" />
-          <StatCard label="Products"     value={String(stats.productCount)}  hint="items in the catalog" />
-          <StatCard label="Customers"    value={String(stats.customerCount)} hint="registered shoppers" />
-          <StatCard label="Revenue"      value={money(stats.revenue)}        hint="excludes voided sales" />
-          <StatCard label="Lending owed" value={money(stats.lending)}        hint="buy-now-pay-later outstanding" />
+          <StatCard label="Staff"        value={formatNumberCompact(stats.staffCount)}   fullValue={num(stats.staffCount)}   hint="users in this tenant" />
+          <StatCard label="Products"     value={formatNumberCompact(stats.productCount)} fullValue={num(stats.productCount)} hint="items in the catalog" />
+          <StatCard label="Customers"    value={formatNumberCompact(stats.customerCount)} fullValue={num(stats.customerCount)} hint="registered shoppers" />
+          <StatCard label="Revenue"      value={moneyCompact(stats.revenue)}             fullValue={money(stats.revenue)}    hint="excludes voided sales" />
+          <StatCard label="Lending owed" value={moneyCompact(stats.lending)}             fullValue={money(stats.lending)}    hint="buy-now-pay-later outstanding" />
         </div>
       )}
 
@@ -133,10 +133,16 @@ const IdentityField: FC<{ label: string; value: string; icon: Parameters<typeof 
   </div>
 );
 
-const StatCard: FC<{ label: string; value: string; hint: string }> = ({ label, value, hint }) => (
+const StatCard: FC<{ label: string; value: string; hint: string; fullValue?: string }> = ({ label, value, hint, fullValue }) => (
   <div className={cls.statCard}>
     <Text tone="subtle" size="xs" upper weight="semibold">{label}</Text>
-    <Text size="2xl" weight="heavy">{value}</Text>
+    <div
+      className={cls.storeStat__value}
+      title={fullValue}
+      aria-label={fullValue ? `${label}: ${fullValue}` : undefined}
+    >
+      {value}
+    </div>
     <Text tone="subtle" size="xs">{hint}</Text>
   </div>
 );

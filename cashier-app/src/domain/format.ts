@@ -40,6 +40,47 @@ const _fmtFor = (currency: string): Intl.NumberFormat => {
 export const formatMoney = (n: number, currency: string): string =>
   _fmtFor(currency).format(n);
 
+/**
+ * Compact money formatter — e.g. ₹281,867.78 -> '₹282K', $1,250,000 -> '$1.3M'.
+ *
+ * Perfect for KPI cards where horizontal space is tight; always pair with
+ * `title={formatMoney(n, currency)}` on the surrounding element so the exact
+ * value is one hover away. Numbers below 1,000 render without a suffix.
+ */
+const _compactMemo = new Map<string, Intl.NumberFormat>();
+const _compactFor = (currency: string): Intl.NumberFormat => {
+  const key = currency.toUpperCase();
+  const cached = _compactMemo.get(key);
+  if (cached) return cached;
+  let fmt: Intl.NumberFormat;
+  try {
+    fmt = new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: key,
+      currencyDisplay: 'narrowSymbol',
+      notation: 'compact',
+      compactDisplay: 'short',
+      maximumFractionDigits: 1,
+    });
+  } catch {
+    fmt = new Intl.NumberFormat('en-US', {
+      notation: 'compact', compactDisplay: 'short', maximumFractionDigits: 1,
+    });
+  }
+  _compactMemo.set(key, fmt);
+  return fmt;
+};
+
+export const formatMoneyCompact = (n: number, currency: string): string =>
+  _compactFor(currency).format(n);
+
+/** Compact plain-number formatter (e.g. 12345 -> '12K'). */
+const _numberCompactFmt = new Intl.NumberFormat('en-US', {
+  notation: 'compact', compactDisplay: 'short', maximumFractionDigits: 1,
+});
+export const formatNumberCompact = (n: number): string =>
+  _numberCompactFmt.format(n);
+
 /** Fallback formatter for non-component code paths. */
 const _decimalFmt = new Intl.NumberFormat('en-US', {
   minimumFractionDigits: 2,

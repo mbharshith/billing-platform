@@ -220,6 +220,11 @@
   overflow-wrap: anywhere;
   min-width: 0;
 }
+.kpiValue[title] {
+  text-decoration: underline dotted var(--app-border);
+  text-underline-offset: 3px;
+  cursor: help;
+}
 .kpiHint {
   font-size: 0.75rem;
   color: var(--app-text-muted);

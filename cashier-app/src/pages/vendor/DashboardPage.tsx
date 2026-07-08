@@ -10,7 +10,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import cls from './vendor.module.css';
 import { Icon, Text } from '../../components/atoms';
 import { db } from '../../lib/db';
-import { fmtDate, fmtDateTime, formatMoney } from '../../domain/format';
+import { fmtDate, fmtDateTime, formatMoney, formatMoneyCompact, formatNumberCompact, num } from '../../domain/format';
 import { useStores } from '../../store/StoresContext';
 import { VENDOR_SCOPE } from '../../domain/types';
 import { EmptyState, SectionCard, StatusPill, useTenantStats } from './hooks';
@@ -60,10 +60,18 @@ export const DashboardPage: FC = () => {
       </div>
 
       <div className={cls.kpiGrid}>
-        <KpiCard tone="indigo"  label="Active tenants"    value={active}       hint={`${suspended} suspended`} icon="store" />
-        <KpiCard tone="emerald" label="Total sales"       value={totalSales}   hint="fleet-wide, excl. voided" icon="chart" />
-        <KpiCard tone="amber"   label="Users"             value={usersCount}   hint="admins + cashiers + vendor" icon="user" />
-        <KpiCard tone="purple"  label="Customers on file" value={customersCount} hint="fleet-wide" icon="user" />
+        <KpiCard tone="indigo"  label="Active tenants"
+                 value={formatNumberCompact(active)}       fullValue={num(active)}
+                 hint={`${suspended} suspended`} icon="store" />
+        <KpiCard tone="emerald" label="Total sales"
+                 value={formatNumberCompact(totalSales)}   fullValue={num(totalSales)}
+                 hint="fleet-wide, excl. voided" icon="chart" />
+        <KpiCard tone="amber"   label="Users"
+                 value={formatNumberCompact(usersCount)}   fullValue={num(usersCount)}
+                 hint="admins + cashiers + vendor" icon="user" />
+        <KpiCard tone="purple"  label="Customers on file"
+                 value={formatNumberCompact(customersCount)} fullValue={num(customersCount)}
+                 hint="fleet-wide" icon="user" />
       </div>
 
       <SectionCard title="Revenue processed" subtitle="Grouped by tenant currency — we don't FX-convert.">
@@ -72,9 +80,13 @@ export const DashboardPage: FC = () => {
         ) : (
           <div className={cls.pillRow}>
             {[...revenueByCurrency.entries()].map(([cur, amount]) => (
-              <div key={cur} className={cls.pill}>
+              <div
+                key={cur} className={cls.pill}
+                title={formatMoney(amount, cur)}
+                aria-label={`${cur} revenue: ${formatMoney(amount, cur)}`}
+              >
                 <div className={cls.pillLabel}>{cur}</div>
-                <div className={cls.pillValue}>{formatMoney(amount, cur)}</div>
+                <div className={cls.pillValue}>{formatMoneyCompact(amount, cur)}</div>
               </div>
             ))}
           </div>
@@ -142,11 +154,13 @@ interface KpiCardProps {
   readonly tone: 'indigo' | 'emerald' | 'amber' | 'rose' | 'purple';
   readonly label: string;
   readonly value: number | string;
+  /** Optional exact value shown on hover (title + aria-label) when `value` is compacted. */
+  readonly fullValue?: string;
   readonly hint?: string;
   readonly icon?: 'store' | 'chart' | 'user' | 'shield';
 }
 
-const KpiCard: FC<KpiCardProps> = ({ tone, label, value, hint, icon }) => (
+const KpiCard: FC<KpiCardProps> = ({ tone, label, value, fullValue, hint, icon }) => (
   <div className={[cls.kpi, cls[`kpi--${tone}`]].join(' ')}>
     {icon && (
       <span className={cls.kpiIcon} aria-hidden="true">
@@ -154,7 +168,13 @@ const KpiCard: FC<KpiCardProps> = ({ tone, label, value, hint, icon }) => (
       </span>
     )}
     <div className={cls.kpiLabel}>{label}</div>
-    <div className={cls.kpiValue}>{value}</div>
+    <div
+      className={cls.kpiValue}
+      title={fullValue}
+      aria-label={fullValue ? `${label}: ${fullValue}` : undefined}
+    >
+      {value}
+    </div>
     {hint && <div className={cls.kpiHint}>{hint}</div>}
   </div>
 );

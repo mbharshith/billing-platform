@@ -1,7 +1,12 @@
 /**
- * Atomic building blocks. Each atom does one thing.
- * Styles live in `atoms.module.css`.
- * §1: no inline visual styles. §10: proper labels, min touch targets.
+ * Atomic building blocks — the lowest-level UI primitives.
+ * Each atom does exactly one thing and accepts no children it doesn't
+ * explicitly type. Rules every atom must follow:
+ *   - No inline visual styles (colors, spacing, typography belong in
+ *     atoms.module.css or design tokens).
+ *   - Every interactive element must carry a visible label or aria-label.
+ *   - Touch targets are at minimum 44×44 px (WCAG 2.2 AA, §10).
+ *   - No direct reads from any React Context — props only.
  */
 import type {
   ButtonHTMLAttributes, FC, InputHTMLAttributes, ReactNode,

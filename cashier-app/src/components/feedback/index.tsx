@@ -1,7 +1,15 @@
 /**
- * Feedback components — ToastStack + ConfirmDialog.
- * ToastStack subscribes to ToastContext and renders any active toasts.
- * ConfirmDialog is a simple "yes/no" modal built on the shared Modal.
+ * Feedback components — transient and blocking user feedback.
+ *
+ * ToastStack: subscribes to ToastContext and renders queued toasts in a
+ *   fixed corner overlay. Each toast auto-dismisses after its TTL and
+ *   uses role="alert" (errors) or role="status" (success/info) for
+ *   screen-reader announcements.
+ *
+ * ConfirmDialog: a blocking yes/no modal built on the shared Modal atom.
+ *   Renders a danger variant when the action is destructive. Caller
+ *   supplies the title, body copy, and confirm/cancel callbacks — this
+ *   component owns no opinion about what it is confirming.
  */
 import { type FC } from 'react';
 import cls from './feedback.module.css';

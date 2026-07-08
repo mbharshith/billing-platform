@@ -21,10 +21,14 @@ import type {
 
 const MIGRATION_FLAG = 'db-bootstrap::v1';
 
-/** Same legacy-role migration as before, but flipped: legacy 'super_admin'
- *  users are dropped (no cross-tenant role exists any more), and the older
- *  'master' role — which lived through v1 of the app — is renamed to 'admin'
- *  so it matches the current UserRole union. */
+/**
+ * Normalise legacy user roles to the current UserRole union:
+ *  - 'super_admin' rows are dropped entirely — the cross-tenant role no
+ *    longer exists; that surface moved to the dedicated vendor account.
+ *  - 'master' rows (used in v1 of the app) are renamed to 'admin' to
+ *    match the current schema.
+ * Safe to run on an already-migrated list — no-ops for current roles.
+ */
 const migrateUsers = (list: readonly User[]): readonly User[] =>
   list
     .filter((u) => u.role !== ('super_admin' as UserRole))

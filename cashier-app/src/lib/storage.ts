@@ -23,8 +23,10 @@ export const storage = {
     try {
       window.localStorage.setItem(key(name), JSON.stringify(value));
     } catch {
-      // Quota exceeded / disabled — swallow. Data loss is acceptable in a
-      // mock frontend; a real backend would surface this to the user.
+      // Quota exceeded or storage blocked (e.g. Safari private mode).
+      // Silently drop the write — the user will see stale data after reload.
+      // When the backend API is integrated, surface this as a persistent
+      // error toast so the user knows their data was not saved.
     }
   },
 

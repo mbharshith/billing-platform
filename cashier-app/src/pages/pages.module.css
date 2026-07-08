@@ -187,6 +187,24 @@
   border: 1px solid var(--app-border);
   border-radius: var(--app-radius-lg);
   box-shadow: var(--app-shadow-sm);
+  min-width: 0;
+  overflow: hidden;
+  container-type: inline-size;
+}
+.storeStat__value {
+  font-size: clamp(1.25rem, 7cqi, 1.75rem);
+  font-weight: 800;
+  color: var(--app-text);
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.storeStat__value[title] {
+  text-decoration: underline dotted var(--app-border);
+  text-underline-offset: 3px;
+  cursor: help;
 }
 .isolationBanner {
   display: flex;

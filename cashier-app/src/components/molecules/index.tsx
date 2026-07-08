@@ -1,6 +1,9 @@
 /**
- * Molecules — reusable compositions of atoms.
- * Each molecule is a small, purposeful UI unit.
+ * Molecules — purposeful compositions of two or more atoms.
+ * A molecule manages its own internal interaction state (e.g. the clear
+ * button inside SearchBar) but receives all domain data and callbacks
+ * from outside via props. The only context a molecule may read directly
+ * is `useMoney` for currency-aware display formatting.
  */
 import type { ChangeEvent, FC, ReactNode } from 'react';
 import cls from './molecules.module.css';
@@ -186,12 +189,18 @@ type StatTone = 'primary' | 'accent' | 'success' | 'danger';
 interface StatCardProps {
   label: string;
   value: string;
+  /**
+   * Optional exact value to show on hover / long-press. Use for compact-
+   * formatted metrics so users can still see the precise figure without a
+   * separate 'details' click. Also sets aria-label to preserve a11y.
+   */
+  fullValue?: string;
   icon: IconName;
   tone?: StatTone;
   hint?: string;
 }
 
-export const StatCard: FC<StatCardProps> = ({ label, value, icon, tone = 'primary', hint }) => (
+export const StatCard: FC<StatCardProps> = ({ label, value, fullValue, icon, tone = 'primary', hint }) => (
   <div className={cls.statCard}>
     <div className={cls.statCard__topRow}>
       <Text size="sm" weight="semibold" tone="subtle" upper>{label}</Text>
@@ -205,7 +214,13 @@ export const StatCard: FC<StatCardProps> = ({ label, value, icon, tone = 'primar
         <Icon name={icon} size={20} />
       </span>
     </div>
-    <Text size="3xl" weight="heavy" className={cls.statCard__value}>{value}</Text>
+    <div
+      className={cls.statCard__value}
+      title={fullValue}
+      aria-label={fullValue ? `${label}: ${fullValue}` : undefined}
+    >
+      {value}
+    </div>
     {hint && <Text size="xs" tone="subtle">{hint}</Text>}
   </div>
 );

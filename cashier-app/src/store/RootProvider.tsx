@@ -34,6 +34,10 @@ export const RootProvider: FC<{ children: ReactNode }> = ({ children }) => {
     bootstrapDb()
       .then(() => { if (!cancelled) setBoot('ready'); })
       .catch((err) => {
+        // IndexedDB is unavailable (private-mode Safari, locked storage).
+        // The boot state moves to 'failed' and AppSplash offers a retry.
+        // TODO: detect the private-mode case specifically and show a banner
+        // suggesting the user switch to a non-private browser tab.
         // eslint-disable-next-line no-console
         console.error('[bootstrapDb] failed:', err);
         if (!cancelled) setBoot('failed');

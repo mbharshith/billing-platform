@@ -60,6 +60,10 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
     if (fresh.storeId !== currentUser.storeId || fresh.role !== currentUser.role) {
       setCurrentUser(toSessionUser(fresh));
     }
+    // Intentionally omit `findByUsername` from the dependency array.
+    // It is a stable useCallback memoized on `users`, so listing it would
+    // re-run this effect on every users update — defeating the "run once
+    // after first non-empty load" intent tracked by reconciledRef.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [users]);
 
