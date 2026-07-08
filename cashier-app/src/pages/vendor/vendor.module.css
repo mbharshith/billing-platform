@@ -186,6 +186,8 @@
   flex-direction: column;
   gap: 0.25rem;
   overflow: hidden;
+  min-width: 0;
+  container-type: inline-size;   /* enables cqi units in .kpiValue for fluid scaling */
 }
 .kpi::before {
   content: '';
@@ -208,12 +210,15 @@
   font-weight: 700;
 }
 .kpiValue {
-  font-size: 2rem;
+  font-size: clamp(1.5rem, 8cqi, 2rem);
   font-weight: 800;
   color: var(--app-text);
   letter-spacing: -0.02em;
-  line-height: 1;
+  line-height: 1.1;
   margin-top: 0.125rem;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+  min-width: 0;
 }
 .kpiHint {
   font-size: 0.75rem;

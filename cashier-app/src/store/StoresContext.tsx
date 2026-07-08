@@ -84,6 +84,12 @@ export const StoresProvider: FC<{ children: ReactNode }> = ({ children }) => {
   }, []);
 
   const update: StoresContextValue['update'] = useCallback(async (id, patch) => {
+    // VENDOR-ONLY: this is intentionally only invoked from the vendor console
+    // (EditTenantModal). Tenant admins have a READ-ONLY StorePage. Store
+    // metadata (name, currency, tax) ripples through every past invoice and
+    // analytic — letting tenants self-edit would silently corrupt reports.
+    // If we ever add a backend, this rule moves into an RLS policy that
+    // requires the caller to have role='vendor'.
     const target = await db.stores.get(id);
     if (!target) return { ok: false, error: 'invalid' };
 

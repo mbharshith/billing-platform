@@ -161,6 +161,9 @@
   display: flex;
   flex-direction: column;
   gap: var(--app-space-2);
+  min-width: 0;               /* let flex/grid children shrink instead of overflowing */
+  overflow: hidden;           /* belt — clip anything a browser refuses to size down */
+  container-type: inline-size;/* enables the container query below for fluid value scaling */
 }
 .statCard__topRow {
   display: flex;
@@ -168,6 +171,19 @@
   justify-content: space-between;
   gap: var(--app-space-2);
   min-height: 40px;
+  min-width: 0;
+}
+/*
+ * Currency values can be short ("8") or long ("₹281,867.78") — clamp scales the
+ * font from ~1.375rem (crowded) to 1.875rem (comfortable) based on the card's
+ * own inline size, so nothing spills past the padding.
+ */
+.statCard .statCard__value {
+  font-size: clamp(1.375rem, 8cqi, 1.875rem);
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;    /* last-resort break for very long unbroken strings */
+  min-width: 0;
 }
 .statCard__iconWrap {
   display: inline-grid; place-items: center;

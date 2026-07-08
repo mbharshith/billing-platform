@@ -205,7 +205,7 @@ export const StatCard: FC<StatCardProps> = ({ label, value, icon, tone = 'primar
         <Icon name={icon} size={20} />
       </span>
     </div>
-    <Text size="3xl" weight="heavy">{value}</Text>
+    <Text size="3xl" weight="heavy" className={cls.statCard__value}>{value}</Text>
     {hint && <Text size="xs" tone="subtle">{hint}</Text>}
   </div>
 );
