@@ -360,6 +360,27 @@ export const STRINGS = {
     outOfStock:     'Not enough stock available.',
     notFound:       'That record no longer exists.',
     forbidden:      "You don't have permission to do that.",
+
+    /* --- App-level failure UIs ------------------------------------------ */
+    boundaryTitle:      'Something broke on this screen',
+    boundaryHint:       'The rest of the app is fine — you can try this screen again, jump home, or fully reload.',
+    tryAgain:           'Try again',
+    goHome:             'Go home',
+    reload:             'Reload app',
+    technicalDetails:   'Technical details',
+
+    bootLoading:        'Warming up your store…',
+    bootFailedTitle:    "We couldn't open your store's database",
+    bootFailedHint:     'This usually means the browser is blocking IndexedDB (private mode, cookies disabled, or storage full). Try a normal window, or clear site data and reload.',
+    bootRetry:          'Retry',
+
+    notFoundTitle:      'Page not found',
+    notFoundHint:       "We couldn't find the page you were looking for.",
+    backToCashier:      'Back to cashier',
+
+    // Global async failures
+    unhandledRejection: 'A background task failed. Please try again.',
+    scriptError:        'A script error occurred. Please reload.',
   },
 
   ariaLabels: {

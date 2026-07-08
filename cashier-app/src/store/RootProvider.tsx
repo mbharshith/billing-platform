@@ -6,10 +6,12 @@
  *
  * On first mount we wait for `bootstrapDb()` to finish (imports legacy
  * localStorage OR seeds fresh demo data) so no context flashes empty.
- * The gate paints a tiny loader instead of rendering the app twice.
+ * If IDB is unavailable (private mode / storage disabled) we show a
+ * full-screen splash with a retry — never a blank white page.
  */
-import { useEffect, useState, type FC, type ReactNode } from 'react';
+import { useCallback, useEffect, useState, type FC, type ReactNode } from 'react';
 import { bootstrapDb } from '../lib/db-bootstrap';
+import { AppSplash } from '../components/errors';
 import { AuthProvider } from './AuthContext';
 import { CustomersProvider } from './CustomersContext';
 import { ProductsProvider } from './ProductsContext';
@@ -19,33 +21,31 @@ import { StoresProvider } from './StoresContext';
 import { ToastProvider } from './ToastContext';
 import { UsersProvider } from './UsersContext';
 
-/** Tiny blocker so nothing paints before the DB is ready.
- *  In production this should be a splash screen with the brand mark. */
-const BootGate: FC<{ ready: boolean; children: ReactNode }> = ({ ready, children }) => {
-  if (!ready) return null;
-  return <>{children}</>;
-};
+type BootState = 'loading' | 'ready' | 'failed';
 
 export const RootProvider: FC<{ children: ReactNode }> = ({ children }) => {
-  const [ready, setReady] = useState(false);
+  const [boot, setBoot] = useState<BootState>('loading');
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
+    setBoot('loading');
     bootstrapDb()
+      .then(() => { if (!cancelled) setBoot('ready'); })
       .catch((err) => {
-        // If IDB is disabled (private mode Safari etc.) fall through — the
-        // app will render but writes will silently fail. TODO: user toast.
         // eslint-disable-next-line no-console
-        console.error('bootstrapDb failed:', err);
-      })
-      .finally(() => { if (!cancelled) setReady(true); });
+        console.error('[bootstrapDb] failed:', err);
+        if (!cancelled) setBoot('failed');
+      });
     return () => { cancelled = true; };
-  }, []);
+  }, [attempt]);
+
+  const retryBoot = useCallback(() => setAttempt((n) => n + 1), []);
 
   return (
     <SettingsProvider>
       <ToastProvider>
-        <BootGate ready={ready}>
+        {boot === 'ready' ? (
           <StoresProvider>
             <UsersProvider>
               <AuthProvider>
@@ -59,7 +59,9 @@ export const RootProvider: FC<{ children: ReactNode }> = ({ children }) => {
               </AuthProvider>
             </UsersProvider>
           </StoresProvider>
-        </BootGate>
+        ) : (
+          <AppSplash state={boot} onRetry={retryBoot} />
+        )}
       </ToastProvider>
     </SettingsProvider>
   );
