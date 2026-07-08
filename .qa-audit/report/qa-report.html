@@ -34,7 +34,7 @@
     </div>
     <div class="text-right">
       <div class="text-xs text-slate-300">Overall verdict</div>
-      <div class="mt-1 inline-flex items-center px-4 py-2 rounded-lg bg-emerald-500 text-white font-bold text-lg">SHIP-BLOCKERS RESOLVED (b25ab52)</div>
+      <div class="mt-1 inline-flex items-center px-4 py-2 rounded-lg bg-emerald-500 text-white font-bold text-lg">17 FIXES SHIPPED &mdash; 4 DEFERRED</div>
     </div>
   </div>
 </header>
@@ -90,6 +90,80 @@
   </div>
 
   <div class="mt-4 text-sm text-slate-600"><b>Bundle impact:</b> 431 KB JS (unchanged), 67.5 KB CSS (+3.5 KB for the new BottomNav + responsive tweaks). Zero new deps.</div>
+</section>
+
+<!-- ===== Second sweep: remaining findings ===== -->
+<section class="bg-white rounded-xl shadow p-6 border-2 border-emerald-500">
+  <div class="flex items-center gap-3 mb-4">
+    <span class="chip bg-emerald-600 text-white text-base px-3 py-1">SHIPPED &mdash; SWEEP 2</span>
+    <h2 class="text-xl font-bold">All remaining Highs, most Mediums + 3 Lows &mdash; commit <code class="bg-slate-100 px-2 py-0.5 rounded text-sm">d3d9c3d</code></h2>
+  </div>
+  <p class="text-sm text-slate-600 mb-6">One more pass after the ship-blockers to knock out everything shippable in a single sweep.</p>
+
+  <div class="grid md:grid-cols-2 gap-4 text-sm">
+    <div class="border rounded-lg p-4">
+      <div class="font-bold text-emerald-800 mb-2">Highs (4)</div>
+      <ul class="space-y-2 text-slate-700">
+        <li><b>H-02</b> Tablet nav labels &mdash; extended BottomNav breakpoint 767&rarr;900. Tablet portrait now gets thumb-friendly 5-tab bottom bar instead of cramming labels in the header.</li>
+        <li><b>H-03</b> Category chip overflow &mdash; added right-edge mask-image fade + custom scrollbar so users see there's more to scroll horizontally.</li>
+        <li><b>H-04</b> Cell text wrapping &mdash; fixed 'Mechanical KeyboardELE-0008' inline-span bug via a <code>.productCell__body</code> flex-column wrapper; also nowrap in mobile tables.</li>
+        <li><b>H-05</b> Edit-as-link consistency &mdash; /users Edit is now a proper secondary button with icon, matching Deactivate.</li>
+      </ul>
+    </div>
+    <div class="border rounded-lg p-4">
+      <div class="font-bold text-emerald-800 mb-2">Mediums (3)</div>
+      <ul class="space-y-2 text-slate-700">
+        <li><b>M-03</b> StatCard hover cue no longer shows when compact value equals full value (no false affordance for '30' vs '30').</li>
+        <li><b>M-04</b> Vendor filter chip count badges now invert to primary color when active &mdash; the selected count pops.</li>
+        <li><b>M-06</b> Guest sales render as 'Walk-in' instead of '&mdash;' on both /sales and the dashboard Recent Sales widget.</li>
+      </ul>
+    </div>
+    <div class="border rounded-lg p-4">
+      <div class="font-bold text-emerald-800 mb-2">Lows shipped (3)</div>
+      <ul class="space-y-2 text-slate-700">
+        <li><b>L-01</b> Login 'Demo tenants' hint switched from monospace to inherit font.</li>
+        <li><b>L-02</b> 3px accent strip at top of header: brand blue on tenant console, deep purple on vendor console. You now know at a glance which scope you're in.</li>
+        <li><b>L-04</b> 'Impersonate' renamed to 'Sign in as' &mdash; less alarming, more accurate.</li>
+      </ul>
+    </div>
+    <div class="border rounded-lg p-4 bg-amber-50 border-amber-300">
+      <div class="font-bold text-amber-900 mb-2">Deferred (4 Lows &mdash; need their own tickets)</div>
+      <ul class="space-y-2 text-slate-700">
+        <li><b>L-03</b> Product-card tints: not actually random &mdash; user-selectable per product via the ProductsPage form.</li>
+        <li><b>L-05</b> Breadcrumbs on deep detail pages &mdash; needs IA design pass.</li>
+        <li><b>L-06</b> Brand-mark unification vendor vs tenant &mdash; design decision.</li>
+        <li><b>L-07</b> Global cmd-K search &mdash; a real feature, wants its own spec.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="mt-6 grid md:grid-cols-3 gap-6">
+    <div class="border rounded-lg overflow-hidden">
+      <div class="bg-emerald-50 p-3 border-b">
+        <div class="font-bold text-emerald-800">Tablet portrait &mdash; bottom nav takeover</div>
+        <div class="text-xs text-slate-600 mt-1">768&times;1024, 5 labeled tabs, cart bar floats above</div>
+      </div>
+      <img src="../v2/tablet-tenant-v5.png" class="shot w-full"/>
+    </div>
+    <div class="border rounded-lg overflow-hidden">
+      <div class="bg-emerald-50 p-3 border-b">
+        <div class="font-bold text-emerald-800">Desktop &mdash; Walk-in + stacked SKU</div>
+        <div class="text-xs text-slate-600 mt-1">1440&times;900, blue accent strip visible</div>
+      </div>
+      <img src="../v2/desktop-dashboard-final.png" class="shot w-full"/>
+    </div>
+    <div class="border rounded-lg overflow-hidden">
+      <div class="bg-emerald-50 p-3 border-b">
+        <div class="font-bold text-emerald-800">Vendor &mdash; 'Sign in as' + count pops</div>
+        <div class="text-xs text-slate-600 mt-1">Purple accent strip, blue count badge on active chip</div>
+      </div>
+      <img src="../v2/desktop-vendor-final.png" class="shot w-full"/>
+    </div>
+  </div>
+
+  <div class="mt-6 text-sm text-slate-600">
+    <b>Cumulative bundle impact:</b> 432 KB JS (+1 KB total), 68 KB CSS (+4 KB total) across both fix commits. Zero new deps.
+  </div>
 </section>
 
 <!-- ===== Executive summary ===== -->
