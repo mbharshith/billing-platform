@@ -1,6 +1,14 @@
 /**
- * UsersPage — staff management (admin only).
- * List + inline modal form for create/edit.
+ * UsersPage — staff management for the Master of a single tenant.
+ *
+ * Every user shown here belongs to THIS tenant. Master can:
+ *   - invite new masters (co-owners) or cashiers to their store
+ *   - edit name/role/password of anyone in their store
+ *   - deactivate anyone except themselves
+ *
+ * Cross-tenant users are never visible or mutable — enforced by scoping the
+ * list to `currentStoreId` and the UsersContext create() call always writing
+ * `storeId = current tenant`.
  */
 import { useMemo, useState, type FC, type FormEvent } from 'react';
 import cls from './pages.module.css';
@@ -22,20 +30,28 @@ interface UserFormState {
   password: string;
   role: UserRole;
 }
-const emptyForm = (): UserFormState =>
-  ({ id: null, name: '', username: '', password: '', role: 'cashier' });
 
 export const UsersPage: FC = () => {
   const { users, create, update, setActive } = useUsers();
-  const { currentUser } = useAuth();
+  const { currentUser, currentStoreId } = useAuth();
   const toast = useToast();
 
   const [form, setForm] = useState<UserFormState | null>(null);
   const [confirmingDeactivate, setConfirmingDeactivate] = useState<User | null>(null);
 
+  const emptyForm = (): UserFormState => ({
+    id: null, name: '', username: '', password: '', role: 'cashier',
+  });
+
+  // Tenant isolation — only see users in this tenant.
+  const scopedUsers = useMemo(
+    () => users.filter((u) => u.storeId === currentStoreId),
+    [users, currentStoreId],
+  );
+
   const sorted = useMemo(
-    () => [...users].sort((a, b) => a.name.localeCompare(b.name)),
-    [users],
+    () => [...scopedUsers].sort((a, b) => a.name.localeCompare(b.name)),
+    [scopedUsers],
   );
 
   const openCreate = () => setForm(emptyForm());
@@ -45,17 +61,20 @@ export const UsersPage: FC = () => {
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    if (!form) return;
+    if (!form || !currentStoreId) return;
     if (form.id === null) {
       const res = create({
         name: form.name, username: form.username,
         password: form.password, role: form.role,
+        storeId: currentStoreId,  // always this tenant, never other
       });
       if (!res.ok) {
-        toast.error(res.error === 'duplicate' ? STRINGS.users.duplicateUser : STRINGS.users.weakPassword);
+        toast.error(
+          res.error === 'duplicate' ? STRINGS.users.duplicateUser : STRINGS.users.weakPassword,
+        );
         return;
       }
-      toast.success(`Invited ${res.user.name}.`);
+      toast.success(STRINGS.users.invited(res.user.name));
     } else {
       if (form.password && form.password.length < 8) {
         toast.error(STRINGS.users.weakPassword);
@@ -65,7 +84,7 @@ export const UsersPage: FC = () => {
         ? { name: form.name, role: form.role, password: form.password }
         : { name: form.name, role: form.role };
       update(form.id, patch);
-      toast.success('User updated.');
+      toast.success(STRINGS.users.updated);
     }
     setForm(null);
   };
@@ -78,28 +97,37 @@ export const UsersPage: FC = () => {
     if (u.active) setConfirmingDeactivate(u);
     else {
       setActive(u.id, true);
-      toast.success(`${u.name} reactivated.`);
+      toast.success(STRINGS.users.reactivated(u.name));
     }
   };
 
   const doDeactivate = () => {
     if (!confirmingDeactivate) return;
     setActive(confirmingDeactivate.id, false);
-    toast.success(`${confirmingDeactivate.name} deactivated.`);
+    toast.success(STRINGS.users.deactivated(confirmingDeactivate.name));
     setConfirmingDeactivate(null);
   };
+
+  const roleBadgeVariant = (r: UserRole): 'primary' | 'neutral' =>
+    r === 'master' ? 'primary' : 'neutral';
 
   return (
     <>
       <PageHeader
         title={STRINGS.users.pageTitle}
-        subtitle={STRINGS.users.pageSubtitle}
-        actions={<Button variant="primary" leadingIcon="plus" onClick={openCreate}>{STRINGS.users.addNew}</Button>}
+        subtitle="Everyone here works at this tenant. Add masters (co-owners) or cashiers."
+        actions={
+          <Button variant="primary" leadingIcon="plus" onClick={openCreate}>
+            {STRINGS.users.addNew}
+          </Button>
+        }
       />
 
       <div className={cls.card}>
         {sorted.length === 0 ? (
-          <div className={cls.cardBody}><Text tone="subtle" center>{STRINGS.users.empty}</Text></div>
+          <div className={cls.cardBody}>
+            <Text tone="subtle" center>{STRINGS.users.empty}</Text>
+          </div>
         ) : (
           <div className={cls.tableWrap}>
             <table className={cls.table}>
@@ -118,11 +146,15 @@ export const UsersPage: FC = () => {
                   return (
                     <tr key={u.id} className={!u.active ? cls.mutedRow : undefined}>
                       <td>
-                        <Text weight="semibold" size="sm">{u.name}</Text>
-                        <Text size="xs" tone="subtle">joined {fmtDate(u.createdAt)}</Text>
+                        <div className={cls.stackedCell}>
+                          <Text weight="semibold" size="sm">{u.name}</Text>
+                          <Text size="xs" tone="subtle">
+                            {STRINGS.users.joinedOn(fmtDate(u.createdAt))}
+                          </Text>
+                        </div>
                       </td>
                       <td><Text size="sm">{u.username}</Text></td>
-                      <td><Badge variant={u.role === 'admin' ? 'primary' : 'neutral'}>{u.role}</Badge></td>
+                      <td><Badge variant={roleBadgeVariant(u.role)}>{u.role}</Badge></td>
                       <td>
                         <Badge variant={u.active ? 'success' : 'danger'}>
                           {u.active ? STRINGS.users.active : STRINGS.users.inactive}
@@ -130,7 +162,9 @@ export const UsersPage: FC = () => {
                         {isSelf && <Text size="xs" tone="subtle"> (you)</Text>}
                       </td>
                       <td className="actions">
-                        <Button variant="ghost" size="sm" onClick={() => openEdit(u)}>{STRINGS.users.edit}</Button>
+                        <Button variant="ghost" size="sm" onClick={() => openEdit(u)}>
+                          {STRINGS.users.edit}
+                        </Button>
                         <Button
                           variant={u.active ? 'danger' : 'secondary'}
                           size="sm"
@@ -177,17 +211,20 @@ export const UsersPage: FC = () => {
               label={STRINGS.users.fieldPassword}
               htmlFor="u-pass"
               required={form.id === null}
-              hint={form.id !== null ? 'Leave blank to keep the current password.' : 'Minimum 8 characters.'}
+              hint={form.id !== null ? STRINGS.users.passwordHintEdit : STRINGS.users.passwordHintNew}
             >
               <Input id="u-pass" type="password" autoComplete="new-password"
                      value={form.password}
                      onChange={(e) => setForm({ ...form, password: e.target.value })} />
             </Field>
             <Field label={STRINGS.users.fieldRole} htmlFor="u-role" required>
-              <Select id="u-role" value={form.role}
-                      onChange={(e) => setForm({ ...form, role: e.target.value as UserRole })}>
+              <Select
+                id="u-role"
+                value={form.role}
+                onChange={(e) => setForm({ ...form, role: e.target.value as UserRole })}
+              >
                 <option value="cashier">{STRINGS.users.roleCashier}</option>
-                <option value="admin">{STRINGS.users.roleAdmin}</option>
+                <option value="master">Master (co-owner)</option>
               </Select>
             </Field>
             {/* Hidden submit so <Enter> in inputs submits the form. */}
@@ -198,8 +235,8 @@ export const UsersPage: FC = () => {
 
       {confirmingDeactivate && (
         <ConfirmDialog
-          title="Deactivate user?"
-          message={`${confirmingDeactivate.name} will no longer be able to sign in. You can reactivate them later.`}
+          title={STRINGS.users.deactivateTitle}
+          message={STRINGS.users.deactivateMessage(confirmingDeactivate.name)}
           confirmLabel={STRINGS.users.deactivate}
           danger
           onConfirm={doDeactivate}

@@ -11,7 +11,7 @@ import { EmptyState } from '../components/molecules';
 import { ConfirmDialog } from '../components/feedback';
 import { PageHeader } from '../components/layout/AppShell';
 import { STRINGS } from '../domain/strings';
-import { money } from '../domain/format';
+import { useMoney } from '../hooks/useMoney';
 import { ALL_CATEGORIES, ALL_TONES } from '../domain/catalog';
 import { useProducts, type ProductInput } from '../store/ProductsContext';
 import { useToast } from '../store/ToastContext';
@@ -27,6 +27,7 @@ const fromProduct = (p: Product): FormState => ({
 });
 
 export const ProductsPage: FC = () => {
+  const { money } = useMoney();
   const { products, create, update, setActive } = useProducts();
   const toast = useToast();
   const [query, setQuery] = useState('');
@@ -44,7 +45,7 @@ export const ProductsPage: FC = () => {
     e.preventDefault();
     if (!form) return;
     if (!form.sku.trim() || !form.name.trim()) {
-      toast.error('SKU and name are required.');
+      toast.error(STRINGS.products.skuNameRequired);
       return;
     }
     const payload: ProductInput = {
@@ -64,7 +65,7 @@ export const ProductsPage: FC = () => {
     if (p.active) setConfirming(p);
     else {
       setActive(p.id, true);
-      toast.success(`${p.name} reactivated.`);
+      toast.success(STRINGS.products.reactivated(p.name));
     }
   };
 
@@ -80,7 +81,7 @@ export const ProductsPage: FC = () => {
         <div className={cls.toolbar}>
           <div className={cls.toolbar__search}>
             <SearchBar value={query} onChange={setQuery}
-                       placeholder="Search by name or SKU…" clearLabel="Clear search" />
+                       placeholder={STRINGS.products.searchPlaceholder} clearLabel={STRINGS.products.clearSearch} />
           </div>
         </div>
 
@@ -94,8 +95,8 @@ export const ProductsPage: FC = () => {
           ) : (
             <EmptyState
               icon="search"
-              title="No products match your search"
-              hint="Try a different name or SKU."
+              title={STRINGS.products.emptySearch}
+              hint={STRINGS.products.emptySearchHint}
             />
           )
         ) : (

@@ -10,7 +10,8 @@ import {
   PaymentBadge, PaymentMethodOption, ProductBadge, ProductCard, SearchBar, StatCard,
 } from '../molecules';
 import { STRINGS } from '../../domain/strings';
-import { fmtDateTime, fmtTime, money, num, digitsOnly, nextInvoiceNo } from '../../domain/format';
+import { fmtDateTime, fmtTime, num, digitsOnly, nextInvoiceNo } from '../../domain/format';
+import { useMoney } from '../../hooks/useMoney';
 import type { PaymentMethod, Product, Sale, SaleLine } from '../../domain/types';
 import { TAX_RATE } from '../../domain/catalog';
 
@@ -140,21 +141,49 @@ interface CartPanelProps {
   onRemove: (productId: string) => void;
   onClear: () => void;
   onCharge: () => void;
+  /** When set, panel drops sticky positioning + shows a close button (mobile sheet). */
+  onClose?: () => void;
+  variant?: 'inline' | 'sheet';
 }
 
 export const CartPanel: FC<CartPanelProps> = ({
   lines, subtotal, tax, total, unitCount,
-  onIncrement, onDecrement, onRemove, onClear, onCharge,
-}) => (
-  <aside className={cls.cartPanel} aria-label={STRINGS.cashier.cartTitle}>
+  onIncrement, onDecrement, onRemove, onClear, onCharge, onClose, variant = 'inline',
+}) => {
+  const { money } = useMoney();
+  return (
+  <aside
+    className={[cls.cartPanel, variant === 'sheet' && cls['cartPanel--inModal']].filter(Boolean).join(' ')}
+    aria-label={STRINGS.cashier.cartTitle}
+  >
     <div className={cls.cartPanel__header}>
       <div className={cls.cartPanel__title}>
-        <Icon name="cart" size={18} style={{ color: 'var(--wm-accent)' }} />
+        <Icon name="cart" size={18} style={{ color: 'var(--app-accent)' }} />
         <Text weight="bold" tone="inverse">{STRINGS.cashier.cartTitle}</Text>
       </div>
-      <Badge variant="accent">
-        {unitCount} {unitCount === 1 ? STRINGS.cashier.itemSuffix : STRINGS.cashier.itemsSuffix}
-      </Badge>
+      <div style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--app-space-2)' }}>
+        <Badge variant="accent">
+          {unitCount} {unitCount === 1 ? STRINGS.cashier.itemSuffix : STRINGS.cashier.itemsSuffix}
+        </Badge>
+        {onClose && (
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close cart"
+            style={{
+              background: 'rgba(255,255,255,0.15)',
+              color: 'var(--app-text-inverse)',
+              border: 'none',
+              width: 36, height: 36,
+              borderRadius: 8,
+              display: 'grid', placeItems: 'center',
+              cursor: 'pointer',
+            }}
+          >
+            <Icon name="close" size={18} />
+          </button>
+        )}
+      </div>
     </div>
 
     <div className={cls.cartPanel__scroll}>
@@ -211,7 +240,42 @@ export const CartPanel: FC<CartPanelProps> = ({
       </div>
     )}
   </aside>
-);
+  );
+};
+
+/* -------------------------------------------------------------------------- */
+/* MobileCartBar — sticky bottom bar shown < 1024px when cart has items      */
+/* -------------------------------------------------------------------------- */
+interface MobileCartBarProps {
+  unitCount: number;
+  total: number;
+  onOpen: () => void;
+}
+
+export const MobileCartBar: FC<MobileCartBarProps> = ({ unitCount, total, onOpen }) => {
+  const { money } = useMoney();
+  if (unitCount === 0) return null;
+  return (
+    <button
+      type="button"
+      className={cls.mobileCartBar}
+      onClick={onOpen}
+      aria-label={`Open cart with ${unitCount} items, total ${money(total)}`}
+    >
+      <span className={cls.mobileCartBar__badge}>
+        <Icon name="cart" size={20} />
+        <span className={cls.mobileCartBar__count}>{unitCount}</span>
+      </span>
+      <span className={cls.mobileCartBar__summary}>
+        <span className={cls.mobileCartBar__label}>{unitCount} {unitCount === 1 ? 'item' : 'items'}</span>
+        <span className={cls.mobileCartBar__total}>{money(total)}</span>
+      </span>
+      <span className={cls.mobileCartBar__cta}>
+        View cart <Icon name="arrow" size={16} />
+      </span>
+    </button>
+  );
+};
 
 /* -------------------------------------------------------------------------- */
 /* Generic Modal (with focus trap + Esc-to-close)                             */
@@ -267,6 +331,7 @@ interface PaymentModalProps {
 }
 
 export const PaymentModal: FC<PaymentModalProps> = ({ total, unitCount, onCancel, onConfirm }) => {
+  const { money } = useMoney();
   const [method, setMethod] = useState<PaymentMethod>('cash');
   const [mobile, setMobile] = useState('');
   const [error, setError] = useState<string | undefined>();
@@ -359,7 +424,9 @@ interface ReceiptModalProps {
   onClose: () => void;
 }
 
-export const ReceiptModal: FC<ReceiptModalProps> = ({ sale, onClose }) => (
+export const ReceiptModal: FC<ReceiptModalProps> = ({ sale, onClose }) => {
+  const { money } = useMoney();
+  return (
   <Modal
     title={STRINGS.receipt.successHeading}
     subtitle={STRINGS.receipt.successBody}
@@ -408,7 +475,7 @@ export const ReceiptModal: FC<ReceiptModalProps> = ({ sale, onClose }) => (
           {sale.lines.map((line) => (
             <div key={line.productId} className={cls.receipt__line}>
               <ProductBadge name={line.name} tone={line.tone} size="sm" />
-              <div style={{ flex: 1, minWidth: 0 }}>
+              <div className={cls.receipt__lineBody}>
                 <Text weight="semibold" size="sm" truncate>{line.name}</Text>
                 <Text size="xs" tone="subtle">{line.quantity} × {money(line.unitPrice)}</Text>
               </div>
@@ -438,14 +505,17 @@ export const ReceiptModal: FC<ReceiptModalProps> = ({ sale, onClose }) => (
       </Text>
     </div>
   </Modal>
-);
+  );
+};
 
 /* -------------------------------------------------------------------------- */
 /* Dashboard: RecentSalesTable                                                */
 /* -------------------------------------------------------------------------- */
 interface RecentSalesTableProps { sales: readonly Sale[] }
 
-export const RecentSalesTable: FC<RecentSalesTableProps> = ({ sales }) => (
+export const RecentSalesTable: FC<RecentSalesTableProps> = ({ sales }) => {
+  const { money } = useMoney();
+  return (
   <div className={cls.tableCard}>
     <div className={cls.tableCard__header}>
       <Text as="h2" size="lg" weight="bold">{STRINGS.dashboard.recentSalesTitle}</Text>
@@ -486,7 +556,8 @@ export const RecentSalesTable: FC<RecentSalesTableProps> = ({ sales }) => (
       </div>
     )}
   </div>
-);
+  );
+};
 
 /* -------------------------------------------------------------------------- */
 /* Dashboard: TopProductsTable                                                */
@@ -512,6 +583,7 @@ const rankClass = (idx: number): string | undefined => {
 };
 
 export const TopProductsTable: FC<TopProductsTableProps> = ({ aggregates }) => {
+  const { money } = useMoney();
   const top = useMemo(
     () => [...aggregates].sort((a, b) => b.unitsSold - a.unitsSold).slice(0, 10),
     [aggregates],
@@ -618,7 +690,7 @@ export const InventoryTable: FC<InventoryTableProps> = ({ aggregates }) => {
                         : <Text size="sm" tone="muted">—</Text>}
                     </td>
                     <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--wm-space-3)' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--app-space-3)' }}>
                         <div
                           className={cls.stockBar}
                           role="progressbar"
@@ -659,11 +731,13 @@ interface DashboardKpisProps {
 
 export const DashboardKpis: FC<DashboardKpisProps> = ({
   revenue, saleCount, unitsSold, uniqueSkus, lendingBalance,
-}) => (
+}) => {
+  const { money } = useMoney();
+  return (
   <div
     style={{
       display: 'grid',
-      gap: 'var(--wm-space-4)',
+      gap: 'var(--app-space-4)',
       gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
     }}
   >
@@ -673,7 +747,8 @@ export const DashboardKpis: FC<DashboardKpisProps> = ({
     <StatCard label={STRINGS.dashboard.kpiUniqueSku} value={num(uniqueSkus)}        icon="chart" />
     <StatCard label={STRINGS.dashboard.kpiLendingWO} value={money(lendingBalance)}  icon="phone" tone="danger" hint="Buy-now-pay-later outstanding" />
   </div>
-);
+  );
+};
 
 /* -------------------------------------------------------------------------- */
 /* Helper: build a fresh Sale value                                           */
@@ -687,6 +762,7 @@ export interface BuildSaleInput {
   readonly customerId: string | null;
   readonly cashierId: string;
   readonly cashierName: string;
+  readonly storeId: string;
 }
 
 export const buildSale = (input: BuildSaleInput): Sale => ({
@@ -706,6 +782,7 @@ export const buildSale = (input: BuildSaleInput): Sale => ({
   voided: false,
   voidedAt: null,
   voidedReason: null,
+  storeId: input.storeId,
 });
 
 // Re-export spinner for pages that need it

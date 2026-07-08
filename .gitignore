@@ -31,3 +31,6 @@ cashier-api/coverage/
 
 # Agent-browser audit artifacts (screenshots etc.)
 .wibey-tasks/
+
+# Local dev helper scripts (not part of the app)
+full-walkthrough.sh

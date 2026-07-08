@@ -1,8 +1,14 @@
 /**
- * AppShell — the top-level layout with header, nav, user menu, toast stack.
+ * AppShell — top-level layout with header, nav, tenant badge, user menu.
  * All pages render inside via <Outlet />.
+ *
+ * Header composition (left → right):
+ *   Brand · TenantBadge · Nav (role-scoped) · ThemeToggle · UserMenu
+ *
+ * The TenantBadge is the SaaS "workspace name" (like Jira's site name).
+ * It's read-only for cashiers; masters can click to jump to /store.
  */
-import { useEffect, useMemo, useRef, useState, type FC, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type FC, type ReactNode } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import cls from './layout.module.css';
 import { Icon, Text } from '../atoms';
@@ -10,7 +16,9 @@ import { ToastStack } from '../feedback';
 import { STRINGS } from '../../domain/strings';
 import { monogramFor } from '../../domain/format';
 import { useAuth } from '../../store/AuthContext';
+import { useStores } from '../../store/StoresContext';
 import { useToast } from '../../store/ToastContext';
+import { useTheme } from '../../lib/theme';
 
 /* -------------------------------------------------------------------------- */
 /* NavItem — react-router NavLink with active class                           */
@@ -29,10 +37,77 @@ const NavItem: FC<NavItemProps> = ({ to, icon, children, label }) => (
 );
 
 /* -------------------------------------------------------------------------- */
-/* UserMenu — avatar + dropdown                                               */
+/* ThemeToggle                                                                */
+/* -------------------------------------------------------------------------- */
+const ThemeToggle: FC = () => {
+  const { theme, toggle } = useTheme();
+  const isDark = theme === 'dark';
+  return (
+    <button
+      type="button"
+      onClick={toggle}
+      className={cls.themeToggle}
+      aria-label={isDark ? 'Switch to light theme' : 'Switch to dark theme'}
+      title={isDark ? 'Light mode' : 'Dark mode'}
+    >
+      <Icon name={isDark ? 'sun' : 'moon'} size={18} />
+    </button>
+  );
+};
+
+/* -------------------------------------------------------------------------- */
+/* TenantBadge — shows the current tenant name in the header.                 */
+/* Masters can click to jump straight to /store; cashiers see it read-only.   */
+/* -------------------------------------------------------------------------- */
+const TenantBadge: FC = () => {
+  const { currentStoreId, isMaster } = useAuth();
+  const { byId } = useStores();
+  const navigate = useNavigate();
+  const store = byId(currentStoreId);
+  if (!store) return null;
+
+  // Full store name goes on `title` so long tenant names still resolve on
+  // hover even when the visible label ellipsises.
+  const tooltip = isMaster ? `${store.name} — manage your tenant` : store.name;
+
+  const content = (
+    <>
+      <Icon name="store" size={14} />
+      <span className={cls.tenantBadge__name}>{store.name}</span>
+      {isMaster && <Icon name="arrow" size={12} />}
+    </>
+  );
+
+  if (!isMaster) {
+    return (
+      <div
+        className={cls.tenantBadge}
+        aria-label={`Tenant: ${store.name}`}
+        title={tooltip}
+      >
+        {content}
+      </div>
+    );
+  }
+  return (
+    <button
+      type="button"
+      className={[cls.tenantBadge, cls['tenantBadge--interactive']].join(' ')}
+      onClick={() => navigate('/store')}
+      title={tooltip}
+      aria-label={tooltip}
+    >
+      {content}
+    </button>
+  );
+};
+
+/* -------------------------------------------------------------------------- */
+/* UserMenu                                                                   */
 /* -------------------------------------------------------------------------- */
 const UserMenu: FC = () => {
-  const { currentUser, isAdmin, logout } = useAuth();
+  const { currentUser, isMaster, logout } = useAuth();
+  const { byId: storeById } = useStores();
   const toast = useToast();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
@@ -61,6 +136,7 @@ const UserMenu: FC = () => {
   };
 
   const go = (path: string) => { setOpen(false); navigate(path); };
+  const myStore = storeById(currentUser.storeId);
 
   return (
     <div className={cls.userMenu} ref={ref}>
@@ -84,9 +160,14 @@ const UserMenu: FC = () => {
           <div className={cls.userDropdown__header}>
             <Text weight="semibold" size="sm">{currentUser.name}</Text>
             <Text size="xs" tone="subtle" upper>{currentUser.role}</Text>
+            {myStore && <Text size="xs" tone="primary">{myStore.name}</Text>}
           </div>
-          {isAdmin && (
+          {isMaster && (
             <>
+              <button type="button" role="menuitem" className={cls.userDropdown__item}
+                      onClick={() => go('/store')}>
+                <Icon name="store" size={16} /> My store
+              </button>
               <button type="button" role="menuitem" className={cls.userDropdown__item}
                       onClick={() => go('/users')}>
                 <Icon name="user" size={16} /> {STRINGS.nav.users}
@@ -115,7 +196,7 @@ const UserMenu: FC = () => {
 /* Header                                                                     */
 /* -------------------------------------------------------------------------- */
 const Header: FC = () => {
-  const { isAdmin } = useAuth();
+  const { isMaster, can } = useAuth();
   return (
     <header className={cls.header} role="banner">
       <div className={cls.header__inner}>
@@ -124,21 +205,30 @@ const Header: FC = () => {
             <Icon name="spark" size={22} />
           </span>
           <div className={cls.brand__text}>
-            <Text as="span" size="lg" weight="heavy" tone="inverse">{STRINGS.brand.name}</Text>
-            <Text as="span" size="xs" weight="semibold" tone="inverse" upper>Cashier POS</Text>
+            <Text as="span" size="lg" weight="heavy">{STRINGS.brand.name}</Text>
+            <Text as="span" size="xs" weight="semibold" tone="primary" upper>Cashier POS</Text>
           </div>
         </NavLink>
 
+        <div className={cls.brandSeparator} aria-hidden="true" />
+
+        <TenantBadge />
+
         <nav className={cls.nav} aria-label={STRINGS.ariaLabels.navigate}>
           <NavItem to="/cashier"   icon="store"   label={STRINGS.nav.cashier}>{STRINGS.nav.cashier}</NavItem>
-          <NavItem to="/dashboard" icon="chart"   label={STRINGS.nav.dashboard}>{STRINGS.nav.dashboard}</NavItem>
-          <NavItem to="/sales"     icon="receipt" label={STRINGS.nav.sales}>{STRINGS.nav.sales}</NavItem>
+          {isMaster && (
+            <NavItem to="/dashboard" icon="chart" label={STRINGS.nav.dashboard}>{STRINGS.nav.dashboard}</NavItem>
+          )}
+          {(can('sale:viewAllTime') || can('sale:viewToday')) && (
+            <NavItem to="/sales"     icon="receipt" label={STRINGS.nav.sales}>{STRINGS.nav.sales}</NavItem>
+          )}
           <NavItem to="/customers" icon="user"    label={STRINGS.nav.customers}>{STRINGS.nav.customers}</NavItem>
-          {isAdmin && (
+          {isMaster && (
             <NavItem to="/products" icon="bag"    label={STRINGS.nav.products}>{STRINGS.nav.products}</NavItem>
           )}
         </nav>
 
+        <ThemeToggle />
         <UserMenu />
       </div>
     </header>
@@ -146,7 +236,7 @@ const Header: FC = () => {
 };
 
 /* -------------------------------------------------------------------------- */
-/* PageHeader — per-page title, subtitle, action slot                          */
+/* PageHeader                                                                 */
 /* -------------------------------------------------------------------------- */
 interface PageHeaderProps {
   title: string;
@@ -167,12 +257,9 @@ export const PageHeader: FC<PageHeaderProps> = ({ title, subtitle, actions }) =>
 /* AppShell                                                                   */
 /* -------------------------------------------------------------------------- */
 export const AppShell: FC = () => {
-  // Re-title tab on nav (best-effort, based on pathname).
   useEffect(() => {
-    document.title = 'Cashier POS · Walmart';
+    document.title = `${STRINGS.brand.name} · Cashier POS`;
   }, []);
-  const _ = useMemo(() => 0, []); // no-op to placate lint if needed
-  void _;
   return (
     <div className={cls.appShell}>
       <Header />

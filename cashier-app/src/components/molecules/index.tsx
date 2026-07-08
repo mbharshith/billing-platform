@@ -7,7 +7,8 @@ import cls from './molecules.module.css';
 import { Badge, Field, Icon, IconButton, Input, Text, type IconName } from '../atoms';
 import type { BadgeTone, PaymentMethod, Product, SaleLine } from '../../domain/types';
 import { STRINGS } from '../../domain/strings';
-import { formatPhone, money, monogramFor } from '../../domain/format';
+import { formatPhone, monogramFor } from '../../domain/format';
+import { useMoney } from '../../hooks/useMoney';
 
 /* -------------------------------------------------------------------------- */
 /* ProductBadge — the "image" of a product (colored monogram)                 */
@@ -43,7 +44,9 @@ interface ProductCardProps {
 
 export const ProductCard: FC<ProductCardProps> = ({
   product, quantityInCart, flashing, onAdd,
-}) => (
+}) => {
+  const { money } = useMoney();
+  return (
   <button
     type="button"
     className={[cls.productCard, flashing && cls['productCard--flash']]
@@ -66,7 +69,8 @@ export const ProductCard: FC<ProductCardProps> = ({
       </span>
     </div>
   </button>
-);
+  );
+};
 
 /* -------------------------------------------------------------------------- */
 /* SearchBar                                                                  */
@@ -142,7 +146,9 @@ interface CartLineItemProps {
 
 export const CartLineItem: FC<CartLineItemProps> = ({
   line, onIncrement, onDecrement, onRemove,
-}) => (
+}) => {
+  const { money } = useMoney();
+  return (
   <div className={cls.cartLine}>
     <ProductBadge name={line.name} tone={line.tone} size="sm" />
     <div className={cls.cartLine__body}>
@@ -169,7 +175,8 @@ export const CartLineItem: FC<CartLineItemProps> = ({
       onClick={onRemove}
     />
   </div>
-);
+  );
+};
 
 /* -------------------------------------------------------------------------- */
 /* StatCard                                                                   */
@@ -307,3 +314,166 @@ export const PaymentBadge: FC<PaymentBadgeProps> = ({ method }) => {
   };
   return <Badge variant={variantMap[method]}>{labelMap[method]}</Badge>;
 };
+
+/* -------------------------------------------------------------------------- */
+/* Pagination — reusable page nav with page-size selector                     */
+/* -------------------------------------------------------------------------- */
+interface PaginationProps {
+  page: number;                       // 1-indexed
+  pageSize: number;
+  totalItems: number;
+  pageSizeOptions?: readonly number[];
+  onPageChange: (page: number) => void;
+  onPageSizeChange: (size: number) => void;
+}
+
+export const Pagination: FC<PaginationProps> = ({
+  page, pageSize, totalItems, pageSizeOptions = [25, 50, 100], onPageChange, onPageSizeChange,
+}) => {
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+  const currentPage = Math.min(Math.max(1, page), totalPages);
+  const from = totalItems === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+  const to   = Math.min(currentPage * pageSize, totalItems);
+
+  // Build a compact page list: 1 … prev current next … last
+  const pageList = ((): (number | 'ellipsis')[] => {
+    if (totalPages <= 7) return Array.from({ length: totalPages }, (_, i) => i + 1);
+    const set = new Set<number>([1, totalPages, currentPage - 1, currentPage, currentPage + 1]);
+    const nums = Array.from(set).filter((n) => n >= 1 && n <= totalPages).sort((a, b) => a - b);
+    const out: (number | 'ellipsis')[] = [];
+    for (let i = 0; i < nums.length; i++) {
+      if (i > 0 && nums[i] - nums[i - 1] > 1) out.push('ellipsis');
+      out.push(nums[i]);
+    }
+    return out;
+  })();
+
+  return (
+    <div className={cls.pagination} role="navigation" aria-label="Pagination">
+      <Text size="sm" tone="subtle">
+        Showing <b>{from}</b>–<b>{to}</b> of <b>{totalItems}</b>
+      </Text>
+
+      <div className={cls.pagination__controls}>
+        <label className={cls.pagination__sizeLabel}>
+          <span className="visually-hidden">Rows per page</span>
+          <select
+            className={cls.pagination__size}
+            value={pageSize}
+            onChange={(e) => onPageSizeChange(Number(e.target.value))}
+            aria-label="Rows per page"
+          >
+            {pageSizeOptions.map((n) => <option key={n} value={n}>{n} / page</option>)}
+          </select>
+        </label>
+
+        <div className={cls.pagination__pages}>
+          <button
+            type="button"
+            className={cls.pagination__btn}
+            onClick={() => onPageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+            aria-label="Previous page"
+          >
+            <Icon name="arrow" size={14} style={{ transform: 'rotate(180deg)' }} />
+          </button>
+
+          {pageList.map((p, i) =>
+            p === 'ellipsis'
+              ? <span key={`e${i}`} className={cls.pagination__ellipsis} aria-hidden="true">…</span>
+              : (
+                <button
+                  key={p}
+                  type="button"
+                  className={[cls.pagination__btn, p === currentPage && cls['pagination__btn--active']]
+                    .filter(Boolean).join(' ')}
+                  onClick={() => onPageChange(p)}
+                  aria-current={p === currentPage ? 'page' : undefined}
+                  aria-label={`Page ${p}`}
+                >
+                  {p}
+                </button>
+              )
+          )}
+
+          <button
+            type="button"
+            className={cls.pagination__btn}
+            onClick={() => onPageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+            aria-label="Next page"
+          >
+            <Icon name="arrow" size={14} />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* -------------------------------------------------------------------------- */
+/* DateRangeFilter — Today | Week | Month | Quarter | All | Custom            */
+/* -------------------------------------------------------------------------- */
+export type DateRangeKey = 'today' | 'week' | 'month' | 'quarter' | 'all' | 'custom';
+
+interface DateRangeFilterProps {
+  value: DateRangeKey;
+  onChange: (key: DateRangeKey) => void;
+  customFrom?: string;                // ISO date "YYYY-MM-DD"
+  customTo?: string;
+  onCustomFromChange?: (v: string) => void;
+  onCustomToChange?: (v: string) => void;
+}
+
+const DATE_RANGE_OPTIONS: readonly { key: DateRangeKey; label: string }[] = [
+  { key: 'today',   label: 'Today'    },
+  { key: 'week',    label: 'This week' },
+  { key: 'month',   label: 'This month' },
+  { key: 'quarter', label: 'Quarter' },
+  { key: 'all',     label: 'All time' },
+  { key: 'custom',  label: 'Custom' },
+];
+
+export const DateRangeFilter: FC<DateRangeFilterProps> = ({
+  value, onChange, customFrom, customTo, onCustomFromChange, onCustomToChange,
+}) => (
+  <div className={cls.dateRange}>
+    <div className={cls.dateRange__chips} role="radiogroup" aria-label="Date range">
+      {DATE_RANGE_OPTIONS.map((opt) => (
+        <button
+          key={opt.key}
+          type="button"
+          role="radio"
+          aria-checked={value === opt.key}
+          className={[cls.dateRange__chip, value === opt.key && cls['dateRange__chip--active']]
+            .filter(Boolean).join(' ')}
+          onClick={() => onChange(opt.key)}
+        >
+          {opt.label}
+        </button>
+      ))}
+    </div>
+    {value === 'custom' && (
+      <div className={cls.dateRange__custom}>
+        <label className={cls.dateRange__customLabel}>
+          <span>From</span>
+          <input
+            type="date"
+            value={customFrom ?? ''}
+            onChange={(e) => onCustomFromChange?.(e.target.value)}
+            className={cls.dateRange__date}
+          />
+        </label>
+        <label className={cls.dateRange__customLabel}>
+          <span>To</span>
+          <input
+            type="date"
+            value={customTo ?? ''}
+            onChange={(e) => onCustomToChange?.(e.target.value)}
+            className={cls.dateRange__date}
+          />
+        </label>
+      </div>
+    )}
+  </div>
+);

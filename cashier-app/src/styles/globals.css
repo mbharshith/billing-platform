@@ -13,11 +13,11 @@ html, body {
 }
 
 body {
-  font-family: var(--wm-font-family);
-  font-size: var(--wm-font-size-md);
-  line-height: var(--wm-line-normal);
-  color: var(--wm-text);
-  background: var(--wm-bg);
+  font-family: var(--app-font-family);
+  font-size: var(--app-font-size-md);
+  line-height: var(--app-line-normal);
+  color: var(--app-text);
+  background: var(--app-bg);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -32,7 +32,7 @@ button { font-family: inherit; }
  * Form controls inside <.inputShell> get their focus indicator from the shell's
  * border-color change, so suppress the inner outline to avoid double rings. */
 :focus-visible {
-  outline: 2px solid var(--wm-focus-ring);
+  outline: 2px solid var(--app-focus-ring);
   outline-offset: 2px;
   border-radius: 4px;
 }
@@ -60,15 +60,15 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin
 input[type=number] { -moz-appearance: textfield; }
 
 /* Keyframes reused across components */
-@keyframes wm-fade-in {
+@keyframes app-fade-in {
   from { opacity: 0; }
   to   { opacity: 1; }
 }
-@keyframes wm-slide-up {
+@keyframes app-slide-up {
   from { opacity: 0; transform: translateY(12px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-@keyframes wm-pop {
+@keyframes app-pop {
   0%   { transform: scale(0.92); }
   60%  { transform: scale(1.04); }
   100% { transform: scale(1); }

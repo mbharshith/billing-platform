@@ -3,7 +3,7 @@
  * Uses AuthContext. Redirects to /cashier (or the intended path) on success.
  */
 import { useState, type FC, type FormEvent } from 'react';
-import { Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import cls from './LoginPage.module.css';
 import { Button, Field, Icon, Input, Text } from '../components/atoms';
 import { STRINGS } from '../domain/strings';
@@ -41,7 +41,7 @@ export const LoginPage: FC = () => {
         setError(result.reason === 'inactive' ? STRINGS.auth.inactive : STRINGS.auth.invalid);
         return;
       }
-      toast.success(`Welcome, ${username}!`);
+      toast.success(STRINGS.auth.welcome(username));
       const dest = (location.state as LocationState | null)?.from ?? '/cashier';
       navigate(dest, { replace: true });
     }, 350);
@@ -103,6 +103,9 @@ export const LoginPage: FC = () => {
               {submitting ? STRINGS.auth.signingIn : STRINGS.auth.signIn}
             </Button>
             <div className={cls.loginHint}>{STRINGS.auth.demoHint}</div>
+            <div className={cls.loginHint} style={{ textAlign: 'center' }}>
+              New here? <Link to="/signup" className={cls.authLink}>Create your tenant</Link>
+            </div>
           </div>
         </form>
       </div>

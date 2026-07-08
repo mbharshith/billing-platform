@@ -1,124 +1,183 @@
 /* =========================================================================
-   Walmart Design Tokens — §1 UI & Design System
-   The ONLY source of colors, spacing, type, radii, shadows.
-   Zero hex codes allowed in components or feature CSS.
+   Design Tokens — the single source of truth for colors, spacing, type,
+   radii, motion, and shadows. Zero hex codes should appear in components.
+
+   Palette: Tailwind-inspired blue + amber. Everything is free/OSS.
    ========================================================================= */
 
 :root {
-  /* --- Brand primitives (Walmart official palette) ------------------------ */
-  --wm-blue-5:    #f2f8fd;
-  --wm-blue-10:   #cfe0ff;
-  --wm-blue-100:  #0053e2;   /* primary */
-  --wm-blue-110:  #0041b8;   /* hover */
-  --wm-blue-130:  #002d80;   /* pressed */
-  --wm-blue-160:  #001a4d;   /* deep ink */
+  /* --- Brand primitives ---------------------------------------------------
+     Blues based on Tailwind blue-* scale (MIT). Amber matches amber-500. */
+  --app-blue-5:    #eff6ff;   /* blue-50   */
+  --app-blue-10:   #dbeafe;   /* blue-100  */
+  --app-blue-100:  #2563eb;   /* blue-600  primary                        */
+  --app-blue-110:  #1d4ed8;   /* blue-700  hover                          */
+  --app-blue-130:  #1e40af;   /* blue-800  pressed                        */
+  --app-blue-160:  #172554;   /* blue-950  deep ink                       */
 
-  --wm-spark-5:   #fff8e0;
-  --wm-spark-10:  #fff2cc;
-  --wm-spark-100: #ffc220;   /* accent */
-  --wm-spark-140: #995213;   /* warning text */
+  --app-spark-5:   #fffbeb;   /* amber-50  */
+  --app-spark-10:  #fef3c7;   /* amber-100 */
+  --app-spark-100: #f59e0b;   /* amber-500 accent                         */
+  --app-spark-140: #92400e;   /* amber-800 warning text                   */
 
-  --wm-red-100:   #ea1100;   /* error */
-  --wm-red-10:    #fee2e2;
+  --app-red-100:   #ea1100;   /* error */
+  --app-red-10:    #fee2e2;
 
-  --wm-green-100: #2a8703;   /* success */
-  --wm-green-10:  #dcf5cc;
+  --app-green-100: #2a8703;   /* success */
+  --app-green-10:  #dcf5cc;
 
-  --wm-gray-0:    #ffffff;
-  --wm-gray-5:    #fafbfc;
-  --wm-gray-10:   #f2f4f7;
-  --wm-gray-30:   #e5e7eb;
-  --wm-gray-50:   #cbd5e1;
-  --wm-gray-80:   #94a3b8;
-  --wm-gray-100:  #6b7280;
-  --wm-gray-140:  #374151;
-  --wm-gray-160:  #1a1a1a;
+  --app-gray-0:    #ffffff;
+  --app-gray-5:    #fafbfc;
+  --app-gray-10:   #f2f4f7;
+  --app-gray-30:   #e5e7eb;
+  --app-gray-50:   #cbd5e1;
+  --app-gray-80:   #94a3b8;
+  --app-gray-100:  #6b7280;
+  --app-gray-140:  #374151;
+  --app-gray-160:  #1a1a1a;
 
   /* --- Semantic aliases (prefer these in components) ---------------------- */
-  --wm-bg:              var(--wm-gray-5);
-  --wm-surface:         var(--wm-gray-0);
-  --wm-surface-subtle:  var(--wm-blue-5);
-  --wm-surface-ink:     var(--wm-gray-160);
-  --wm-border:          var(--wm-gray-30);
-  --wm-border-strong:   var(--wm-gray-50);
-  --wm-text:            var(--wm-gray-160);
-  --wm-text-subtle:     var(--wm-gray-100);
-  --wm-text-muted:      var(--wm-gray-80);
-  --wm-text-inverse:    var(--wm-gray-0);
-  --wm-primary:         var(--wm-blue-100);
-  --wm-primary-hover:   var(--wm-blue-110);
-  --wm-primary-press:   var(--wm-blue-130);
-  --wm-accent:          var(--wm-spark-100);
-  --wm-success:         var(--wm-green-100);
-  --wm-danger:          var(--wm-red-100);
-  --wm-focus-ring:      var(--wm-blue-100);
+  --app-bg:              var(--app-gray-5);
+  --app-surface:         var(--app-gray-0);
+  --app-surface-subtle:  var(--app-blue-5);
+  --app-surface-ink:     var(--app-gray-160);
+  --app-border:          var(--app-gray-30);
+  --app-border-strong:   var(--app-gray-50);
+  --app-text:            var(--app-gray-160);
+  --app-text-subtle:     var(--app-gray-100);
+  --app-text-muted:      var(--app-gray-80);
+  --app-text-inverse:    var(--app-gray-0);
+  --app-primary:         var(--app-blue-100);
+  --app-primary-hover:   var(--app-blue-110);
+  --app-primary-press:   var(--app-blue-130);
+  /* Foreground on primary/danger fills: ALWAYS white (both themes)
+     because those fill colors are dark enough to demand it. */
+  --app-primary-fg:      #ffffff;
+  --app-danger-fg:       #ffffff;
+  --app-accent:          var(--app-spark-100);
+  --app-success:         var(--app-green-100);
+  --app-danger:          var(--app-red-100);
+  --app-focus-ring:      var(--app-blue-100);
 
   /* --- Spacing (4pt grid) ------------------------------------------------- */
-  --wm-space-0:    0;
-  --wm-space-1:    4px;
-  --wm-space-2:    8px;
-  --wm-space-3:    12px;
-  --wm-space-4:    16px;
-  --wm-space-5:    20px;
-  --wm-space-6:    24px;
-  --wm-space-8:    32px;
-  --wm-space-10:   40px;
-  --wm-space-12:   48px;
-  --wm-space-16:   64px;
+  --app-space-0:    0;
+  --app-space-1:    4px;
+  --app-space-2:    8px;
+  --app-space-3:    12px;
+  --app-space-4:    16px;
+  --app-space-5:    20px;
+  --app-space-6:    24px;
+  --app-space-8:    32px;
+  --app-space-10:   40px;
+  --app-space-12:   48px;
+  --app-space-16:   64px;
 
   /* --- Radii -------------------------------------------------------------- */
-  --wm-radius-sm:  6px;
-  --wm-radius-md:  10px;
-  --wm-radius-lg:  16px;
-  --wm-radius-xl:  24px;
-  --wm-radius-pill: 999px;
+  --app-radius-sm:  6px;
+  --app-radius-md:  10px;
+  --app-radius-lg:  16px;
+  --app-radius-xl:  24px;
+  --app-radius-pill: 999px;
 
   /* --- Typography --------------------------------------------------------- */
-  --wm-font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --wm-font-mono:   ui-monospace, 'SF Mono', Menlo, monospace;
-  --wm-font-size-xs:   12px;
-  --wm-font-size-sm:   14px;
-  --wm-font-size-md:   16px;
-  --wm-font-size-lg:   18px;
-  --wm-font-size-xl:   22px;
-  --wm-font-size-2xl:  28px;
-  --wm-font-size-3xl:  36px;
-  --wm-font-weight-regular:  400;
-  --wm-font-weight-medium:   500;
-  --wm-font-weight-semibold: 600;
-  --wm-font-weight-bold:     700;
-  --wm-font-weight-heavy:    800;
-  --wm-line-tight:    1.2;
-  --wm-line-normal:   1.5;
+  --app-font-family:       'Montserrat', 'Proxima Nova', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --app-font-family-mono:  'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  --app-font-mono:   ui-monospace, 'SF Mono', Menlo, monospace;
+  --app-font-size-xs:   12px;
+  --app-font-size-sm:   14px;
+  --app-font-size-md:   16px;
+  --app-font-size-lg:   18px;
+  --app-font-size-xl:   22px;
+  --app-font-size-2xl:  28px;
+  --app-font-size-3xl:  36px;
+  --app-font-weight-regular:  400;
+  --app-font-weight-medium:   500;
+  --app-font-weight-semibold: 600;
+  --app-font-weight-bold:     700;
+  --app-font-weight-heavy:    800;
+  --app-line-tight:    1.2;
+  --app-line-normal:   1.5;
 
   /* --- Shadows ------------------------------------------------------------ */
-  --wm-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
-  --wm-shadow-sm: 0 2px 8px rgba(0, 83, 226, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
-  --wm-shadow-md: 0 8px 24px rgba(0, 83, 226, 0.10), 0 2px 4px rgba(0, 0, 0, 0.06);
-  --wm-shadow-lg: 0 20px 60px rgba(0, 83, 226, 0.16);
+  --app-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --app-shadow-sm: 0 2px 8px rgba(0, 83, 226, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --app-shadow-md: 0 8px 24px rgba(0, 83, 226, 0.10), 0 2px 4px rgba(0, 0, 0, 0.06);
+  --app-shadow-lg: 0 20px 60px rgba(0, 83, 226, 0.16);
 
   /* --- Layout ------------------------------------------------------------- */
-  --wm-container-max: 1280px;
-  --wm-header-height: 64px;
+  --app-container-max: 1280px;
+  --app-header-height: 64px;
 
   /* --- Motion ------------------------------------------------------------- */
-  --wm-motion-fast:   120ms cubic-bezier(0.4, 0, 0.2, 1);
-  --wm-motion-normal: 240ms cubic-bezier(0.4, 0, 0.2, 1);
-  --wm-motion-slow:   360ms cubic-bezier(0.16, 1, 0.3, 1);
+  --app-motion-fast:   120ms cubic-bezier(0.4, 0, 0.2, 1);
+  --app-motion-normal: 240ms cubic-bezier(0.4, 0, 0.2, 1);
+  --app-motion-slow:   360ms cubic-bezier(0.16, 1, 0.3, 1);
 
   /* --- Z-indexes ---------------------------------------------------------- */
-  --wm-z-base:    1;
-  --wm-z-sticky:  100;
-  --wm-z-overlay: 900;
-  --wm-z-modal:   1000;
-  --wm-z-toast:   1100;
+  --app-z-base:    1;
+  --app-z-sticky:  100;
+  --app-z-overlay: 900;
+  --app-z-modal:   1000;
+  --app-z-toast:   1100;
 }
 
 /* Respect user's reduced-motion preference (§10) */
 @media (prefers-reduced-motion: reduce) {
   :root {
-    --wm-motion-fast:   0ms linear;
-    --wm-motion-normal: 0ms linear;
-    --wm-motion-slow:   0ms linear;
+    --app-motion-fast:   0ms linear;
+    --app-motion-normal: 0ms linear;
+    --app-motion-slow:   0ms linear;
   }
 }
+
+/* =========================================================================
+   Dark theme — activated by [data-theme="dark"] on <html>.
+   Brand blue + amber stay; only surfaces/text/borders flip.
+   ========================================================================= */
+[data-theme="dark"] {
+  /* Cooler, richer palette for dark surfaces (slate-inspired) */
+  --app-bg:              #0b1220;   /* app background */
+  --app-surface:         #131a2b;   /* cards / header / modal */
+  --app-surface-subtle:  #1a2338;   /* subtle raised */
+  --app-surface-ink:     #05070d;
+  --app-border:          #263148;
+  --app-border-strong:   #384766;
+  --app-text:            #e6edf7;
+  --app-text-subtle:     #a3adc2;
+  --app-text-muted:      #7c8699;
+  /* keep --app-text-inverse white in dark mode too: nearly every use is
+     "text on top of --app-primary / --app-danger / colored ribbon", all
+     of which are dark fills that need light text. */
+
+  /* Nudge blue-5 (used for active nav pill + focus tints) to something
+     visible on dark surfaces. Keep --app-primary (blue-600) as-is. */
+  --app-blue-5:          #1a2b52;
+  --app-blue-10:         #1e3a75;
+
+  /* --app-blue-130 is the *paired text color* on top of --app-blue-10
+     tint (e.g. badge--primary). In light mode both live in the deep-navy
+     end of the palette — in dark mode --app-blue-10 IS deep navy, so the
+     text has to flip to a light blue to stay legible (~7.5:1 on the new bg,
+     WCAG AAA). Also used by the brand gradient stop which reads fine as a
+     brighter accent on the logo mark. */
+  --app-blue-130:        #93c5fd;
+
+  /* Neutral grays remapped so gray-based hovers keep working on dark */
+  --app-gray-5:          #131a2b;
+  --app-gray-10:         #1a2338;
+  --app-gray-30:         #263148;
+  --app-gray-50:         #384766;
+  --app-gray-80:         #64708a;
+  --app-gray-100:        #8b95ac;
+  --app-gray-140:        #c9d1e3;
+  --app-gray-160:        #e6edf7;
+
+  /* Shadows: swap tinted-blue drops for pure-black at higher opacity */
+  --app-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --app-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.35), 0 1px 2px rgba(0, 0, 0, 0.3);
+  --app-shadow-md: 0 8px 24px rgba(0, 0, 0, 0.45), 0 2px 4px rgba(0, 0, 0, 0.35);
+  --app-shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.55);
+}
+
+/* Smooth theme transition on the shell (not on inputs/buttons — feels laggy) */
+html { transition: background-color 200ms ease, color 200ms ease; }

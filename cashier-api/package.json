@@ -2,7 +2,7 @@
   "name": "cashier-api",
   "version": "0.1.0",
   "private": true,
-  "description": "Walmart Cashier POS backend — Express + MongoDB",
+  "description": "QuickBill POS backend — Express + MongoDB",
   "main": "dist/main.js",
   "scripts": {
     "dev": "tsx watch src/main.ts",

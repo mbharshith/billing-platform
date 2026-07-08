@@ -3,10 +3,45 @@
  */
 
 /**
- * Money formatter — decimal-only per user request, no currency symbol.
- * Locale is still en-US so we get the correct thousands separator.
+ * Money formatter — currency-aware, tenant-driven.
+ *
+ * Every monetary value in the app is scoped to a tenant, and each tenant
+ * owns its currency (USD / INR / EUR / ...). Rendering therefore goes
+ * through `formatMoney(amount, currency)` — via the `useMoney()` hook so
+ * components don't have to remember to pass the currency every time.
+ *
+ * The old zero-arg `money(n)` helper is kept only as a *last resort*
+ * fallback for places without React context (schema seeders, tests) —
+ * production UI should use `useMoney()`.
  */
-const moneyFmt = new Intl.NumberFormat('en-US', {
+const _memo = new Map<string, Intl.NumberFormat>();
+const _fmtFor = (currency: string): Intl.NumberFormat => {
+  const key = currency.toUpperCase();
+  const cached = _memo.get(key);
+  if (cached) return cached;
+  // Fall back to plain decimal if the currency code is invalid.
+  let fmt: Intl.NumberFormat;
+  try {
+    fmt = new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: key,
+      currencyDisplay: 'narrowSymbol',
+    });
+  } catch {
+    fmt = new Intl.NumberFormat('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  }
+  _memo.set(key, fmt);
+  return fmt;
+};
+
+export const formatMoney = (n: number, currency: string): string =>
+  _fmtFor(currency).format(n);
+
+/** Fallback formatter for non-component code paths. */
+const _decimalFmt = new Intl.NumberFormat('en-US', {
   minimumFractionDigits: 2,
   maximumFractionDigits: 2,
 });
@@ -26,7 +61,8 @@ const timeFmt = new Intl.DateTimeFormat('en-US', {
   timeStyle: 'short',
 });
 
-export const money = (n: number): string => moneyFmt.format(n);
+/** @deprecated use `useMoney()` in components; use `formatMoney(n, currency)` otherwise. */
+export const money = (n: number): string => _decimalFmt.format(n);
 export const num = (n: number): string => numberFmt.format(n);
 export const fmtDateTime = (iso: string): string => dateTimeFmt.format(new Date(iso));
 export const fmtDate = (iso: string): string => dateFmt.format(new Date(iso));

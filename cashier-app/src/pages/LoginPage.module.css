@@ -4,47 +4,90 @@
   min-height: 100vh;
   display: grid;
   place-items: center;
-  padding: var(--wm-space-6);
+  padding: var(--app-space-6);
   background:
-    radial-gradient(circle at top left, var(--wm-blue-10) 0%, transparent 40%),
-    radial-gradient(circle at bottom right, var(--wm-spark-10) 0%, transparent 40%),
-    var(--wm-bg);
+    radial-gradient(circle at top left, var(--app-blue-10) 0%, transparent 40%),
+    radial-gradient(circle at bottom right, var(--app-spark-10) 0%, transparent 40%),
+    var(--app-bg);
 }
 .loginCard {
-  background: var(--wm-surface);
-  border-radius: var(--wm-radius-xl);
-  box-shadow: var(--wm-shadow-lg);
-  padding: var(--wm-space-8);
+  background: var(--app-surface);
+  border-radius: var(--app-radius-xl);
+  box-shadow: var(--app-shadow-lg);
+  padding: var(--app-space-8);
   width: 100%;
   max-width: 420px;
   display: flex;
   flex-direction: column;
-  gap: var(--wm-space-5);
+  gap: var(--app-space-5);
 }
 .loginBrand {
   display: flex;
   align-items: center;
-  gap: var(--wm-space-3);
-  color: var(--wm-primary);
+  gap: var(--app-space-3);
+  color: var(--app-primary);
 }
 .loginBrand__mark {
   width: 48px; height: 48px;
   border-radius: 50%;
-  background: var(--wm-accent);
-  color: var(--wm-primary);
+  background: var(--app-accent);
+  color: var(--app-primary);
   display: grid; place-items: center;
   flex-shrink: 0;
 }
 .loginBrand__text { display: flex; flex-direction: column; line-height: 1; gap: 4px; }
 
-.loginForm { display: flex; flex-direction: column; gap: var(--wm-space-4); }
-.loginActions { display: flex; flex-direction: column; gap: var(--wm-space-3); }
+.loginForm { display: flex; flex-direction: column; gap: var(--app-space-4); }
+.loginActions { display: flex; flex-direction: column; gap: var(--app-space-3); }
 .loginHint {
-  background: var(--wm-blue-10);
-  border-radius: var(--wm-radius-md);
-  padding: var(--wm-space-3);
-  color: var(--wm-primary);
-  font-size: var(--wm-font-size-xs);
+  background: var(--app-blue-10);
+  border-radius: var(--app-radius-md);
+  padding: var(--app-space-3);
+  color: var(--app-primary);
+  font-size: var(--app-font-size-xs);
   text-align: center;
-  font-family: var(--wm-font-family-mono, monospace);
+  font-family: var(--app-font-family-mono, monospace);
 }
+
+/* --- Signup (wide variant of the login card) --------------------------- */
+.loginCard--wide { max-width: 720px; }
+
+.signupIntro { display: flex; flex-direction: column; gap: 6px; }
+
+.signupSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-3);
+  padding: var(--app-space-4);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-lg);
+  background: var(--app-bg);
+}
+
+.signupRow2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--app-space-3);
+}
+@media (max-width: 560px) {
+  .signupRow2 { grid-template-columns: 1fr; }
+}
+
+.authError {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--app-space-2);
+  padding: var(--app-space-2) var(--app-space-3);
+  background: rgba(220, 38, 38, 0.08);
+  color: var(--app-danger);
+  border-radius: var(--app-radius-md);
+  font-size: var(--app-font-size-sm);
+  font-weight: var(--app-font-weight-semibold);
+}
+
+.authLink {
+  color: var(--app-primary);
+  font-weight: var(--app-font-weight-semibold);
+  text-decoration: none;
+}
+.authLink:hover { text-decoration: underline; }

@@ -9,7 +9,8 @@ import { PaymentBadge, ProductBadge } from '../components/molecules';
 import { Modal } from '../components/organisms';
 import { PageHeader } from '../components/layout/AppShell';
 import { STRINGS } from '../domain/strings';
-import { fmtDateTime, formatPhone, money } from '../domain/format';
+import { fmtDateTime, formatPhone } from '../domain/format';
+import { useMoney } from '../hooks/useMoney';
 import { useAuth } from '../store/AuthContext';
 import { useCustomers } from '../store/CustomersContext';
 import { useProducts } from '../store/ProductsContext';
@@ -17,12 +18,13 @@ import { useSales } from '../store/SalesContext';
 import { useToast } from '../store/ToastContext';
 
 export const SaleDetailPage: FC = () => {
+  const { money } = useMoney();
   const { id = '' } = useParams();
   const navigate = useNavigate();
   const { byId, voidSale } = useSales();
   const { byId: customerById, addLending } = useCustomers();
   const { incrementStock } = useProducts();
-  const { isAdmin } = useAuth();
+  const { isMaster } = useAuth();
   const toast = useToast();
 
   const [voidOpen, setVoidOpen] = useState(false);
@@ -32,7 +34,7 @@ export const SaleDetailPage: FC = () => {
   if (!sale) {
     return (
       <>
-        <PageHeader title="Sale not found" subtitle="It may have been deleted." />
+        <PageHeader title={STRINGS.sales.notFound} subtitle={STRINGS.sales.notFoundHint} />
         <Button variant="secondary" leadingIcon="arrow"
                 onClick={() => navigate('/sales')}>{STRINGS.sales.backToList}</Button>
       </>
@@ -64,7 +66,7 @@ export const SaleDetailPage: FC = () => {
             <Button variant="secondary" leadingIcon="print" onClick={() => window.print()}>
               {STRINGS.receipt.print}
             </Button>
-            {isAdmin && !sale.voided && (
+            {isMaster && !sale.voided && (
               <Button variant="danger" leadingIcon="trash" onClick={() => setVoidOpen(true)}>
                 {STRINGS.sales.void}
               </Button>
@@ -75,10 +77,10 @@ export const SaleDetailPage: FC = () => {
 
       <div className={cls.card}>
         <div className={cls.cardHeader}>
-          <Text as="h2" size="lg" weight="bold">Summary</Text>
+          <Text as="h2" size="lg" weight="bold">{STRINGS.sales.sectionSummary}</Text>
           {sale.voided
             ? <Badge variant="danger">{STRINGS.sales.voidedBadge}</Badge>
-            : <Badge variant="success">Complete</Badge>}
+            : <Badge variant="success">{STRINGS.sales.complete}</Badge>}
         </div>
         <div className={cls.cardBody}>
           <div className={cls.kvList}>
@@ -95,7 +97,7 @@ export const SaleDetailPage: FC = () => {
               <PaymentBadge method={sale.paymentMethod} />
             </div>
             <div className={cls.kv}>
-              <Text size="xs" tone="subtle" weight="semibold" upper>Cashier</Text>
+              <Text size="xs" tone="subtle" weight="semibold" upper>{STRINGS.sales.labelCashier}</Text>
               <Text weight="semibold">{sale.cashierName}</Text>
             </div>
             {customer && (
@@ -114,10 +116,10 @@ export const SaleDetailPage: FC = () => {
             )}
             {sale.voided && (
               <div className={cls.kv} style={{ gridColumn: '1 / -1' }}>
-                <Text size="xs" tone="danger" weight="semibold" upper>Void reason</Text>
+                <Text size="xs" tone="danger" weight="semibold" upper>{STRINGS.sales.labelVoidReason}</Text>
                 <Text>{sale.voidedReason ?? '—'}</Text>
                 {sale.voidedAt && (
-                  <Text size="xs" tone="subtle">on {fmtDateTime(sale.voidedAt)}</Text>
+                  <Text size="xs" tone="subtle">{STRINGS.sales.voidedOn(fmtDateTime(sale.voidedAt))}</Text>
                 )}
               </div>
             )}
@@ -128,17 +130,17 @@ export const SaleDetailPage: FC = () => {
       <div className={cls.card}>
         <div className={cls.cardHeader}>
           <Text as="h2" size="lg" weight="bold">{STRINGS.receipt.itemsSold}</Text>
-          <Badge variant="neutral">{sale.unitCount} units</Badge>
+          <Badge variant="neutral">{STRINGS.sales.units(sale.unitCount)}</Badge>
         </div>
         <div className={cls.tableWrap}>
           <table className={cls.table}>
             <thead>
               <tr>
-                <th>Product</th>
-                <th>SKU</th>
-                <th className="numeric">Qty</th>
-                <th className="numeric">Unit price</th>
-                <th className="numeric">Line total</th>
+                <th>{STRINGS.sales.columnProduct}</th>
+                <th>{STRINGS.sales.columnSku}</th>
+                <th className="numeric">{STRINGS.sales.columnQty}</th>
+                <th className="numeric">{STRINGS.sales.columnUnitPrice}</th>
+                <th className="numeric">{STRINGS.sales.columnLineTotal}</th>
               </tr>
             </thead>
             <tbody>

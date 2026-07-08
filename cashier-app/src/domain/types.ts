@@ -10,6 +10,27 @@
 export type Iso8601 = string;
 export type PaymentMethod = 'cash' | 'card' | 'lending';
 
+/* -------------------------------------------------------------------------- */
+/* Stores (multi-tenant)                                                      */
+/* -------------------------------------------------------------------------- */
+export interface Store {
+  readonly id: string;
+  readonly name: string;
+  readonly city: string;
+  readonly phone: string;
+  readonly address: string;
+  /** Sales tax rate as a decimal (e.g. 0.0825 = 8.25%). */
+  readonly taxRate: number;
+  /** ISO 4217 currency code. */
+  readonly currency: string;
+  readonly active: boolean;
+  readonly createdAt: Iso8601;
+}
+
+/** All non-store entities carry a storeId (required, never null).
+ *  Users too — every user belongs to exactly one store. */
+export type StoreScope = string;
+
 /**
  * Discriminated status union for async state — enforces "handle all 4 states".
  * (§2 RULE — never render on data alone; render on state.)
@@ -43,6 +64,8 @@ export interface Product {
   readonly stock: number;
   readonly active: boolean;
   readonly createdAt: Iso8601;
+  /** Store that owns this product. */
+  readonly storeId: string;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -79,6 +102,8 @@ export interface Sale {
   readonly voided: boolean;
   readonly voidedAt: Iso8601 | null;
   readonly voidedReason: string | null;
+  /** Store where the sale happened. */
+  readonly storeId: string;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -94,6 +119,8 @@ export interface Customer {
   /** Outstanding lending balance in currency units. */
   readonly lendingBalance: number;
   readonly createdAt: Iso8601;
+  /** Store that owns this customer record. */
+  readonly storeId: string;
 }
 
 export interface CustomerPayment {
@@ -109,7 +136,13 @@ export interface CustomerPayment {
 /* -------------------------------------------------------------------------- */
 /* Users (staff)                                                              */
 /* -------------------------------------------------------------------------- */
-export type UserRole = 'admin' | 'cashier';
+/**
+ * master  — owns their store: edit store settings, CRUD products/customers/users,
+ *           full sales/lending history, deactivate/delete anything except themselves.
+ * cashier — rings up sales at their store, views customers, records lending payments,
+ *           only sees TODAY's sales, no destructive actions.
+ */
+export type UserRole = 'master' | 'cashier';
 
 export interface User {
   readonly id: string;
@@ -118,6 +151,8 @@ export interface User {
   readonly role: UserRole;
   readonly active: boolean;
   readonly createdAt: Iso8601;
+  /** Every user belongs to exactly one store. */
+  readonly storeId: string;
   /** Password lives here only because this is a mock/frontend-only build.
    *  When a backend arrives this MUST be moved server-side + hashed (§6). */
   readonly password: string;

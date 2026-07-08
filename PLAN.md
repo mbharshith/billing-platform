@@ -73,7 +73,7 @@ A modern, opinionated point-of-sale system for physical retail:
 | Layer | Choice | Why |
 |---|---|---|
 | **Frontend** | React 18 + TypeScript + Vite | Modern, fast, atomic-design-friendly. TypeScript keeps us honest. |
-| **Styling** | CSS modules + design tokens (walmart-tokens.css pattern) | Zero runtime cost. Fully portable. §1 guardrails compliant. |
+| **Styling** | CSS modules + design tokens (app-tokens.css pattern) | Zero runtime cost. Fully portable. §1 guardrails compliant. |
 | **State** | Context + useReducer (Phase 0) → Redux Toolkit + RTK Query when we add backend | State-locality ladder. Don't pay for Redux before we need it. |
 | **Backend** | Node.js 20 + Express + TypeScript | Ubiquitous, hire-able, small memory footprint, Docker-friendly. |
 | **Database** | MongoDB (Atlas) | Schema flexibility for products/sales/receipts. Free tier generous. |
@@ -165,7 +165,7 @@ Billing/
 ### Phase 0 (current focus) — deliverables
 
 - [x] React frontend with cashier + dashboard pages (atomic design)
-- [x] Walmart-branded design tokens
+- [x] Brand-agnostic design tokens
 - [ ] Express API — auth, products, customers, sales, reports (scaffolded, in progress)
 - [ ] MongoDB seeding with sample tenant + admin user
 - [ ] Docker Compose for one-command local run
@@ -362,7 +362,7 @@ Design tenets that keep the exit door open at all times:
 
 - React + TypeScript + Vite frontend
 - Atomic design: 8 atoms, 8 molecules, 8 organisms, 1 template, 2 pages
-- Walmart design token system (zero hex codes in components)
+- Design token system (zero hex codes in components)
 - Cashier page: product grid, cart, payment modal (Cash/Card/Lending), receipt
 - Dashboard page: KPIs, recent sales, top products, inventory table
 - Hash routing, keyboard a11y, focus rings, WCAG 2.2 AA touch targets

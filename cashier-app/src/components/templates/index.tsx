@@ -30,7 +30,7 @@ export const PageShell: FC<PageShellProps> = ({
           display: 'flex',
           alignItems: 'flex-start',
           justifyContent: 'space-between',
-          gap: 'var(--wm-space-4)',
+          gap: 'var(--app-space-4)',
           flexWrap: 'wrap',
         }}
       >

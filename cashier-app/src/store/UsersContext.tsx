@@ -1,7 +1,9 @@
 /**
  * UsersContext — staff records (CRUD).
- * Passwords live plain-text in localStorage because this is a mock/frontend build.
- * A real backend MUST hash + never send them to the client (§6).
+ *
+ * Every user belongs to exactly one tenant (storeId is required, never null).
+ * Passwords live plain-text in localStorage because this is a mock/frontend
+ * build. A real backend MUST hash + never send them to the client (§6).
  */
 import {
   createContext, useCallback, useContext, useEffect, useMemo, useState,
@@ -14,20 +16,35 @@ import type { SessionUser, User, UserRole } from '../domain/types';
 const STORAGE_KEY = 'users';
 
 interface UsersContextValue {
+  /** Full list — unscoped. Consumers filter by storeId as needed. */
   readonly users: readonly User[];
   readonly findByUsername: (username: string) => User | undefined;
   readonly create: (input: {
     name: string; username: string; password: string; role: UserRole;
-  }) => { ok: true; user: User } | { ok: false; error: string };
+    storeId: string;
+  }) => { ok: true; user: User } | { ok: false; error: 'duplicate' | 'weakPassword' };
   readonly update: (id: string, patch: Partial<Pick<User, 'name' | 'password' | 'role'>>) => void;
   readonly setActive: (id: string, active: boolean) => void;
 }
 
 const UsersContext = createContext<UsersContextValue | null>(null);
 
+/** Migration: users from the pre-SAP-refactor era with 'super_admin' or
+ *  'admin' roles get demoted/renamed. 'super_admin' users lose their
+ *  cross-tenant status entirely — they become masters of the first tenant
+ *  they created, or are simply dropped. */
+const migrate = (list: readonly User[]): readonly User[] =>
+  list
+    .filter((u) => u.role !== ('super_admin' as UserRole))
+    .map((u) => {
+      // Rename legacy 'admin' role → 'master'.
+      const role: UserRole = u.role === ('admin' as UserRole) ? 'master' : u.role;
+      return { ...u, role };
+    });
+
 export const UsersProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const [users, setUsers] = useState<readonly User[]>(
-    () => storage.load<readonly User[]>(STORAGE_KEY, SEED_USERS),
+    () => migrate(storage.load<readonly User[]>(STORAGE_KEY, SEED_USERS)),
   );
 
   useEffect(() => { storage.save(STORAGE_KEY, users); }, [users]);
@@ -52,6 +69,7 @@ export const UsersProvider: FC<{ children: ReactNode }> = ({ children }) => {
       role: input.role,
       active: true,
       createdAt: new Date().toISOString(),
+      storeId: input.storeId,
       password: input.password,
     };
     setUsers((prev) => [...prev, user]);

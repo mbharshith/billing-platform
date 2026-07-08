@@ -1,58 +1,88 @@
 /**
- * AuthContext — login / logout, current session.
- * Reads users from UsersContext (must be nested inside UsersProvider).
- * Session persisted in localStorage so refresh doesn't kick you out.
+ * AuthContext — login / logout / current session.
+ *
+ * SaaS model: every user belongs to exactly one tenant (store).
+ * `currentStoreId` is derived from `currentUser.storeId` — there is no
+ * runtime switcher, no cross-tenant view, no ambient scope choice.
+ * This is the same pattern Jira / Shopify / Notion enforce.
  */
 import {
   createContext, useCallback, useContext, useEffect, useMemo, useState,
   type FC, type ReactNode,
 } from 'react';
 import { storage } from '../lib/storage';
+import { can, isMaster, type Action } from '../domain/permissions';
 import type { SessionUser } from '../domain/types';
 import { toSessionUser, useUsers } from './UsersContext';
 
-const STORAGE_KEY = 'session';
+const SESSION_KEY = 'session';
 
 export type LoginResult =
-  | { readonly ok: true }
+  | { readonly ok: true; readonly user: SessionUser }
   | { readonly ok: false; readonly reason: 'invalid' | 'inactive' };
 
 interface AuthContextValue {
   readonly currentUser: SessionUser | null;
-  readonly isAdmin: boolean;
+  /** The tenant id this session is bound to. Null iff not logged in. */
+  readonly currentStoreId: string | null;
+  readonly isMaster: boolean;
   readonly login: (username: string, password: string) => LoginResult;
+  /** Directly promote a freshly-created user (e.g. right after signup). */
+  readonly loginAs: (user: SessionUser) => void;
   readonly logout: () => void;
+  readonly can: (action: Action) => boolean;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const { findByUsername } = useUsers();
+
   const [currentUser, setCurrentUser] = useState<SessionUser | null>(
-    () => storage.load<SessionUser | null>(STORAGE_KEY, null),
+    () => storage.load<SessionUser | null>(SESSION_KEY, null),
   );
 
+  // Re-hydrate: if the persisted session references a user record that has
+  // since been updated (or deleted), reconcile it. Runs once on mount.
   useEffect(() => {
-    if (currentUser) storage.save(STORAGE_KEY, currentUser);
-    else storage.remove(STORAGE_KEY);
+    if (!currentUser) return;
+    const fresh = findByUsername(currentUser.username);
+    if (!fresh) { setCurrentUser(null); return; }
+    if (fresh.storeId !== currentUser.storeId || fresh.role !== currentUser.role) {
+      setCurrentUser(toSessionUser(fresh));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (currentUser) storage.save(SESSION_KEY, currentUser);
+    else storage.remove(SESSION_KEY);
   }, [currentUser]);
 
   const login = useCallback((username: string, password: string): LoginResult => {
     const user = findByUsername(username.trim());
     if (!user || user.password !== password) return { ok: false, reason: 'invalid' };
     if (!user.active)                          return { ok: false, reason: 'inactive' };
-    setCurrentUser(toSessionUser(user));
-    return { ok: true };
+    const session = toSessionUser(user);
+    setCurrentUser(session);
+    return { ok: true, user: session };
   }, [findByUsername]);
+
+  const loginAs = useCallback((user: SessionUser) => {
+    setCurrentUser(user);
+  }, []);
 
   const logout = useCallback(() => setCurrentUser(null), []);
 
   const value = useMemo<AuthContextValue>(() => ({
     currentUser,
-    isAdmin: currentUser?.role === 'admin',
+    currentStoreId: currentUser?.storeId ?? null,
+    isMaster: isMaster(currentUser),
     login,
+    loginAs,
     logout,
-  }), [currentUser, login, logout]);
+    can: (action) => can(currentUser, action),
+  }), [currentUser, login, loginAs, logout]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
@@ -62,3 +92,6 @@ export const useAuth = (): AuthContextValue => {
   if (!ctx) throw new Error('useAuth must be used within <AuthProvider>');
   return ctx;
 };
+
+/** Helper — the tenant id this session is bound to. */
+export const useCurrentStoreId = (): string | null => useAuth().currentStoreId;

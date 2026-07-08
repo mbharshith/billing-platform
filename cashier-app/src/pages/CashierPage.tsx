@@ -8,7 +8,7 @@
 import { useMemo, useState, type FC } from 'react';
 import pages from './pages.module.css';
 import {
-  CartPanel, PaymentModal, ProductGrid, ProductToolbar, ReceiptModal, buildSale,
+  CartPanel, MobileCartBar, PaymentModal, ProductGrid, ProductToolbar, ReceiptModal, buildSale,
 } from '../components/organisms';
 import { PageHeader } from '../components/layout/AppShell';
 import { CATEGORY_FILTERS } from '../domain/catalog';
@@ -27,7 +27,7 @@ export const CashierPage: FC = () => {
   const { activeProducts, decrementStock } = useProducts();
   const { recordSale } = useSales();
   const { ensureFromMobile, addLending } = useCustomers();
-  const { currentUser } = useAuth();
+  const { currentUser, currentStoreId } = useAuth();
   const { settings } = useSettings();
   const toast = useToast();
 
@@ -37,6 +37,7 @@ export const CashierPage: FC = () => {
   const [flashId, setFlashId] = useState<string | null>(null);
   const [paymentOpen, setPaymentOpen] = useState(false);
   const [lastSale, setLastSale] = useState<Sale | null>(null);
+  const [mobileCartOpen, setMobileCartOpen] = useState(false);
 
   const filteredProducts = useMemo<readonly Product[]>(() =>
     activeProducts.filter((p) =>
@@ -118,10 +119,14 @@ export const CashierPage: FC = () => {
   };
 
   const completeSale = (method: PaymentMethod, mobile: string | null) => {
-    if (!currentUser) return;
+    if (!currentUser || !currentStoreId) return;
     let customerId: string | null = null;
     if (method === 'lending' && mobile) {
       const customer = ensureFromMobile(mobile);
+      if (!customer) {
+        toast.error(STRINGS.cashier.noActiveStore);
+        return;
+      }
       customerId = customer.id;
       addLending(customerId, totals.total);
     }
@@ -134,6 +139,7 @@ export const CashierPage: FC = () => {
       customerId,
       cashierId: currentUser.id,
       cashierName: currentUser.name,
+      storeId: currentStoreId,
     });
     recordSale(sale);
     decrementStock(cartLines.map((l) => ({ productId: l.productId, qty: l.quantity })));
@@ -177,6 +183,56 @@ export const CashierPage: FC = () => {
           onCharge={openPayment}
         />
       </div>
+
+      {/* Mobile: sticky bottom bar + bottom-sheet cart (below 1024px only) */}
+      <MobileCartBar
+        unitCount={totals.unitCount}
+        total={totals.total}
+        onOpen={() => setMobileCartOpen(true)}
+      />
+      {mobileCartOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={STRINGS.cashier.cartTitle}
+          onClick={(e) => { if (e.target === e.currentTarget) setMobileCartOpen(false); }}
+          style={{
+            position: 'fixed', inset: 0,
+            background: 'rgba(15, 23, 42, 0.55)',
+            zIndex: 200,
+            display: 'flex',
+            alignItems: 'flex-end',
+            animation: 'app-fade-in 200ms ease-out',
+          }}
+        >
+          <div style={{
+            background: 'var(--app-surface)',
+            width: '100%',
+            maxHeight: '92vh',
+            borderTopLeftRadius: 20,
+            borderTopRightRadius: 20,
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column',
+            animation: 'app-slide-up 220ms ease-out',
+          }}>
+            <CartPanel
+              variant="sheet"
+              onClose={() => setMobileCartOpen(false)}
+              lines={cartLines}
+              subtotal={totals.subtotal}
+              tax={totals.tax}
+              total={totals.total}
+              unitCount={totals.unitCount}
+              onIncrement={(id) => changeQty(id, +1)}
+              onDecrement={(id) => changeQty(id, -1)}
+              onRemove={removeLine}
+              onClear={clearCart}
+              onCharge={() => { setMobileCartOpen(false); openPayment(); }}
+            />
+          </div>
+        </div>
+      )}
 
       {paymentOpen && (
         <PaymentModal

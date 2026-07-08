@@ -3,7 +3,7 @@
 /* --- Layouts --- */
 .cashierLayout {
   display: grid;
-  gap: var(--wm-space-5);
+  gap: var(--app-space-5);
   grid-template-columns: 1fr;
   align-items: start;
   min-width: 0;
@@ -15,7 +15,7 @@
 
 .dashboardLayout {
   display: grid;
-  gap: var(--wm-space-5);
+  gap: var(--app-space-5);
   grid-template-columns: 1fr;
 }
 @media (min-width: 1024px) {
@@ -24,90 +24,90 @@
 
 /* --- Card --- */
 .card {
-  background: var(--wm-surface);
-  border: 1px solid var(--wm-border);
-  border-radius: var(--wm-radius-lg);
-  box-shadow: var(--wm-shadow-sm);
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-lg);
+  box-shadow: var(--app-shadow-sm);
   overflow: hidden;
 }
 .cardHeader {
-  padding: var(--wm-space-5) var(--wm-space-6);
-  border-bottom: 1px solid var(--wm-border);
+  padding: var(--app-space-5) var(--app-space-6);
+  border-bottom: 1px solid var(--app-border);
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: var(--wm-space-3);
+  gap: var(--app-space-3);
   flex-wrap: wrap;
 }
-.cardBody   { padding: var(--wm-space-5) var(--wm-space-6); }
+.cardBody   { padding: var(--app-space-5) var(--app-space-6); }
 .cardActions {
-  padding: var(--wm-space-4) var(--wm-space-6);
+  padding: var(--app-space-4) var(--app-space-6);
   display: flex;
-  gap: var(--wm-space-2);
+  gap: var(--app-space-2);
   justify-content: flex-end;
-  border-top: 1px solid var(--wm-border);
-  background: var(--wm-gray-5);
+  border-top: 1px solid var(--app-border);
+  background: var(--app-gray-5);
 }
 
 /* --- Filter toolbar --- */
 .toolbar {
   display: flex;
-  gap: var(--wm-space-3);
+  gap: var(--app-space-3);
   flex-wrap: wrap;
   align-items: center;
-  padding: var(--wm-space-4) var(--wm-space-6);
-  border-bottom: 1px solid var(--wm-border);
-  background: var(--wm-gray-5);
+  padding: var(--app-space-4) var(--app-space-6);
+  border-bottom: 1px solid var(--app-border);
+  background: var(--app-gray-5);
 }
 .toolbar__search { flex: 1; min-width: 220px; max-width: 480px; }
-.toolbar__filters { display: inline-flex; gap: var(--wm-space-2); flex-wrap: wrap; }
+.toolbar__filters { display: inline-flex; gap: var(--app-space-2); flex-wrap: wrap; }
 
 /* --- Data table --- */
 .tableWrap { overflow-x: auto; }
 .table {
   width: 100%;
   border-collapse: collapse;
-  font-size: var(--wm-font-size-sm);
+  font-size: var(--app-font-size-sm);
 }
 .table th,
 .table td {
-  padding: var(--wm-space-3) var(--wm-space-4);
+  padding: var(--app-space-3) var(--app-space-4);
   text-align: left;
   vertical-align: middle;
 }
 .table th {
-  background: var(--wm-gray-5);
-  color: var(--wm-text-subtle);
-  font-weight: var(--wm-font-weight-semibold);
-  font-size: var(--wm-font-size-xs);
+  background: var(--app-gray-5);
+  color: var(--app-text-subtle);
+  font-weight: var(--app-font-weight-semibold);
+  font-size: var(--app-font-size-xs);
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  border-bottom: 1px solid var(--wm-border);
+  border-bottom: 1px solid var(--app-border);
 }
 .table tbody tr {
-  border-top: 1px solid var(--wm-border);
-  transition: background var(--wm-motion-fast);
+  border-top: 1px solid var(--app-border);
+  transition: background var(--app-motion-fast);
 }
-.table tbody tr:hover { background: var(--wm-gray-5); }
+.table tbody tr:hover { background: var(--app-gray-5); }
 .table tbody tr.clickable { cursor: pointer; }
 .table td.numeric,
 .table th.numeric { text-align: right; font-variant-numeric: tabular-nums; }
 .table td.actions { text-align: right; white-space: nowrap; }
-.table td.actions > * + * { margin-left: var(--wm-space-2); }
+.table td.actions > * + * { margin-left: var(--app-space-2); }
 
 .rowChip {
-  display: inline-flex; align-items: center; gap: var(--wm-space-2);
+  display: inline-flex; align-items: center; gap: var(--app-space-2);
   min-width: 0;
 }
 
-.mutedRow td { color: var(--wm-text-muted); }
+.mutedRow td { color: var(--app-text-muted); }
 .mutedRow td:first-child { position: relative; }
 
 /* --- Form grid --- */
 .formGrid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: var(--wm-space-4);
+  gap: var(--app-space-4);
 }
 @media (min-width: 560px) {
   .formGrid--two { grid-template-columns: 1fr 1fr; }
@@ -117,29 +117,92 @@
 .kvList {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: var(--wm-space-4);
+  gap: var(--app-space-4);
 }
 .kv { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 
 /* --- Danger card (Settings danger zone) --- */
 .dangerCard {
-  border: 1px solid var(--wm-danger);
-  background: var(--wm-red-10);
+  border: 1px solid var(--app-danger);
+  background: var(--app-red-10);
 }
 .dangerCard .cardActions { background: transparent; }
 
 /* --- Big-number balance ribbon --- */
 .balanceRibbon {
-  background: linear-gradient(135deg, var(--wm-primary) 0%, var(--wm-blue-160) 100%);
-  color: var(--wm-text-inverse);
-  padding: var(--wm-space-6);
-  border-radius: var(--wm-radius-lg);
+  background: linear-gradient(135deg, var(--app-primary) 0%, var(--app-blue-160) 100%);
+  color: var(--app-text-inverse);
+  padding: var(--app-space-6);
+  border-radius: var(--app-radius-lg);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--wm-space-4);
+  gap: var(--app-space-4);
   flex-wrap: wrap;
 }
 .balanceRibbon--clear {
-  background: linear-gradient(135deg, var(--wm-success) 0%, #0a7c3e 100%);
+  background: linear-gradient(135deg, var(--app-success) 0%, #0a7c3e 100%);
 }
+
+/* Stacks two <Text> children vertically inside a table cell (or anywhere
+   the natural inline flow would jam them together). Reusable everywhere. */
+.stackedCell { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+
+/* --- StorePage --------------------------------------------------------- */
+.storeIdentity {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-6);
+}
+.storeIdentity__row { display: flex; flex-direction: column; gap: 4px; }
+.storeIdentity__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--app-space-4);
+}
+.identityField {
+  display: flex;
+  gap: var(--app-space-3);
+  align-items: flex-start;
+}
+.identityField__icon {
+  display: grid; place-items: center;
+  width: 36px; height: 36px;
+  border-radius: var(--app-radius-md);
+  background: var(--app-blue-10);
+  color: var(--app-primary);
+  flex-shrink: 0;
+}
+.identityField__body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.storeStats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--app-space-4);
+  margin-top: var(--app-space-6);
+}
+.statCard {
+  display: flex; flex-direction: column; gap: 4px;
+  padding: var(--app-space-4);
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-lg);
+  box-shadow: var(--app-shadow-sm);
+}
+.isolationBanner {
+  display: flex;
+  gap: var(--app-space-3);
+  padding: var(--app-space-4);
+  margin-top: var(--app-space-6);
+  border-radius: var(--app-radius-lg);
+  background: var(--app-blue-5);
+  border: 1px solid var(--app-blue-10);
+  color: var(--app-text);
+}
+.isolationBanner > svg { color: var(--app-primary); flex-shrink: 0; margin-top: 2px; }
+.isolationBanner > div { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.formActions {
+  display: flex; gap: var(--app-space-3); justify-content: flex-end;
+  grid-column: 1 / -1;
+  margin-top: var(--app-space-2);
+}
+

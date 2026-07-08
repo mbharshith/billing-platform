@@ -7,12 +7,16 @@ import { useNavigate } from 'react-router-dom';
 import cls from './pages.module.css';
 import { Badge, Button, Field, Input, Text, Textarea } from '../components/atoms';
 import { Modal } from '../components/organisms';
+import { ConfirmDialog } from '../components/feedback';
 import { EmptyState, MobileNumberField, SearchBar } from '../components/molecules';
 import { PageHeader } from '../components/layout/AppShell';
 import { STRINGS } from '../domain/strings';
-import { digitsOnly, fmtDate, formatPhone, money } from '../domain/format';
+import { digitsOnly, fmtDate, formatPhone } from '../domain/format';
+import { useMoney } from '../hooks/useMoney';
+import { useAuth } from '../store/AuthContext';
 import { useCustomers } from '../store/CustomersContext';
 import { useToast } from '../store/ToastContext';
+import type { Customer } from '../domain/types';
 
 interface FormState {
   name: string;
@@ -23,12 +27,16 @@ interface FormState {
 const emptyForm = (): FormState => ({ name: '', mobile: '', email: '', notes: '' });
 
 export const CustomersPage: FC = () => {
-  const { customers, create } = useCustomers();
+  const { money } = useMoney();
+  const { customers, create, remove } = useCustomers();
+  const { can } = useAuth();
+  const canDelete = can('customer:delete');
   const navigate = useNavigate();
   const toast = useToast();
   const [query, setQuery] = useState('');
   const [form, setForm] = useState<FormState | null>(null);
   const [mobileError, setMobileError] = useState<string | undefined>();
+  const [confirmingDelete, setConfirmingDelete] = useState<Customer | null>(null);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -46,7 +54,7 @@ export const CustomersPage: FC = () => {
       return;
     }
     if (!form.name.trim()) {
-      toast.error('Name is required.');
+      toast.error(STRINGS.customers.nameRequired);
       return;
     }
     const res = create({
@@ -59,7 +67,7 @@ export const CustomersPage: FC = () => {
       toast.error(STRINGS.customers.duplicateMobile);
       return;
     }
-    toast.success('Customer added.');
+    toast.success(STRINGS.customers.added);
     setForm(null);
     navigate(`/customers/${res.customer.id}`);
   };
@@ -77,7 +85,7 @@ export const CustomersPage: FC = () => {
           <div className={cls.toolbar__search}>
             <SearchBar value={query} onChange={setQuery}
                        placeholder={STRINGS.customers.searchPlaceholder}
-                       clearLabel="Clear search" />
+                       clearLabel={STRINGS.customers.clearSearch} />
           </div>
         </div>
 
@@ -91,8 +99,8 @@ export const CustomersPage: FC = () => {
           ) : (
             <EmptyState
               icon="search"
-              title="No customers match your search"
-              hint="Try a different name or mobile number."
+              title={STRINGS.customers.emptySearch}
+              hint={STRINGS.customers.emptySearchHint}
             />
           )
         ) : (
@@ -105,7 +113,7 @@ export const CustomersPage: FC = () => {
                   <th>{STRINGS.customers.columnEmail}</th>
                   <th className="numeric">{STRINGS.customers.columnBalance}</th>
                   <th>{STRINGS.customers.columnSince}</th>
-                  <th className="actions">Actions</th>
+                  <th className="actions">{STRINGS.customers.columnActions}</th>
                 </tr>
               </thead>
               <tbody>
@@ -126,6 +134,15 @@ export const CustomersPage: FC = () => {
                               onClick={(e) => { e.stopPropagation(); navigate(`/customers/${c.id}`); }}>
                         {STRINGS.customers.view}
                       </Button>
+                      {canDelete && (
+                        <Button
+                          variant="danger"
+                          size="sm"
+                          onClick={(e) => { e.stopPropagation(); setConfirmingDelete(c); }}
+                        >
+                          Delete
+                        </Button>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -170,6 +187,30 @@ export const CustomersPage: FC = () => {
             <button type="submit" hidden />
           </form>
         </Modal>
+      )}
+      {confirmingDelete && (
+        <ConfirmDialog
+          title="Delete customer?"
+          message={
+            confirmingDelete.lendingBalance > 0
+              ? `${confirmingDelete.name} has an outstanding lending balance of ${money(confirmingDelete.lendingBalance)}. Clear it before deleting.`
+              : `${confirmingDelete.name} and all their payment history will be permanently removed. This can’t be undone.`
+          }
+          confirmLabel="Delete customer"
+          danger
+          onConfirm={() => {
+            const res = remove(confirmingDelete.id);
+            if (!res.ok) {
+              toast.error(res.error === 'hasBalance'
+                ? 'Cannot delete — outstanding balance.'
+                : 'Customer not found.');
+            } else {
+              toast.success(`${confirmingDelete.name} deleted.`);
+            }
+            setConfirmingDelete(null);
+          }}
+          onCancel={() => setConfirmingDelete(null)}
+        />
       )}
     </>
   );

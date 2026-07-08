@@ -6,22 +6,26 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import cls from './pages.module.css';
 import { Badge, Button, Field, Icon, Input, Select, Text, Textarea } from '../components/atoms';
 import { Modal } from '../components/organisms';
+import { ConfirmDialog } from '../components/feedback';
 import { PaymentBadge } from '../components/molecules';
 import { EmptyState } from '../components/molecules';
 import { PageHeader } from '../components/layout/AppShell';
 import { STRINGS } from '../domain/strings';
-import { fmtDate, fmtDateTime, formatPhone, money } from '../domain/format';
+import { fmtDate, fmtDateTime, formatPhone } from '../domain/format';
+import { useMoney } from '../hooks/useMoney';
 import { useAuth } from '../store/AuthContext';
 import { useCustomers } from '../store/CustomersContext';
 import { useSales } from '../store/SalesContext';
 import { useToast } from '../store/ToastContext';
 
 export const CustomerDetailPage: FC = () => {
+  const { money } = useMoney();
   const { id = '' } = useParams();
   const navigate = useNavigate();
-  const { byId, paymentsFor, recordPayment } = useCustomers();
+  const { byId, paymentsFor, recordPayment, remove } = useCustomers();
   const { forCustomer } = useSales();
-  const { currentUser } = useAuth();
+  const { currentUser, can } = useAuth();
+  const canDelete = can('customer:delete');
   const toast = useToast();
 
   const customer = byId(id);
@@ -33,12 +37,13 @@ export const CustomerDetailPage: FC = () => {
   const [method, setMethod] = useState<'cash' | 'card'>('cash');
   const [notes, setNotes] = useState('');
   const [error, setError] = useState<string | undefined>();
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   if (!customer) {
     return (
       <>
-        <PageHeader title="Customer not found"
-                    subtitle="It may have been deleted from this browser." />
+        <PageHeader title={STRINGS.customers.notFound}
+                    subtitle={STRINGS.customers.notFoundHint} />
         <Button variant="secondary" leadingIcon="arrow"
                 onClick={() => navigate('/customers')}>{STRINGS.customers.backToList}</Button>
       </>
@@ -73,8 +78,15 @@ export const CustomerDetailPage: FC = () => {
         title={customer.name}
         subtitle={STRINGS.customers.detailTitle}
         actions={
-          <Button variant="ghost" leadingIcon="arrow"
-                  onClick={() => navigate('/customers')}>{STRINGS.customers.backToList}</Button>
+          <>
+            <Button variant="ghost" leadingIcon="arrow"
+                    onClick={() => navigate('/customers')}>{STRINGS.customers.backToList}</Button>
+            {canDelete && (
+              <Button variant="danger" onClick={() => setConfirmingDelete(true)}>
+                {STRINGS.common.delete}
+              </Button>
+            )}
+          </>
         }
       />
 
@@ -85,7 +97,7 @@ export const CustomerDetailPage: FC = () => {
         </div>
         {!clearBalance && (
           <Button variant="primary" leadingIcon="coins" onClick={() => setPaying(true)}
-                  style={{ background: 'var(--wm-accent)', color: 'var(--wm-primary)' }}>
+                  style={{ background: 'var(--app-accent)', color: 'var(--app-primary)' }}>
             {STRINGS.customers.recordPayment}
           </Button>
         )}
@@ -93,7 +105,7 @@ export const CustomerDetailPage: FC = () => {
 
       <div className={cls.card}>
         <div className={cls.cardHeader}>
-          <Text as="h2" size="lg" weight="bold">Profile</Text>
+          <Text as="h2" size="lg" weight="bold">{STRINGS.customers.sectionProfile}</Text>
         </div>
         <div className={cls.cardBody}>
           <div className={cls.kvList}>
@@ -113,7 +125,7 @@ export const CustomerDetailPage: FC = () => {
             </div>
             {customer.notes && (
               <div className={cls.kv} style={{ gridColumn: '1 / -1' }}>
-                <Text size="xs" tone="subtle" weight="semibold" upper>Notes</Text>
+                <Text size="xs" tone="subtle" weight="semibold" upper>{STRINGS.customers.columnNotes}</Text>
                 <Text>{customer.notes}</Text>
               </div>
             )}
@@ -133,11 +145,11 @@ export const CustomerDetailPage: FC = () => {
             <table className={cls.table}>
               <thead>
                 <tr>
-                  <th>Date</th>
-                  <th>Method</th>
-                  <th>Received by</th>
-                  <th>Notes</th>
-                  <th className="numeric">Amount</th>
+                  <th>{STRINGS.customers.columnDate}</th>
+                  <th>{STRINGS.customers.columnMethodLabel}</th>
+                  <th>{STRINGS.customers.columnReceivedBy}</th>
+                  <th>{STRINGS.customers.columnNotes}</th>
+                  <th className="numeric">{STRINGS.customers.columnAmount}</th>
                 </tr>
               </thead>
               <tbody>
@@ -168,12 +180,12 @@ export const CustomerDetailPage: FC = () => {
             <table className={cls.table}>
               <thead>
                 <tr>
-                  <th>Invoice</th>
-                  <th>Date</th>
-                  <th className="numeric">Items</th>
-                  <th>Payment</th>
-                  <th>Status</th>
-                  <th className="numeric">Total</th>
+                  <th>{STRINGS.customers.columnInvoice}</th>
+                  <th>{STRINGS.customers.columnDate}</th>
+                  <th className="numeric">{STRINGS.customers.columnItems}</th>
+                  <th>{STRINGS.customers.columnSalePayment}</th>
+                  <th>{STRINGS.customers.columnStatus}</th>
+                  <th className="numeric">{STRINGS.customers.columnTotal}</th>
                 </tr>
               </thead>
               <tbody>
@@ -191,7 +203,7 @@ export const CustomerDetailPage: FC = () => {
                     <td>
                       {s.voided
                         ? <Badge variant="danger">{STRINGS.sales.voidedBadge}</Badge>
-                        : <Badge variant="success">Complete</Badge>}
+                        : <Badge variant="success">{STRINGS.customers.saleComplete}</Badge>}
                     </td>
                     <td className="numeric"><Text weight="bold" size="sm">{money(s.total)}</Text></td>
                   </tr>
@@ -218,7 +230,7 @@ export const CustomerDetailPage: FC = () => {
           }
         >
           <form onSubmit={handleSubmit} className={cls.formGrid}>
-            <Field label="Outstanding balance">
+            <Field label={STRINGS.customers.outstandingBalance}>
               <Input value={money(customer.lendingBalance)} readOnly leadingIcon="coins" />
             </Field>
             <Field label={STRINGS.customers.paymentAmount} htmlFor="pay-amt" required error={error}>
@@ -240,6 +252,32 @@ export const CustomerDetailPage: FC = () => {
             <button type="submit" hidden />
           </form>
         </Modal>
+      )}
+
+      {confirmingDelete && (
+        <ConfirmDialog
+          title={STRINGS.customers.deleteTitle}
+          message={
+            customer.lendingBalance > 0
+              ? STRINGS.customers.deleteConfirmBalance(customer.name, money(customer.lendingBalance))
+              : STRINGS.customers.deleteConfirmClean(customer.name)
+          }
+          confirmLabel={STRINGS.customers.deleteLabel}
+          danger
+          onConfirm={() => {
+            const res = remove(customer.id);
+            if (!res.ok) {
+              toast.error(res.error === 'hasBalance'
+                ? STRINGS.customers.hasBalanceError
+                : STRINGS.customers.notFoundError);
+              setConfirmingDelete(false);
+              return;
+            }
+            toast.success(STRINGS.customers.deleted(customer.name));
+            navigate('/customers');
+          }}
+          onCancel={() => setConfirmingDelete(false)}
+        />
       )}
     </>
   );

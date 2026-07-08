@@ -1,7 +1,7 @@
 /**
  * Route guards.
- * - ProtectedRoute: redirects to /login if not signed in.
- * - AdminRoute:     ProtectedRoute + must be admin, else shows "forbidden" card.
+ * - ProtectedRoute: redirects to /login if no session.
+ * - MasterRoute:    master role only (SoD for tenant-management actions).
  */
 import type { FC } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
@@ -19,18 +19,18 @@ export const ProtectedRoute: FC = () => {
   return <Outlet />;
 };
 
-export const AdminRoute: FC = () => {
-  const { currentUser, isAdmin } = useAuth();
+export const MasterRoute: FC = () => {
+  const { currentUser, isMaster } = useAuth();
   if (!currentUser) return <Navigate to="/login" replace />;
-  if (!isAdmin) return <ForbiddenCard />;
+  if (!isMaster) return <ForbiddenCard message="Only the store master can view this page." />;
   return <Outlet />;
 };
 
-const ForbiddenCard: FC = () => (
+const ForbiddenCard: FC<{ message: string }> = ({ message }) => (
   <div className={cls.accessCard}>
-    <Icon name="lock" size={40} style={{ color: 'var(--wm-danger)' }} />
+    <Icon name="lock" size={40} style={{ color: 'var(--app-danger)' }} />
     <Text as="h2" size="xl" weight="bold">{STRINGS.errors.forbidden}</Text>
-    <Text tone="subtle" center>Only admins can view this page.</Text>
+    <Text tone="subtle" center>{message}</Text>
     <Button variant="secondary" leadingIcon="arrow" onClick={() => window.history.back()}>
       {STRINGS.common.back}
     </Button>
