@@ -102,7 +102,7 @@
 }
 /* When rendered inside a modal on mobile, drop the sticky + max-height. */
 .cartPanel--inModal {
-  display: flex !important;
+  display: flex;
   position: static;
   max-height: none;
   border: none;
@@ -111,9 +111,10 @@
   height: 100%;
 }
 .cartPanel__header {
-  /* Editorial header: hairline top-border in gold, quiet surface behind the
-     serif title. Replaces the previous bright blue gradient slab so the
-     cart panel feels like a receipt, not a banner. */
+  /* Editorial header: hairline top-border in gold, quiet surface behind
+     the title. Replaces the previous bright blue gradient slab so the
+     cart panel feels like a receipt, not a banner. Font stays sans-serif
+     (inherit) for POS readability. */
   background: var(--app-surface);
   color: var(--app-text);
   padding: var(--app-space-4) var(--app-space-5);
@@ -123,9 +124,8 @@
   gap: var(--app-space-3);
   border-bottom: 1px solid var(--app-border);
   position: relative;
-  font-family: 'Fraunces', 'Georgia', 'Times New Roman', serif;
-  font-weight: 500;
-  font-size: 18px;
+  font-weight: 600;
+  font-size: 16px;
   letter-spacing: -0.005em;
 }
 .cartPanel__header::before {

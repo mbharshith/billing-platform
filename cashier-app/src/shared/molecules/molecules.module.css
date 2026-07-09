@@ -75,20 +75,21 @@
 
 /* Category eyebrow — quieter, wider tracking, gold accent for editorial voice. */
 .productCard__category {
-  color: var(--app-gold, #b8862a) !important;
-  letter-spacing: 0.14em !important;
-  font-size: 10px !important;
-  font-weight: 600 !important;
+  color: var(--app-gold, #b8862a);
+  letter-spacing: 0.14em;
+  font-size: 10px;
+  font-weight: 600;
   margin-top: var(--app-space-1);
 }
 
-/* Product name — Fraunces serif so the catalogue reads like a boutique menu.
-   Regular weight (not bold) because the serif carries enough presence. */
+/* Product name - sans-serif for POS readability (UX: cashier scans, doesn't
+   read prose - the serif felt boutique but slowed recognition). Weight 600
+   + tighter tracking keeps the confident hierarchy. */
 .productCard__name {
-  font-family: 'Fraunces', 'Georgia', 'Times New Roman', serif !important;
-  font-weight: 500 !important;
-  font-size: 16px !important;
-  line-height: 1.25 !important;
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 1.3;
   letter-spacing: -0.005em;
   color: var(--app-text);
   margin: 0;
@@ -674,9 +675,9 @@
 .dtTh--sorted .dtSortIcon { opacity: 1; }
 
 /* Empty state inside tbody */
-.dtEmptyCell {
-  padding: 0 !important;
-  border: none !important;
+.dataTable .dtEmptyCell {
+  padding: 0;
+  border: none;
 }
 .dtEmpty {
   display: flex;
