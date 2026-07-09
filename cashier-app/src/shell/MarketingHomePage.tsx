@@ -1,5 +1,3 @@
-
-
 // MarketingHomePage - the SaaS landing page at /.
 //
 // This is where the world meets the product. Its ONE job is to explain what
@@ -51,30 +49,31 @@ interface TenantCard {
  * identities on the public marketing site. The slug still routes to the real
  * seeded store on click.
  */
+
 const DEMO_TENANTS: readonly TenantCard[] = [
   {
-    slug: 'myntra',
-    label: 'Boutique fashion',
+    slug: 'velvet',
+    label: 'Luxury fashion',
     meta: 'Apparel · INR',
-    desc: 'A curated fashion floor with size ladders, seasonal drops, and a ' +
-          'mobile-first counter that takes cash, UPI, and split-tender.',
-    image: 'https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?auto=format&fit=crop&w=1200&q=80',
+    desc: 'A curated luxury fashion floor with designer labels, seasonal drops, ' +
+          'and a mobile-first counter that takes cash, UPI, and split-tender.',
+    image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=1200&q=80',
   },
   {
-    slug: 'flipkart',
-    label: 'Electronics counter',
-    meta: 'Electronics · INR',
-    desc: 'High-volume electronics with barcode scanning, serials, warranty ' +
-          'notes, and lending ledgers for trade customers.',
-    image: 'https://images.unsplash.com/photo-1550009158-9ebf69173e03?auto=format&fit=crop&w=1200&q=80',
+    slug: 'spiceroute',
+    label: 'Fine dining restaurant',
+    meta: 'Non-veg cuisine · INR',
+    desc: 'Authentic Indian non-veg cuisine with table-side ordering, kitchen ' +
+          'displays, and a live menu updated from the POS in real time.',
+    image: 'https://images.unsplash.com/photo-1585937421612-70a008356fbe?auto=format&fit=crop&w=1200&q=80',
   },
   {
-    slug: 'walmart',
-    label: 'Everyday market',
-    meta: 'General retail · USD',
-    desc: 'The supercenter format: full inventory, weight items, barcodes, ' +
-          'USD reporting, and multiple registers running in parallel.',
-    image: 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=1200&q=80',
+    slug: 'lamaison',
+    label: 'Luxury boutique',
+    meta: 'Designer retail · USD',
+    desc: "SoHo's premier boutique: curated designer pieces, personalised styling " +
+          'notes, USD reporting, and a seamless omnichannel experience.',
+    image: 'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?auto=format&fit=crop&w=1200&q=80',
   },
 ];
 
@@ -86,10 +85,10 @@ interface Credential {
 }
 
 const DEMO_CREDS: readonly Credential[] = [
-  { role: 'SaaS owner',    user: 'vendor',           pass: 'vendor123',  lands: '/dashboard' },
-  { role: 'Tenant admin',  user: 'myntra',           pass: 'myntra123',  lands: '/myntra/admin' },
-  { role: 'Cashier',       user: 'myntra.cashier',   pass: 'cashier123', lands: '/myntra/cashier' },
-  { role: 'Shopper',       user: '—',                pass: '—',          lands: '/myntra (public)' },
+  { role: 'SaaS owner',    user: 'vendor',              pass: 'vendor123',     lands: '/dashboard' },
+  { role: 'Tenant admin',  user: 'velvet',              pass: 'velvet123',     lands: '/velvet/admin' },
+  { role: 'Cashier',       user: 'velvet.cashier',      pass: 'cashier123',    lands: '/velvet/cashier' },
+  { role: 'Shopper',       user: '—',                   pass: '—',             lands: '/velvet (public)' },
 ];
 
 /* -------------------------------------------------------------------------- */
@@ -100,7 +99,7 @@ const Nav: FC = () => (
   <nav className={cls.nav} aria-label="Primary">
     <div className={cls.nav__inner}>
       <Link to="/" className={cls.nav__brand}>
-        {BRAND.wordmark.first}<em>{BRAND.wordmark.accent}</em>
+        {BRAND.wordmark.accent && <em>{BRAND.wordmark.accent}</em>}{BRAND.wordmark.neutral}
       </Link>
       <div className={cls.nav__links}>
         <a href="#product"  className={cls.nav__link}>Product</a>
@@ -173,7 +172,7 @@ export const MarketingHomePage: FC = () => {
               </p>
               <div className={cls.hero__ctas}>
                 <a href="#demo" className={`${cls.btn} ${cls.btnPrimary}`}>Explore the demo</a>
-                <Link to="/myntra" className={`${cls.btn} ${cls.btnGhost}`}>Visit a live shop</Link>
+                <Link to="/velvet" className={`${cls.btn} ${cls.btnGhost}`}>Visit a live shop</Link>
               </div>
             </div>
             <figure className={cls.hero__figure}>
@@ -308,13 +307,13 @@ export const MarketingHomePage: FC = () => {
         <div className={cls.shell}>
           <h2 className={`${cls.serifHead} ${cls.ctaBanner__title}`}>Ready when<br /><em>you are.</em></h2>
           <p className={`${cls.leadCopy} ${cls.ctaBanner__sub}`}>
-            Open a demo tenant, or sign in and start selling. Walmart's team can
+            Open a demo tenant, or sign in and start selling. Our team can
             have you provisioned in a working week.
           </p>
           <div className={cls.ctaBanner__ctas}>
-            <Link to="/myntra" className={`${cls.btn} ${cls.btnPrimary}`}>Explore a live shop</Link>
+            <Link to="/velvet" className={`${cls.btn} ${cls.btnPrimary}`}>Explore a live shop</Link>
             <Link to="/login" className={`${cls.btn} ${cls.btnGhost}`}>Sign in</Link>
-            <a href="#contact" className={`${cls.btn} ${cls.btnGhost}`}>Talk to Walmart</a>
+            <a href="#contact" className={`${cls.btn} ${cls.btnGhost}`}>Get in touch</a>
           </div>
         </div>
       </section>
@@ -366,44 +365,8 @@ export const MarketingHomePage: FC = () => {
       {/* -------------------- Footer --------------------------------- */}
       <footer className={cls.footer}>
         <div className={cls.shell}>
-          <div className={cls.footer__top}>
-            <div>
-              <div className={cls.footer__brand}>
-                {BRAND.wordmark.first}<em>{BRAND.wordmark.accent}</em>
-              </div>
-              <p className={cls.footer__blurb}>
-                {BRAND.heroHeadline.lead} {BRAND.heroHeadline.accent} Built by {BRAND.parentOrg} for
-                shops of every square metre.
-              </p>
-            </div>
-            <div>
-              <h4 className={cls.footer__colTitle}>Product</h4>
-              <ul className={cls.footer__colList}>
-                <li><a href="#product">Capabilities</a></li>
-                <li><a href="#demo">Live demo</a></li>
-                <li><Link to="/login">Sign in</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className={cls.footer__colTitle}>Verticals</h4>
-              <ul className={cls.footer__colList}>
-                <li><Link to="/myntra">Boutique fashion</Link></li>
-                <li><Link to="/flipkart">Electronics counter</Link></li>
-                <li><Link to="/walmart">Everyday market</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className={cls.footer__colTitle}>Company</h4>
-              <ul className={cls.footer__colList}>
-                <li><a href="#contact">Contact</a></li>
-                <li><a href={`mailto:${BRAND.contact.salesEmail}`}>Sales</a></li>
-                <li><a href={`mailto:${BRAND.contact.supportEmail}`}>Support</a></li>
-              </ul>
-            </div>
-          </div>
           <div className={cls.footer__legal}>
-            <span>&copy; {new Date().getFullYear()} {BRAND.parentOrg} &middot; {BRAND.platformName}</span>
-            <span>Made with <em>care</em> in {BRAND.contact.hqCity} &amp; {BRAND.contact.hqRegion}</span>
+            <span>Made with <em>care</em></span>
           </div>
         </div>
       </footer>

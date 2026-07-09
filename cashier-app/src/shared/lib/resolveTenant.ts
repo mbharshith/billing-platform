@@ -25,7 +25,7 @@ export const resolveTenant = async (
   //    const byCustom = await db.stores.where('customDomain').equals(hostname).first();
   //    if (byCustom) return byCustom;
 
-  // 2. Subdomain under our platform apex (e.g. myntra.quickbill.shop).
+  // 2. Subdomain under our platform apex (e.g. myntra.8services.shop).
   if (hostname.endsWith(`.${PLATFORM_APEX}`)) {
     const sub = hostname.slice(0, -1 * (PLATFORM_APEX.length + 1));
     const store = await db.stores.get(slugToStoreId(sub));

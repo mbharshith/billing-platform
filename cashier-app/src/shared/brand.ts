@@ -1,9 +1,8 @@
 // BRAND — single source of truth for product identity (text).
 // Visual tokens live in src/styles/theme.css.
 //
-// EVERYTHING externally visible that says "QuickBill" / "Commerce Cloud" /
-// "Walmart Global Tech" / any of the contact addresses MUST flow from this
-// object. If you find a hardcoded "QuickBill" anywhere in src/, that's a bug.
+// EVERYTHING externally visible MUST flow from this object.
+// If you find a hardcoded product name anywhere in src/, that's a bug.
 //
 // Renaming the product == editing THIS FILE.
 
@@ -13,20 +12,22 @@ export const BRAND = {
   /* ---------------------------------------------------------------- */
 
   /** Bare product name. Used in nav, footer, tab titles, email subjects. */
-  name:         'QuickBill',
+  name:         '8services',
 
-  /** The two halves of the wordmark — nav/footer render them separately so
-   *  the second half can carry the accent color without italic artefacts. */
+  /** The two halves of the wordmark. `accent` renders FIRST (in gold Fraunces
+   *  italic via <em>), `neutral` renders after in ink sans. The '8' takes the
+   *  gold slot because it's the meaningful glyph — rotated 90° it's infinity,
+   *  and the italic Fraunces treatment stylises it enough to read as a mark. */
   wordmark: {
-    first:      'Quick',
-    accent:     'Bill',
+    accent:     '8',
+    neutral:    'services',
   },
 
   /** Marketing suite/platform label. Sits above hero, in eyebrows, footer. */
-  platformName: 'QuickBill Commerce Cloud',
+  platformName: '8services Commerce Cloud',
 
   /** One-line pitch under the wordmark on auth / marketing surfaces. */
-  tagline:      'Fast, friendly checkout.',
+  tagline:      'Infinite services, one ledger.',
 
   /** The editorial headline for the marketing hero. Two halves so the second
    *  half can render italic + gold in the serif. */
@@ -39,24 +40,24 @@ export const BRAND = {
   productLabel: 'Cashier POS',
 
   /** Combined title used in <title> tags. */
-  fullTitle:    'QuickBill · Cashier POS',
+  fullTitle:    '8services · Cashier POS',
 
   /* ---------------------------------------------------------------- */
   /* Parent org + contact                                             */
   /* ---------------------------------------------------------------- */
 
-  parentOrg:    'Walmart Global Tech',
+  parentOrg:    '8services',
 
   contact: {
-    salesEmail:   'quickbill-sales@walmart.com',
-    supportEmail: 'quickbill-support@walmart.com',
-    hqCity:       'Bentonville',
-    hqRegion:     'Chennai',
+    salesEmail:   '8services-sales@8services.com',
+    supportEmail: '8services-support@8services.com',
+    hqCity:       'Bengaluru',
+    hqRegion:     'Karnataka',
     offices: [
       {
         label:   'Global HQ',
-        name:    'Walmart Global Tech',
-        lines:   ['702 SW 8th Street', 'Bentonville, AR 72716', 'United States'],
+        name:    '8services Global Tech',
+        lines:   ['Bengaluru, Karnataka', 'India'],
       },
     ],
   },
@@ -65,15 +66,19 @@ export const BRAND = {
   /* Persistence identifiers - CAREFUL when changing                  */
   /* ---------------------------------------------------------------- */
 
-  /** Dexie DB name. Renaming ORPHANS all local data — ship a migration. */
+  /** Dexie DB name. INTENTIONALLY kept as 'quickbill' after the 8services
+   *  rebrand — changing it would orphan every existing tenant's local data
+   *  (products, sales, customers, users, stores). If a future rename ever
+   *  needs to touch this, ship a migration that opens the old DB, copies
+   *  every table, then deletes the old DB. */
   dbName:        'quickbill',
 
-  /** Prefix for localStorage / sessionStorage keys. Namespaces multiple
-   *  products on one origin. */
+  /** Prefix for localStorage / sessionStorage keys. Same reasoning as dbName
+   *  — renaming loses session, theme, and settings state for every user. */
   storagePrefix: 'quickbill',
 
   /** Base domain for the storefront. Subdomains under this map to tenant slugs. */
-  platformApex:  'quickbill.shop',
+  platformApex:  '8services.shop',
 } as const;
 
 export type Brand = typeof BRAND;
