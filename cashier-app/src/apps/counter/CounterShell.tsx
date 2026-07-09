@@ -89,6 +89,10 @@ const UserMenu: FC = () => {
   const { byId: storeById } = useStores();
   const toast = useToast();
   const navigate = useNavigate();
+  // Tenant slug from the URL (/<slug>/cashier|admin/...) - used to build
+  // absolute nav targets. Without this, go('/store') hits the shell's
+  // legacy catch-all and bounces the user to /login.
+  const { slug = '' } = useParams<{ slug: string }>();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -144,15 +148,15 @@ const UserMenu: FC = () => {
           {isAdmin && (
             <>
               <button type="button" role="menuitem" className={cls.userDropdown__item}
-                      onClick={() => go('/store')}>
+                      onClick={() => go(`/${slug}/admin/store`)}>
                 <Icon name="store" size={16} /> My store
               </button>
               <button type="button" role="menuitem" className={cls.userDropdown__item}
-                      onClick={() => go('/users')}>
+                      onClick={() => go(`/${slug}/admin/users`)}>
                 <Icon name="user" size={16} /> {STRINGS.nav.users}
               </button>
               <button type="button" role="menuitem" className={cls.userDropdown__item}
-                      onClick={() => go('/settings')}>
+                      onClick={() => go(`/${slug}/admin/settings`)}>
                 <Icon name="shield" size={16} /> {STRINGS.nav.settings}
               </button>
               <hr className={cls.userDropdown__divider} />
