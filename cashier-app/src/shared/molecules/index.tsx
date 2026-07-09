@@ -59,8 +59,8 @@ export const ProductCard: FC<ProductCardProps> = ({
       <span className={cls.productCard__qty} aria-hidden="true">{quantityInCart}</span>
     )}
     <ProductBadge name={product.name} tone={product.tone} />
-    <Text size="xs" weight="semibold" tone="primary" upper>{product.category}</Text>
-    <Text as="p" size="sm" weight="semibold">{product.name}</Text>
+    <Text size="xs" weight="semibold" tone="primary" upper className={cls.productCard__category}>{product.category}</Text>
+    <Text as="p" size="sm" weight="semibold" className={cls.productCard__name}>{product.name}</Text>
     <div className={cls.productCard__footer}>
       <Text weight="heavy" size="lg">{money(product.price)}</Text>
       <span className={cls.productCard__addHint} aria-hidden="true">

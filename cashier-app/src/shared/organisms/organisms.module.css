@@ -86,8 +86,8 @@
 .cartPanel {
   background: var(--app-surface);
   border: 1px solid var(--app-border);
-  border-radius: var(--app-radius-lg);
-  box-shadow: var(--app-shadow-sm);
+  border-radius: 14px;
+  box-shadow: none;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -111,13 +111,31 @@
   height: 100%;
 }
 .cartPanel__header {
-  background: linear-gradient(135deg, var(--app-primary) 0%, var(--app-blue-160) 100%);
-  color: var(--app-text-inverse);
+  /* Editorial header: hairline top-border in gold, quiet surface behind the
+     serif title. Replaces the previous bright blue gradient slab so the
+     cart panel feels like a receipt, not a banner. */
+  background: var(--app-surface);
+  color: var(--app-text);
   padding: var(--app-space-4) var(--app-space-5);
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--app-space-3);
+  border-bottom: 1px solid var(--app-border);
+  position: relative;
+  font-family: 'Fraunces', 'Georgia', 'Times New Roman', serif;
+  font-weight: 500;
+  font-size: 18px;
+  letter-spacing: -0.005em;
+}
+.cartPanel__header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--app-gold, #b8862a);
 }
 .cartPanel__title { display: inline-flex; align-items: center; gap: var(--app-space-2); }
 .cartPanel__scroll {

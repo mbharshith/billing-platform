@@ -156,8 +156,8 @@ export const CartPanel: FC<CartPanelProps> = ({
   >
     <div className={cls.cartPanel__header}>
       <div className={cls.cartPanel__title}>
-        <Icon name="cart" size={18} tone="accent" />
-        <Text weight="bold" tone="inverse">{STRINGS.cashier.cartTitle}</Text>
+        <Icon name="cart" size={18} />
+        <Text weight="bold">{STRINGS.cashier.cartTitle}</Text>
       </div>
       <div className={cls.cartHeaderMeta}>
         <Badge variant="accent">
