@@ -1,24 +1,28 @@
+
+
 // MarketingHomePage - the SaaS landing page at /.
 //
-// This is where the world meets QuickBill. Its ONE job is to explain the
-// product so well that a first-time visitor understands:
-//   1. What QuickBill is                         (Retail commerce platform)
+// This is where the world meets the product. Its ONE job is to explain what
+// we do so well that a first-time visitor understands:
+//   1. What the platform is                      (Retail commerce cloud)
 //   2. What surfaces they get                    (POS + Storefront + Admin + Vendor)
-//   3. Who each surface is for                   (Shop owners, staff, shoppers)
+//   3. Who each surface is for                   (Shop owners, staff, customers)
 //   4. How to try it right now                   (Live demo tenants + creds)
-//   5. How to reach Walmart to buy it            (Contact block)
+//   5. How to reach the parent org to buy it     (Contact block)
+//
+// EVERY piece of brand text (product name, wordmark, tagline, hero headline,
+// parent org, contact, HQ) flows from @shared/brand. Renaming the product
+// or switching parent orgs is a single-file edit; nothing here is hardcoded.
 //
 // Design language: luxury black + gold, editorial spacing, Fraunces italics
-// for headlines and generous negative space. Both light and dark themes
-// render cleanly - all colors flow through --mk-* tokens in the CSS module.
-//
-// Everything is scoped under .root so no marketing CSS leaks into the rest
-// of the app. Content data (tenant cards, personas, credentials) lives at
-// module scope so future additions are one-line edits.
+// for headlines and generous negative space. Both themes render cleanly via
+// --mk-* tokens in the CSS module. NO human photography anywhere - spaces,
+// products, and packages only.
 import type { FC, ReactNode } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import cls from './marketing.module.css';
 import { ThemeToggle } from '@shared/atoms';
+import { BRAND } from '@shared/brand';
 import { useAuth } from '@shared/store/AuthContext';
 import { useStores } from '@shared/store/StoresContext';
 import { storeIdToSlug } from '@shared/lib/resolveTenant';
@@ -48,7 +52,7 @@ const DEMO_TENANTS: readonly TenantCard[] = [
     meta: 'Apparel · INR',
     desc: 'A curated fashion floor with size ladders, seasonal drops, and a ' +
           'mobile-first counter that takes cash, UPI, and split-tender.',
-    image: 'https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?auto=format&fit=crop&w=1200&q=80',
+    image: 'https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?auto=format&fit=crop&w=1200&q=80',
   },
   {
     slug: 'flipkart',
@@ -56,7 +60,7 @@ const DEMO_TENANTS: readonly TenantCard[] = [
     meta: 'Electronics · INR',
     desc: 'High-volume electronics with barcode scanning, serials, warranty ' +
           'notes, and lending ledgers for trade customers.',
-    image: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=1200&q=80',
+    image: 'https://images.unsplash.com/photo-1550009158-9ebf69173e03?auto=format&fit=crop&w=1200&q=80',
   },
   {
     slug: 'walmart',
@@ -64,7 +68,7 @@ const DEMO_TENANTS: readonly TenantCard[] = [
     meta: 'General retail · USD',
     desc: 'The supercenter format: full inventory, weight items, barcodes, ' +
           'USD reporting, and multiple registers running in parallel.',
-    image: 'https://images.unsplash.com/photo-1601598851547-4302969d0614?auto=format&fit=crop&w=1200&q=80',
+    image: 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=1200&q=80',
   },
 ];
 
@@ -100,7 +104,7 @@ const PERSONAS: readonly Persona[] = [
 interface Vertical { readonly label: string; readonly desc: string }
 
 /**
- * Verticals the product is built for. Presentational only - QuickBill isn't
+ * Verticals the product is built for. Presentational only - the product isn't
  * fashion-only or grocery-only. It's the ledger under any counter that takes
  * payment: restaurant, cafe, boutique, pharmacy, whatever.
  */
@@ -122,7 +126,9 @@ const VERTICALS: readonly Vertical[] = [
 const Nav: FC = () => (
   <nav className={cls.nav} aria-label="Primary">
     <div className={cls.nav__inner}>
-      <Link to="/" className={cls.nav__brand}>Quick<em>Bill</em></Link>
+      <Link to="/" className={cls.nav__brand}>
+        {BRAND.wordmark.first}<em>{BRAND.wordmark.accent}</em>
+      </Link>
       <div className={cls.nav__links}>
         <a href="#product"  className={cls.nav__link}>Product</a>
         <a href="#demo"     className={cls.nav__link}>Live demo</a>
@@ -193,9 +199,9 @@ export const MarketingHomePage: FC = () => {
         <div className={cls.shell}>
           <div className={cls.hero__grid}>
             <div>
-              <div className={`${cls.eyebrow} ${cls.hero__eyebrow}`}>QuickBill Commerce Cloud</div>
+              <div className={`${cls.eyebrow} ${cls.hero__eyebrow}`}>{BRAND.platformName}</div>
               <h1 className={`${cls.serifHead} ${cls.hero__title}`}>
-                Retail commerce,<br /><em>refined.</em>
+                {BRAND.heroHeadline.lead}<br /><em>{BRAND.heroHeadline.accent}</em>
               </h1>
               <p className={`${cls.leadCopy} ${cls.hero__sub}`}>
                 One platform for the counter, the storefront, and the ledger.
@@ -209,12 +215,12 @@ export const MarketingHomePage: FC = () => {
             </div>
             <figure className={cls.hero__figure}>
               <img
-                src="https://images.unsplash.com/photo-1554774853-b415df9eeb92?auto=format&fit=crop&w=1400&q=80"
-                alt="A neatly stocked counter mid-service"
+                src="https://images.unsplash.com/photo-1567521464027-f127ff144326?auto=format&fit=crop&w=1400&q=80"
+                alt="Considered retail interior architecture at daylight"
                 loading="eager"
               />
               <figcaption className={cls.hero__figureTag}>
-                A live tenant, mid-service &middot; running on QuickBill today
+                A live tenant, mid-service &middot; running on {BRAND.name} today
               </figcaption>
             </figure>
           </div>
@@ -292,8 +298,8 @@ export const MarketingHomePage: FC = () => {
           <div className={cls.split}>
             <figure className={cls.split__figure}>
               <img
-                src="https://images.unsplash.com/photo-1607083206968-13611e3d76db?auto=format&fit=crop&w=1400&q=80"
-                alt="Packages ready for last-mile delivery"
+                src="https://images.unsplash.com/photo-1595246140625-573b715d11dc?auto=format&fit=crop&w=1400&q=80"
+                alt="Minimalist kraft packaging ready to ship"
               />
             </figure>
             <div>
@@ -320,16 +326,16 @@ export const MarketingHomePage: FC = () => {
           <div className={`${cls.split} ${cls['split--reverse']}`}>
             <figure className={cls.split__figure}>
               <img
-                src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1400&q=80"
-                alt="An operations dashboard with charts and metrics"
+                src="https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1400&q=80"
+                alt="Abstract data visualisation surface"
               />
             </figure>
             <div>
               <div className={`${cls.eyebrow} ${cls['eyebrow--sm']}`}>SaaS owner console</div>
               <h2 className={`${cls.serifHead} ${cls.split__title}`}>Run the whole fleet<br /><em>from one screen.</em></h2>
               <p className={`${cls.leadCopy} ${cls.split__lead}`}>
-                The vendor console at <code className={cls.inlineCode}>/dashboard</code> is
-                for the people who sell QuickBill to tenants.
+                The vendor console at <code style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '0.9em' }}>/dashboard</code> is
+                for the people who sell {BRAND.name} to tenants.
               </p>
               <ul className={cls.split__list}>
                 <li><strong>Cross-tenant KPIs</strong><span>Revenue grouped by tenant currency &mdash; INR and USD reported side-by-side, never FX-fudged.</span></li>
@@ -368,7 +374,7 @@ export const MarketingHomePage: FC = () => {
           <SectionHead
             eyebrow="Built for every counter"
             title={<>Restaurant, boutique,<br /><em>pharmacy, market.</em></>}
-            lead="Any counter that takes payment fits QuickBill. Swap the catalogue and receipt copy; the ledger underneath doesn't care what you're selling."
+            lead="Any counter that takes payment fits. Swap the catalogue and receipt copy; the ledger underneath doesn't care what you're selling."
           />
           <div className={cls.verticalGrid}>
             {VERTICALS.map((v) => (
@@ -466,10 +472,10 @@ export const MarketingHomePage: FC = () => {
         <div className={cls.shell}>
           <div className={cls.contact}>
             <div>
-              <div className={`${cls.eyebrow} ${cls['eyebrow--sm']}`}>Contact Walmart</div>
+              <div className={`${cls.eyebrow} ${cls['eyebrow--sm']}`}>Contact {BRAND.parentOrg.split(' ')[0]}</div>
               <h2 className={`${cls.serifHead} ${cls.contact__title}`}>Sell it in<br /><em>your store.</em></h2>
               <p className={`${cls.leadCopy} ${cls.contact__lead}`}>
-                QuickBill is built and operated by Walmart Global Tech.
+                {BRAND.name} is built and operated by {BRAND.parentOrg}.
                 Reach the team below to talk about onboarding your fleet,
                 white-label branding, or a custom domain.
               </p>
@@ -477,32 +483,29 @@ export const MarketingHomePage: FC = () => {
             <div className={cls.contactCards}>
               <div className={cls.contactCard}>
                 <div className={cls.contactCard__label}>Sales</div>
-                <a href="mailto:quickbill-sales@walmart.com" className={cls.contactCard__val}>
-                  quickbill<em>-sales</em>@walmart.com
+                <a href={`mailto:${BRAND.contact.salesEmail}`} className={cls.contactCard__val}>
+                  {BRAND.contact.salesEmail.split('@')[0]}<em>@{BRAND.contact.salesEmail.split('@')[1]}</em>
                 </a>
                 <div className={cls.contactCard__sub}>Enterprise onboarding, custom domains, SLA discussions.</div>
               </div>
               <div className={cls.contactCard}>
                 <div className={cls.contactCard__label}>Support</div>
-                <a href="mailto:quickbill-support@walmart.com" className={cls.contactCard__val}>
-                  quickbill<em>-support</em>@walmart.com
+                <a href={`mailto:${BRAND.contact.supportEmail}`} className={cls.contactCard__val}>
+                  {BRAND.contact.supportEmail.split('@')[0]}<em>@{BRAND.contact.supportEmail.split('@')[1]}</em>
                 </a>
-                <div className={cls.contactCard__sub}>24×7 tenant admin support &middot; Slack #quickbill-help.</div>
+                <div className={cls.contactCard__sub}>24×7 tenant admin support &middot; Slack #{BRAND.name.toLowerCase()}-help.</div>
               </div>
-              <div className={cls.contactCard}>
-                <div className={cls.contactCard__label}>Address</div>
-                <div className={cls.contactCard__val}>Walmart <em>Global Tech</em></div>
-                <div className={cls.contactCard__sub}>
-                  702 SW 8th Street<br />Bentonville, AR 72716<br />United States
+              {BRAND.contact.offices.map((o) => (
+                <div key={o.label} className={cls.contactCard}>
+                  <div className={cls.contactCard__label}>{o.label}</div>
+                  <div className={cls.contactCard__val}>{o.name}</div>
+                  <div className={cls.contactCard__sub}>
+                    {o.lines.map((l, i) => (
+                      <span key={l}>{l}{i < o.lines.length - 1 && <br />}</span>
+                    ))}
+                  </div>
                 </div>
-              </div>
-              <div className={cls.contactCard}>
-                <div className={cls.contactCard__label}>India office</div>
-                <div className={cls.contactCard__val}>Walmart <em>Chennai</em></div>
-                <div className={cls.contactCard__sub}>
-                  Pacifica Tech Park, Chennai<br />Tamil Nadu 600089<br />India
-                </div>
-              </div>
+              ))}
             </div>
           </div>
         </div>
@@ -513,9 +516,11 @@ export const MarketingHomePage: FC = () => {
         <div className={cls.shell}>
           <div className={cls.footer__top}>
             <div>
-              <div className={cls.footer__brand}>Quick<em>Bill</em></div>
+              <div className={cls.footer__brand}>
+                {BRAND.wordmark.first}<em>{BRAND.wordmark.accent}</em>
+              </div>
               <p className={cls.footer__blurb}>
-                Retail commerce, refined. Built by Walmart Global Tech for
+                {BRAND.heroHeadline.lead} {BRAND.heroHeadline.accent} Built by {BRAND.parentOrg} for
                 shops of every square metre.
               </p>
             </div>
@@ -540,14 +545,14 @@ export const MarketingHomePage: FC = () => {
               <h4 className={cls.footer__colTitle}>Company</h4>
               <ul className={cls.footer__colList}>
                 <li><a href="#contact">Contact</a></li>
-                <li><a href="mailto:quickbill-sales@walmart.com">Sales</a></li>
-                <li><a href="mailto:quickbill-support@walmart.com">Support</a></li>
+                <li><a href={`mailto:${BRAND.contact.salesEmail}`}>Sales</a></li>
+                <li><a href={`mailto:${BRAND.contact.supportEmail}`}>Support</a></li>
               </ul>
             </div>
           </div>
           <div className={cls.footer__legal}>
-            <span>&copy; {new Date().getFullYear()} Walmart Global Tech &middot; QuickBill Commerce Cloud</span>
-            <span>Made with <em>care</em> in Bentonville &amp; Chennai</span>
+            <span>&copy; {new Date().getFullYear()} {BRAND.parentOrg} &middot; {BRAND.platformName}</span>
+            <span>Made with <em>care</em> in {BRAND.contact.hqCity} &amp; {BRAND.contact.hqRegion}</span>
           </div>
         </div>
       </footer>
