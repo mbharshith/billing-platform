@@ -40,7 +40,7 @@ export const StorefrontShell: FC<{ children: ReactNode }> = ({ children }) => {
   return (
     <div className={cls.shell} style={themeVars(theme)}>
       <div className={cls.deliveryBar}>
-        <Icon name="zap" size={12} /> Delivery in <strong>{theme.deliveryEta}</strong> to {tenant.city}
+        Complimentary delivery in <strong>{theme.deliveryEta}</strong> to {tenant.city}
       </div>
 
       <header className={cls.header}>

@@ -32,47 +32,14 @@ export const StorefrontProductCard: FC<Props> = ({ product, meta }) => {
       {outOfStock && <span className={cls.productCard__oos}>Sold out</span>}
       <div className={cls.productCard__tile}>
         <div className={cls.productCard__monoWrap}>
-          <ProductArt product={product} iconSize={56} />
+          <ProductArt product={product} iconSize={110} />
         </div>
-
-        {inCart === 0 ? (
-          <button
-            type="button"
-            className={cls.productCard__addBtn}
-            disabled={outOfStock}
-            onClick={() => add(product.id)}
-            aria-label={`Add ${product.name} to cart`}
-          >
-            {outOfStock ? '-' : 'Add'}
-          </button>
-        ) : (
-          <div className={cls.productCard__stepper} aria-label={`${product.name} quantity`}>
-            <button
-              type="button"
-              className={cls.productCard__stepperBtn}
-              onClick={() => setQty(product.id, inCart - 1)}
-              aria-label="Decrease"
-            >
-              <Icon name="minus" size={12} />
-            </button>
-            <span className={cls.productCard__stepperCount}>{inCart}</span>
-            <button
-              type="button"
-              className={cls.productCard__stepperBtn}
-              disabled={inCart >= product.stock}
-              onClick={() => setQty(product.id, inCart + 1)}
-              aria-label="Increase"
-            >
-              <Icon name="plus" size={12} />
-            </button>
-          </div>
-        )}
       </div>
 
       <Link to={`/shop/${slug}/product/${product.id}`} className={cls.productCard__body}>
         <div className={cls.productCard__ratingRow}>
           <span className={cls.productCard__rating}>
-            {productMeta.rating.toFixed(1)} <Icon name="spark" size={9} />
+            {'\u2605'} {productMeta.rating.toFixed(1)}
           </span>
           <span className={cls.productCard__ratingCount}>
             ({formatReviewCount(productMeta.reviewCount)})
@@ -89,6 +56,39 @@ export const StorefrontProductCard: FC<Props> = ({ product, meta }) => {
           )}
         </div>
       </Link>
+
+      {inCart === 0 ? (
+        <button
+          type="button"
+          className={cls.productCard__addBtn}
+          disabled={outOfStock}
+          onClick={() => add(product.id)}
+          aria-label={`Add ${product.name} to cart`}
+        >
+          {outOfStock ? 'Sold out' : 'Add to bag'}
+        </button>
+      ) : (
+        <div className={cls.productCard__stepper} aria-label={`${product.name} quantity`}>
+          <button
+            type="button"
+            className={cls.productCard__stepperBtn}
+            onClick={() => setQty(product.id, inCart - 1)}
+            aria-label="Decrease"
+          >
+            <Icon name="minus" size={14} />
+          </button>
+          <span className={cls.productCard__stepperCount}>{inCart} in bag</span>
+          <button
+            type="button"
+            className={cls.productCard__stepperBtn}
+            disabled={inCart >= product.stock}
+            onClick={() => setQty(product.id, inCart + 1)}
+            aria-label="Increase"
+          >
+            <Icon name="plus" size={14} />
+          </button>
+        </div>
+      )}
     </article>
   );
 };

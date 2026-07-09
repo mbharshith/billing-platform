@@ -104,13 +104,13 @@ export const ProductPage: FC = () => {
 
           <div className={cls.pdpRatingRow}>
             <span className={cls.pdpRating}>
-              {meta.rating.toFixed(1)} <Icon name="spark" size={11} />
+              {'\u2605'} {meta.rating.toFixed(1)}
             </span>
             <span className={cls.pdpRatingCount}>
-              {formatReviewCount(meta.reviewCount)} ratings
+              {formatReviewCount(meta.reviewCount)} client reviews
             </span>
             <span className={cls.pdpDot}></span>
-            <span className={cls.pdpSku}>SKU: {product.sku}</span>
+            <span className={cls.pdpSku}>Ref. {product.sku}</span>
           </div>
 
           <div className={cls.pdpPriceRow}>
@@ -118,37 +118,32 @@ export const ProductPage: FC = () => {
             {meta.discountPct >= 10 && (
               <>
                 <span className={cls.pdpPriceOrig}>{money(meta.originalPrice)}</span>
-                <span className={cls.pdpDiscount}>{meta.discountPct}% OFF</span>
+                <span className={cls.pdpDiscount}>-{meta.discountPct}%</span>
               </>
             )}
           </div>
-          <div className={cls.pdpTax}>Inclusive of all taxes</div>
+          <div className={cls.pdpTax}>Duties &amp; taxes included</div>
           {savings > 0 && (
             <div className={cls.pdpSavings}>
-              <Icon name="spark" size={12} /> You save {money(savings)} on this order
+              You save {money(savings)}
             </div>
           )}
 
           <div className={cls.pdpDeliveryCard}>
             <div className={cls.pdpDeliveryCard__icon}><Icon name="zap" size={20} /></div>
             <div>
-              <div className={cls.pdpDeliveryCard__title}>Delivery by {deliveryDate}</div>
-              <div className={cls.pdpDeliveryCard__sub}>Free delivery to {tenant.city}</div>
+              <div className={cls.pdpDeliveryCard__title}>Complimentary delivery by {deliveryDate}</div>
+              <div className={cls.pdpDeliveryCard__sub}>Sent with care to {tenant.city}</div>
             </div>
           </div>
 
           <div className={cls.pdpCoupon}>
-            <div className={cls.pdpCoupon__badge}>
-              <Icon name="spark" size={14} />
-            </div>
             <div className={cls.pdpCoupon__body}>
-              <div className={cls.pdpCoupon__title}>Extra 10% off with code <strong>{couponCode}</strong></div>
-              <div className={cls.pdpCoupon__sub}>Apply at checkout - min order {money(product.price * 2)}</div>
+              <div className={cls.pdpCoupon__title}>Enjoy an additional 10% with <strong>{couponCode}</strong> at checkout</div>
             </div>
           </div>
 
           <div className={stockLabel.klass}>
-            {product.stock > 0 && <Icon name="check" size={13} />}
             {stockLabel.text}
           </div>
 
@@ -169,13 +164,12 @@ export const ProductPage: FC = () => {
                   </button>
                 </div>
                 {inCart > 0 && (
-                  <span className={cls.pdpQtyLabel}>({inCart} already in cart)</span>
+                  <span className={cls.pdpQtyLabel}>({inCart} already in bag)</span>
                 )}
               </div>
 
               <button type="button" className={cls.pdpAddBtn} onClick={handleAdd}>
-                <Icon name="cart" size={18} />
-                Add to cart - {money(product.price * qty)}
+                Add to bag {'\u2014'} {money(product.price * qty)}
               </button>
             </>
           )}

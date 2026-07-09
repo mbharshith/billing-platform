@@ -55,53 +55,38 @@ export const HomePage: FC = () => {
 
   return (
     <>
-      {/* Trust strip */}
+      {/* Trust strip - single elegant line */}
       <div className={cls.trustStrip}>
         <div className={cls.trustBadge}>
-          <div className={cls.trustBadge__icon}><Icon name="zap" size={18} /></div>
-          <div>
-            <div className={cls.trustBadge__text}>{theme.deliveryEta}</div>
-            <div className={cls.trustBadge__sub}>To your doorstep</div>
-          </div>
+          <div className={cls.trustBadge__icon}><Icon name="zap" size={14} /></div>
+          <div className={cls.trustBadge__text}>Complimentary delivery</div>
         </div>
         <div className={cls.trustBadge}>
-          <div className={cls.trustBadge__icon}><Icon name="shield" size={18} /></div>
-          <div>
-            <div className={cls.trustBadge__text}>100% authentic</div>
-            <div className={cls.trustBadge__sub}>Direct from the store</div>
-          </div>
+          <div className={cls.trustBadge__icon}><Icon name="shield" size={14} /></div>
+          <div className={cls.trustBadge__text}>Verified authentic</div>
         </div>
         <div className={cls.trustBadge}>
-          <div className={cls.trustBadge__icon}><Icon name="cash" size={18} /></div>
-          <div>
-            <div className={cls.trustBadge__text}>Cash on delivery</div>
-            <div className={cls.trustBadge__sub}>Or pay online</div>
-          </div>
-        </div>
-        <div className={cls.trustBadge}>
-          <div className={cls.trustBadge__icon}><Icon name="receipt" size={18} /></div>
-          <div>
-            <div className={cls.trustBadge__text}>Easy returns</div>
-            <div className={cls.trustBadge__sub}>Within 7 days</div>
-          </div>
+          <div className={cls.trustBadge__icon}><Icon name="receipt" size={14} /></div>
+          <div className={cls.trustBadge__text}>Effortless returns</div>
         </div>
       </div>
 
       {/* Hero */}
       <section className={cls.hero}>
         <div className={cls.hero__inner}>
-          <div className={cls.hero__eyebrow}>{theme.tagline}</div>
-          <h1 className={cls.hero__title}>Get everything you need. Fast.</h1>
+          <div className={cls.hero__eyebrow}>The {tenant.name.split(' ')[0]} Edit</div>
+          <h1 className={cls.hero__title}>
+            Discover the <em>everyday</em>, elevated.
+          </h1>
           <p className={cls.hero__sub}>
-            {tenant.name} online — browse thousands of items, checkout in seconds,
-            and get it delivered in {theme.deliveryEta.toLowerCase()}.
+            A carefully curated selection, delivered to your door in {theme.deliveryEta.toLowerCase()}.
           </p>
           <div className={cls.hero__ctaRow}>
             <Link to={`/shop/${slug}/browse`} className={cls.hero__cta}>
-              <Icon name="bag" size={16} /> Start shopping
+              Shop the collection
             </Link>
             <Link to={`/shop/${slug}/track`} className={cls.hero__ctaGhost}>
-              <Icon name="receipt" size={16} /> Track my order
+              Track your order
             </Link>
           </div>
         </div>
@@ -113,7 +98,7 @@ export const HomePage: FC = () => {
           <div className={cls.sectionHead}>
             <div>
               <h2 className={cls.sectionHead__title}>Shop by category</h2>
-              <div className={cls.sectionHead__sub}>Find exactly what you're after</div>
+              <div className={cls.sectionHead__sub}>Find your next favourite</div>
             </div>
           </div>
           <div className={cls.categoryRail}>
@@ -136,11 +121,11 @@ export const HomePage: FC = () => {
         <div className={cls.section}>
           <div className={cls.sectionHead}>
             <div>
-              <h2 className={cls.sectionHead__title}>Bestsellers</h2>
-              <div className={cls.sectionHead__sub}>What everyone's adding to cart</div>
+              <h2 className={cls.sectionHead__title}>Most coveted</h2>
+              <div className={cls.sectionHead__sub}>Pieces our clients can't get enough of</div>
             </div>
             <Link to={`/shop/${slug}/browse`} className={cls.sectionHead__link}>
-              See all <Icon name="arrow" size={12} />
+              View all
             </Link>
           </div>
           <div className={cls.productGrid}>
@@ -154,11 +139,11 @@ export const HomePage: FC = () => {
         <div className={cls.section}>
           <div className={cls.sectionHead}>
             <div>
-              <h2 className={cls.sectionHead__title}>Fresh picks</h2>
-              <div className={cls.sectionHead__sub}>Just added to the shelf</div>
+              <h2 className={cls.sectionHead__title}>New this week</h2>
+              <div className={cls.sectionHead__sub}>Latest additions to the collection</div>
             </div>
             <Link to={`/shop/${slug}/browse`} className={cls.sectionHead__link}>
-              See all <Icon name="arrow" size={12} />
+              View all
             </Link>
           </div>
           <div className={cls.productGrid}>
