@@ -5,8 +5,10 @@ import { useMemo, useState, type FC } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useNavigate } from 'react-router-dom';
 import cls from '../vendor.module.css';
-import { Button, Icon, Text } from '@shared/atoms';
+import { Button, Text } from '@shared/atoms';
 import { ConfirmDialog } from '@shared/feedback';
+import { DataTable } from '@shared/molecules';
+import { StatusPill, useTenantStats } from '../hooks';
 import { db } from '@shared/lib/db';
 import { fmtDate, formatMoney } from '@shared/domain/format';
 import { useAudit } from '@shared/store/AuditContext';
@@ -16,7 +18,6 @@ import { useToast } from '@shared/store/ToastContext';
 import { VENDOR_SCOPE, type Store, type User } from '@shared/domain/types';
 import { CreateTenantModal } from './CreateTenantModal';
 import { EditTenantModal } from './EditTenantModal';
-import { EmptyState, Pagination, StatusPill, usePagination, useTenantStats } from '../hooks';
 
 type StatusFilter = 'all' | 'active' | 'suspended';
 
@@ -32,7 +33,6 @@ export const TenantsPage: FC = () => {
   const [confirmSuspend, setConfirmSuspend] = useState<Store | null>(null);
   const [showCreate, setShowCreate] = useState(false);
   const [editing, setEditing] = useState<Store | null>(null);
-  const [query, setQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
 
   const adminByStoreId = useMemo(() => {
@@ -54,23 +54,6 @@ export const TenantsPage: FC = () => {
     if (statusFilter === 'all') return tenantsAll;
     return tenantsAll.filter((s) => (statusFilter === 'suspended' ? s.status === 'suspended' : s.status !== 'suspended'));
   }, [tenantsAll, statusFilter]);
-
-  // 3. apply search across name/city/admin.
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return byStatus;
-    return byStatus.filter((s) => {
-      const admin = adminByStoreId.get(s.id);
-      return (
-        s.name.toLowerCase().includes(q) ||
-        s.city.toLowerCase().includes(q) ||
-        (admin?.name.toLowerCase().includes(q) ?? false) ||
-        (admin?.username.toLowerCase().includes(q) ?? false)
-      );
-    });
-  }, [byStatus, query, adminByStoreId]);
-
-  const pager = usePagination(filtered, 10);
 
   const doSuspend = async (store: Store) => {
     await setStatus(store.id, 'suspended');
@@ -127,116 +110,116 @@ export const TenantsPage: FC = () => {
         </Button>
       </div>
 
-      {tenantsAll.length === 0 ? (
-        <EmptyState
-          title="No tenants yet"
-          hint="Click 'New tenant' to onboard your first customer."
-        />
-      ) : (
-        <>
-          <div className={cls.toolbar}>
-            <div className={cls.searchWrap}>
-              <span className={cls.searchIcon}><Icon name="search" size={16} /></span>
-              <input
-                className={cls.searchInput}
-                type="search"
-                placeholder="Search tenants by name, city, or admin…"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                aria-label="Search tenants"
-              />
-            </div>
+      <div className={cls.chipRow} role="tablist" aria-label="Filter by status">
+        <FilterChip active={statusFilter === 'all'}       onClick={() => setStatusFilter('all')}       label="All"       count={tenantsAll.length} />
+        <FilterChip active={statusFilter === 'active'}    onClick={() => setStatusFilter('active')}    label="Active"    count={activeCount} />
+        <FilterChip active={statusFilter === 'suspended'} onClick={() => setStatusFilter('suspended')} label="Suspended" count={suspendedCount} />
+      </div>
 
-            <div className={cls.chipRow} role="tablist" aria-label="Filter by status">
-              <FilterChip active={statusFilter === 'all'}       onClick={() => setStatusFilter('all')}       label="All"       count={tenantsAll.length} />
-              <FilterChip active={statusFilter === 'active'}    onClick={() => setStatusFilter('active')}    label="Active"    count={activeCount} />
-              <FilterChip active={statusFilter === 'suspended'} onClick={() => setStatusFilter('suspended')} label="Suspended" count={suspendedCount} />
-            </div>
-          </div>
-
-          {filtered.length === 0 ? (
-            <EmptyState
-              icon="search"
-              title="No tenants match your filters"
-              hint="Try clearing the search or picking a different status."
-            />
-          ) : (
-            <div className={cls.tableWrap}>
-              <table className={cls.table}>
-                <thead>
-                  <tr>
-                    <th>Tenant</th>
-                    <th>Admin</th>
-                    <th>Status</th>
-                    <th className={cls.numeric}>Sales</th>
-                    <th className={cls.numeric}>Revenue</th>
-                    <th>Joined</th>
-                    <th className={cls.actions}>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {pager.slice.map((store) => {
-                    const st = stats.get(store.id) ?? { revenue: 0, sales: 0, lastSaleAt: null };
-                    const admin = adminByStoreId.get(store.id);
-                    const suspended = store.status === 'suspended';
-                    return (
-                      <tr key={store.id}>
-                        <td>
-                          <div className={cls.rowMain}>{store.name}</div>
-                          <div className={cls.rowSub}>{store.city} · {store.currency}</div>
-                        </td>
-                        <td>
-                          {admin ? (
-                            <>
-                              <div className={cls.rowMain}>{admin.name}</div>
-                              <div className={cls.rowSub}>{admin.username}</div>
-                            </>
-                          ) : (
-                            <Text size="xs" tone="subtle">— no admin —</Text>
-                          )}
-                        </td>
-                        <td><StatusPill status={store.status} /></td>
-                        <td className={cls.numeric}>{st.sales}</td>
-                        <td className={cls.numeric}>{formatMoney(st.revenue, store.currency)}</td>
-                        <td className={cls.rowSub}>{fmtDate(store.createdAt)}</td>
-                        <td className={cls.actions}>
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            leadingIcon="edit"
-                            onClick={() => setEditing(store)}
-                          >
-                            Edit
-                          </Button>
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            leadingIcon="user"
-                            onClick={() => doImpersonate(store)}
-                            disabled={!admin || suspended}
-                          >
-                            Sign in as
-                          </Button>
-                          {suspended ? (
-                            <Button variant="primary" size="sm" leadingIcon="check" onClick={() => doReactivate(store)}>
-                              Reactivate
-                            </Button>
-                          ) : (
-                            <Button variant="danger" size="sm" leadingIcon="lock" onClick={() => setConfirmSuspend(store)}>
-                              Suspend
-                            </Button>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-              <Pagination state={pager} noun="tenants" />
-            </div>
-          )}
-        </>
-      )}
+      <DataTable
+        data={byStatus}
+        getKey={(s) => s.id}
+        searchPlaceholder="Search tenants by name, city, or admin…"
+        searchFn={(s, q) => {
+          const admin = adminByStoreId.get(s.id);
+          return (
+            s.name.toLowerCase().includes(q) ||
+            s.city.toLowerCase().includes(q) ||
+            (admin?.name.toLowerCase().includes(q) ?? false) ||
+            (admin?.username.toLowerCase().includes(q) ?? false)
+          );
+        }}
+        defaultPageSize={10}
+        emptyIcon="store"
+        emptyTitle="No tenants yet"
+        emptyHint="Click 'New tenant' to onboard your first customer."
+        emptySearchTitle="No tenants match your filters"
+        emptySearchHint="Try clearing the search or picking a different status."
+        columns={[
+          {
+            key: 'tenant',
+            label: 'Tenant',
+            sortValue: (s) => s.name,
+            render: (s) => (
+              <>
+                <div className={cls.rowMain}>{s.name}</div>
+                <div className={cls.rowSub}>{s.city} · {s.currency}</div>
+              </>
+            ),
+          },
+          {
+            key: 'admin',
+            label: 'Admin',
+            render: (s) => {
+              const admin = adminByStoreId.get(s.id);
+              return admin ? (
+                <>
+                  <div className={cls.rowMain}>{admin.name}</div>
+                  <div className={cls.rowSub}>{admin.username}</div>
+                </>
+              ) : (
+                <Text size="xs" tone="subtle">— no admin —</Text>
+              );
+            },
+          },
+          {
+            key: 'status',
+            label: 'Status',
+            render: (s) => <StatusPill status={s.status} />,
+          },
+          {
+            key: 'sales',
+            label: 'Sales',
+            numeric: true,
+            sortValue: (s) => stats.get(s.id)?.sales ?? 0,
+            render: (s) => {
+              const st = stats.get(s.id) ?? { revenue: 0, sales: 0 };
+              return <Text size="sm">{st.sales}</Text>;
+            },
+          },
+          {
+            key: 'revenue',
+            label: 'Revenue',
+            numeric: true,
+            sortValue: (s) => stats.get(s.id)?.revenue ?? 0,
+            render: (s) => {
+              const st = stats.get(s.id) ?? { revenue: 0, sales: 0 };
+              return <Text size="sm">{formatMoney(st.revenue, s.currency)}</Text>;
+            },
+          },
+          {
+            key: 'joined',
+            label: 'Joined',
+            sortValue: (s) => s.createdAt,
+            render: (s) => <span className={cls.rowSub}>{fmtDate(s.createdAt)}</span>,
+          },
+          {
+            key: 'actions',
+            label: 'Actions',
+            actions: true,
+            render: (store) => {
+              const admin = adminByStoreId.get(store.id);
+              const suspended = store.status === 'suspended';
+              return (
+                <>
+                  <Button variant="secondary" size="sm" leadingIcon="edit"
+                          onClick={(e) => { e.stopPropagation(); setEditing(store); }}>Edit</Button>
+                  <Button variant="secondary" size="sm" leadingIcon="user"
+                          onClick={(e) => { e.stopPropagation(); void doImpersonate(store); }}
+                          disabled={!admin || suspended}>Sign in as</Button>
+                  {suspended ? (
+                    <Button variant="primary" size="sm" leadingIcon="check"
+                            onClick={(e) => { e.stopPropagation(); void doReactivate(store); }}>Reactivate</Button>
+                  ) : (
+                    <Button variant="danger" size="sm" leadingIcon="lock"
+                            onClick={(e) => { e.stopPropagation(); setConfirmSuspend(store); }}>Suspend</Button>
+                  )}
+                </>
+              );
+            },
+          },
+        ]}
+      />
 
       {confirmSuspend && (
         <ConfirmDialog

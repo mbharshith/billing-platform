@@ -119,6 +119,13 @@ const seedStore = (
       voidedAt: voided ? new Date(completedAt + 30 * 60 * 1000).toISOString() : null,
       voidedReason: voided ? 'Customer changed their mind.' : null,
       storeId,
+      // Demo sales are all counter-channel; online orders are seeded separately.
+      channel: 'counter',
+      orderStatus: null,
+      customerName: null,
+      deliveryAddress: null,
+      customerNotes: null,
+      statusHistory: null,
     });
   }
 

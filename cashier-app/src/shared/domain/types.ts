@@ -4,7 +4,35 @@
 /* Shared primitives                                                          */
 /* -------------------------------------------------------------------------- */
 export type Iso8601 = string;
-export type PaymentMethod = 'cash' | 'card' | 'lending';
+export type PaymentMethod = 'cash' | 'card' | 'lending' | 'cod' | 'online';
+
+// Where the sale originated. Counter = staff rang it up at the till.
+// Online = customer placed it via the tenant's storefront (delivery flow).
+export type SaleChannel = 'counter' | 'online';
+
+// Lifecycle for online orders (null for counter sales).
+export type OrderStatus =
+  | 'placed'            // customer just submitted; staff hasn't seen it yet
+  | 'confirmed'         // staff acknowledged; stock reserved
+  | 'packing'           // being prepared
+  | 'out_for_delivery'  // rider has it
+  | 'delivered'         // handed off; payment collected (COD) or already captured (online)
+  | 'cancelled';        // by customer OR staff — see cancelledBy
+
+export interface DeliveryAddress {
+  readonly line1: string;
+  readonly line2: string;
+  readonly city: string;
+  readonly pincode: string;
+  readonly landmark: string;
+}
+
+export interface OrderStatusEvent {
+  readonly status: OrderStatus;
+  readonly at: Iso8601;
+  readonly by: string;  // 'customer' | staff username
+  readonly note: string;
+}
 
 /* -------------------------------------------------------------------------- */
 /* Stores (multi-tenant)                                                      */
@@ -87,11 +115,11 @@ export interface Sale {
   readonly total: number;
   readonly unitCount: number;
   readonly paymentMethod: PaymentMethod;
-  // Set when payment method === 'lending'.
+  // Set for lending sales AND every online order (customer supplied at checkout).
   readonly customerMobile: string | null;
-  // FK to customer entity — set for lending sales.
+  // FK to customer entity — set for lending sales + online orders.
   readonly customerId: string | null;
-  // Who rang up the sale.
+  // Who rang up the sale. For online orders: SYSTEM_ACTOR_ID until staff confirms.
   readonly cashierId: string;
   readonly cashierName: string;
   // Voided sales stay in history for audit.
@@ -100,7 +128,23 @@ export interface Sale {
   readonly voidedReason: string | null;
   // Store where the sale happened.
   readonly storeId: string;
+
+  // -- Online-order fields (all null for counter sales) --------------------
+  readonly channel: SaleChannel;
+  readonly orderStatus: OrderStatus | null;
+  readonly customerName: string | null;
+  readonly deliveryAddress: DeliveryAddress | null;
+  readonly customerNotes: string | null;
+  readonly statusHistory: readonly OrderStatusEvent[] | null;
 }
+
+// System actor id for online orders that haven't been touched by staff yet.
+export const SYSTEM_ACTOR_ID = '__system__';
+export const SYSTEM_ACTOR_NAME = 'Customer (online)';
+
+// Order statuses that are still "in flight" (visible on the Orders Kanban).
+export const ACTIVE_ORDER_STATUSES: readonly OrderStatus[] =
+  ['placed', 'confirmed', 'packing', 'out_for_delivery'];
 
 /* -------------------------------------------------------------------------- */
 /* Customers                                                                  */

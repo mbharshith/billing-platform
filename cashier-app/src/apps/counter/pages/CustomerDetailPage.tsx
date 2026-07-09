@@ -1,12 +1,10 @@
-// CustomerDetailPage — profile, lending balance, record payment, history.
 import { useMemo, useState, type FC, type FormEvent } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import cls from './pages.module.css';
-import { Badge, Button, Field, Icon, Input, Select, Text, Textarea } from '@shared/atoms';
+import { Badge, Button, Field, Input, Select, Text, Textarea } from '@shared/atoms';
 import { Modal } from '@shared/organisms';
 import { ConfirmDialog } from '@shared/feedback';
-import { PaymentBadge } from '@shared/molecules';
-import { EmptyState } from '@shared/molecules';
+import { DataTable, PaymentBadge } from '@shared/molecules';
 import { PageHeader } from '@apps/counter/CounterShell';
 import { STRINGS } from '@shared/domain/strings';
 import { fmtDate, fmtDateTime, formatPhone } from '@shared/domain/format';
@@ -136,34 +134,48 @@ export const CustomerDetailPage: FC = () => {
           <Text as="h2" size="lg" weight="bold">{STRINGS.customers.paymentHistory}</Text>
           <Badge variant="neutral">{payments.length}</Badge>
         </div>
-        {payments.length === 0 ? (
-          <EmptyState icon="coins" title={STRINGS.customers.paymentEmpty} />
-        ) : (
-          <div className={cls.tableWrap}>
-            <table className={cls.table}>
-              <thead>
-                <tr>
-                  <th>{STRINGS.customers.columnDate}</th>
-                  <th>{STRINGS.customers.columnMethodLabel}</th>
-                  <th>{STRINGS.customers.columnReceivedBy}</th>
-                  <th>{STRINGS.customers.columnNotes}</th>
-                  <th className="numeric">{STRINGS.customers.columnAmount}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {payments.map((p) => (
-                  <tr key={p.id}>
-                    <td><Text size="sm">{fmtDateTime(p.receivedAt)}</Text></td>
-                    <td><Badge variant="primary">{p.method}</Badge></td>
-                    <td><Text size="sm">{p.receivedBy}</Text></td>
-                    <td><Text size="sm" tone={p.notes ? 'default' : 'muted'}>{p.notes ?? '—'}</Text></td>
-                    <td className="numeric"><Text weight="bold" size="sm" tone="success">{money(p.amount)}</Text></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+        <DataTable
+          flush
+          data={payments}
+          getKey={(p) => p.id}
+          hidePagination
+          emptyIcon="coins"
+          emptyTitle={STRINGS.customers.paymentEmpty}
+          columns={[
+            {
+              key: 'date',
+              label: STRINGS.customers.columnDate,
+              sortValue: (p) => p.receivedAt,
+              render: (p) => <Text size="sm">{fmtDateTime(p.receivedAt)}</Text>,
+            },
+            {
+              key: 'method',
+              label: STRINGS.customers.columnMethodLabel,
+              render: (p) => <Badge variant="primary">{p.method}</Badge>,
+            },
+            {
+              key: 'receivedBy',
+              label: STRINGS.customers.columnReceivedBy,
+              render: (p) => <Text size="sm">{p.receivedBy}</Text>,
+            },
+            {
+              key: 'notes',
+              label: STRINGS.customers.columnNotes,
+              render: (p) => (
+                <Text size="sm" tone={p.notes ? 'default' : 'muted'}>{p.notes ?? '—'}</Text>
+              ),
+            },
+            {
+              key: 'amount',
+              label: STRINGS.customers.columnAmount,
+              numeric: true,
+              sortValue: (p) => p.amount,
+              render: (p) => (
+                <Text weight="bold" size="sm" tone="success">{money(p.amount)}</Text>
+              ),
+            },
+          ]}
+        />
       </div>
 
       <div className={cls.card}>
@@ -171,45 +183,58 @@ export const CustomerDetailPage: FC = () => {
           <Text as="h2" size="lg" weight="bold">{STRINGS.customers.saleHistory}</Text>
           <Badge variant="neutral">{sales.length}</Badge>
         </div>
-        {sales.length === 0 ? (
-          <EmptyState icon="receipt" title={STRINGS.customers.saleHistoryEmpty} />
-        ) : (
-          <div className={cls.tableWrap}>
-            <table className={cls.table}>
-              <thead>
-                <tr>
-                  <th>{STRINGS.customers.columnInvoice}</th>
-                  <th>{STRINGS.customers.columnDate}</th>
-                  <th className="numeric">{STRINGS.customers.columnItems}</th>
-                  <th>{STRINGS.customers.columnSalePayment}</th>
-                  <th>{STRINGS.customers.columnStatus}</th>
-                  <th className="numeric">{STRINGS.customers.columnTotal}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {sales.map((s) => (
-                  <tr key={s.id} className={cls.clickable}
-                      onClick={() => navigate(`/sales/${s.id}`)}>
-                    <td>
-                      <Link to={`/sales/${s.id}`} onClick={(e) => e.stopPropagation()}>
-                        <Text weight="semibold" size="sm" tone="primary">{s.invoiceNo}</Text>
-                      </Link>
-                    </td>
-                    <td><Text size="sm" tone="subtle">{fmtDateTime(s.completedAt)}</Text></td>
-                    <td className="numeric"><Text size="sm">{s.unitCount}</Text></td>
-                    <td><PaymentBadge method={s.paymentMethod} /></td>
-                    <td>
-                      {s.voided
-                        ? <Badge variant="danger">{STRINGS.sales.voidedBadge}</Badge>
-                        : <Badge variant="success">{STRINGS.customers.saleComplete}</Badge>}
-                    </td>
-                    <td className="numeric"><Text weight="bold" size="sm">{money(s.total)}</Text></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+        <DataTable
+          flush
+          data={sales}
+          getKey={(s) => s.id}
+          onRowClick={(s) => navigate(`/sales/${s.id}`)}
+          hidePagination
+          emptyIcon="receipt"
+          emptyTitle={STRINGS.customers.saleHistoryEmpty}
+          columns={[
+            {
+              key: 'invoice',
+              label: STRINGS.customers.columnInvoice,
+              sortValue: (s) => s.invoiceNo,
+              render: (s) => <Text weight="semibold" size="sm" tone="primary">{s.invoiceNo}</Text>,
+            },
+            {
+              key: 'date',
+              label: STRINGS.customers.columnDate,
+              sortValue: (s) => s.completedAt,
+              render: (s) => <Text size="sm" tone="subtle">{fmtDateTime(s.completedAt)}</Text>,
+            },
+            {
+              key: 'items',
+              label: STRINGS.customers.columnItems,
+              numeric: true,
+              sortValue: (s) => s.unitCount,
+              render: (s) => <Text size="sm">{s.unitCount}</Text>,
+            },
+            {
+              key: 'payment',
+              label: STRINGS.customers.columnSalePayment,
+              render: (s) => <PaymentBadge method={s.paymentMethod} />,
+            },
+            {
+              key: 'status',
+              label: STRINGS.customers.columnStatus,
+              render: (s) =>
+                s.voided ? (
+                  <Badge variant="danger">{STRINGS.sales.voidedBadge}</Badge>
+                ) : (
+                  <Badge variant="success">{STRINGS.customers.saleComplete}</Badge>
+                ),
+            },
+            {
+              key: 'total',
+              label: STRINGS.customers.columnTotal,
+              numeric: true,
+              sortValue: (s) => s.total,
+              render: (s) => <Text weight="bold" size="sm">{money(s.total)}</Text>,
+            },
+          ]}
+        />
       </div>
 
       {paying && (
@@ -280,6 +305,3 @@ export const CustomerDetailPage: FC = () => {
     </>
   );
 };
-
-// Silence the unused import (Icon) if TS complains.
-void Icon;

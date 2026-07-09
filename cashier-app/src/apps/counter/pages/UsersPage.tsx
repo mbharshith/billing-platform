@@ -8,6 +8,7 @@ import cls from './pages.module.css';
 import { Badge, Button, Field, Input, Select, Text } from '@shared/atoms';
 import { Modal } from '@shared/organisms';
 import { ConfirmDialog } from '@shared/feedback';
+import { DataTable } from '@shared/molecules';
 import { PageHeader } from '@apps/counter/CounterShell';
 import { STRINGS } from '@shared/domain/strings';
 import { fmtDate } from '@shared/domain/format';
@@ -119,65 +120,77 @@ export const UsersPage: FC = () => {
         }
       />
 
-      <div className={cls.card}>
-        {sorted.length === 0 ? (
-          <div className={cls.cardBody}>
-            <Text tone="subtle" center>{STRINGS.users.empty}</Text>
-          </div>
-        ) : (
-          <div className={cls.tableWrap}>
-            <table className={cls.table}>
-              <thead>
-                <tr>
-                  <th>{STRINGS.users.columnName}</th>
-                  <th>{STRINGS.users.columnUsername}</th>
-                  <th>{STRINGS.users.columnRole}</th>
-                  <th>{STRINGS.users.columnStatus}</th>
-                  <th className="actions">{STRINGS.users.columnActions}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {sorted.map((u) => {
-                  const isSelf = u.id === currentUser?.id;
-                  return (
-                    <tr key={u.id} className={!u.active ? cls.mutedRow : undefined}>
-                      <td>
-                        <div className={cls.stackedCell}>
-                          <Text weight="semibold" size="sm">{u.name}</Text>
-                          <Text size="xs" tone="subtle">
-                            {STRINGS.users.joinedOn(fmtDate(u.createdAt))}
-                          </Text>
-                        </div>
-                      </td>
-                      <td><Text size="sm">{u.username}</Text></td>
-                      <td><Badge variant={roleBadgeVariant(u.role)}>{roleLabel(u.role)}</Badge></td>
-                      <td>
-                        <Badge variant={u.active ? 'success' : 'danger'}>
-                          {u.active ? STRINGS.users.active : STRINGS.users.inactive}
-                        </Badge>
-                        {isSelf && <Text size="xs" tone="subtle"> (you)</Text>}
-                      </td>
-                      <td className="actions">
-                        <Button variant="secondary" size="sm" leadingIcon="edit" onClick={() => openEdit(u)}>
-                          {STRINGS.users.edit}
-                        </Button>
-                        <Button
-                          variant={u.active ? 'danger' : 'secondary'}
-                          size="sm"
-                          onClick={() => handleToggle(u)}
-                          disabled={isSelf && u.active}
-                        >
-                          {u.active ? STRINGS.users.deactivate : STRINGS.users.activate}
-                        </Button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+      <DataTable
+        data={sorted}
+        getKey={(u) => u.id}
+        getRowMuted={(u) => !u.active}
+        hidePagination
+        emptyIcon="user"
+        emptyTitle={STRINGS.users.empty}
+        columns={[
+          {
+            key: 'name',
+            label: STRINGS.users.columnName,
+            sortValue: (u) => u.name,
+            render: (u) => (
+              <div className={cls.stackedCell}>
+                <Text weight="semibold" size="sm">{u.name}</Text>
+                <Text size="xs" tone="subtle">{STRINGS.users.joinedOn(fmtDate(u.createdAt))}</Text>
+              </div>
+            ),
+          },
+          {
+            key: 'username',
+            label: STRINGS.users.columnUsername,
+            render: (u) => <Text size="sm">{u.username}</Text>,
+          },
+          {
+            key: 'role',
+            label: STRINGS.users.columnRole,
+            render: (u) => (
+              <Badge variant={roleBadgeVariant(u.role)}>{roleLabel(u.role)}</Badge>
+            ),
+          },
+          {
+            key: 'status',
+            label: STRINGS.users.columnStatus,
+            render: (u) => {
+              const isSelf = u.id === currentUser?.id;
+              return (
+                <>
+                  <Badge variant={u.active ? 'success' : 'danger'}>
+                    {u.active ? STRINGS.users.active : STRINGS.users.inactive}
+                  </Badge>
+                  {isSelf && <Text size="xs" tone="subtle"> (you)</Text>}
+                </>
+              );
+            },
+          },
+          {
+            key: 'actions',
+            label: STRINGS.users.columnActions,
+            actions: true,
+            render: (u) => {
+              const isSelf = u.id === currentUser?.id;
+              return (
+                <>
+                  <Button variant="secondary" size="sm" leadingIcon="edit" onClick={() => openEdit(u)}>
+                    {STRINGS.users.edit}
+                  </Button>
+                  <Button
+                    variant={u.active ? 'danger' : 'secondary'}
+                    size="sm"
+                    onClick={() => void handleToggle(u)}
+                    disabled={isSelf && u.active}
+                  >
+                    {u.active ? STRINGS.users.deactivate : STRINGS.users.activate}
+                  </Button>
+                </>
+              );
+            },
+          },
+        ]}
+      />
 
       {form && (
         <Modal

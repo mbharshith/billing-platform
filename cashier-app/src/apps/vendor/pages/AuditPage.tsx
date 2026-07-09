@@ -6,12 +6,12 @@ import { useMemo, useState, type FC } from 'react';
 import cls from '../vendor.module.css';
 import { Badge, Button } from '@shared/atoms';
 import { ConfirmDialog } from '@shared/feedback';
+import { DataTable } from '@shared/molecules';
 import { fmtDateTime } from '@shared/domain/format';
 import { useAudit } from '@shared/store/AuditContext';
 import { useStores } from '@shared/store/StoresContext';
 import { useToast } from '@shared/store/ToastContext';
-import { VENDOR_SCOPE, type AuditEntry, type VendorAction } from '@shared/domain/types';
-import { EmptyState, Pagination, usePagination } from '../hooks';
+import { VENDOR_SCOPE, type VendorAction } from '@shared/domain/types';
 
 const ACTION_LABEL: Record<VendorAction, string> = {
   'tenant.create':       'Onboarded tenant',
@@ -65,8 +65,6 @@ export const AuditPage: FC = () => {
     return entries.filter((e) => e.action === filter);
   }, [entries, filter]);
 
-  const pager = usePagination(filtered, 25);
-
   // Chip counts for the toolbar (cheap to compute even at 10k entries).
   const counts = useMemo(() => {
     const c: Record<string, number> = { all: entries.length };
@@ -91,66 +89,62 @@ export const AuditPage: FC = () => {
         </Button>
       </div>
 
-      {entries.length === 0 ? (
-        <EmptyState
-          icon="shield"
-          title="No vendor actions recorded yet"
-          hint="Suspend, reactivate, impersonate, or onboard a tenant to see entries here."
-        />
-      ) : (
-        <>
-          <div className={cls.toolbar}>
-            <div className={cls.chipRow} role="tablist" aria-label="Filter by action">
-              {FILTER_CHIPS.map((chip) => (
-                <button
-                  key={chip.key}
-                  type="button"
-                  className={[cls.chip, filter === chip.key && cls.chipActive].filter(Boolean).join(' ')}
-                  onClick={() => setFilter(chip.key)}
-                  aria-pressed={filter === chip.key}
-                >
-                  {chip.label}
-                  <span className={cls.chipCount}>{counts[chip.key] ?? 0}</span>
-                </button>
-              ))}
-            </div>
-          </div>
+      <div className={cls.toolbar}>
+        <div className={cls.chipRow} role="tablist" aria-label="Filter by action">
+          {FILTER_CHIPS.map((chip) => (
+            <button
+              key={chip.key}
+              type="button"
+              className={[cls.chip, filter === chip.key && cls.chipActive].filter(Boolean).join(' ')}
+              onClick={() => setFilter(chip.key)}
+              aria-pressed={filter === chip.key}
+            >
+              {chip.label}
+              <span className={cls.chipCount}>{counts[chip.key] ?? 0}</span>
+            </button>
+          ))}
+        </div>
+      </div>
 
-          {filtered.length === 0 ? (
-            <EmptyState
-              icon="search"
-              title="No entries match that filter"
-              hint="Try 'All' to see everything."
-            />
-          ) : (
-            <div className={cls.tableWrap}>
-              <table className={cls.table}>
-                <thead>
-                  <tr>
-                    <th>When</th>
-                    <th>Actor</th>
-                    <th>Action</th>
-                    <th>Target</th>
-                    <th>Detail</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {pager.slice.map((e: AuditEntry) => (
-                    <tr key={e.id}>
-                      <td className={cls.rowSub}>{fmtDateTime(e.at)}</td>
-                      <td>{e.actorUsername}</td>
-                      <td><Badge variant={ACTION_VARIANT[e.action]}>{ACTION_LABEL[e.action]}</Badge></td>
-                      <td>{storeName(e.targetStoreId)}</td>
-                      <td className={cls.rowSub}>{e.detail ?? '—'}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              <Pagination state={pager} noun="entries" pageSizes={[10, 25, 50, 100]} />
-            </div>
-          )}
-        </>
-      )}
+      <DataTable
+        data={filtered}
+        getKey={(e) => e.id}
+        defaultPageSize={25}
+        pageSizeOptions={[10, 25, 50, 100]}
+        emptyIcon="shield"
+        emptyTitle="No vendor actions recorded yet"
+        emptyHint="Suspend, reactivate, impersonate, or onboard a tenant to see entries here."
+        columns={[
+          {
+            key: 'when',
+            label: 'When',
+            sortValue: (e) => e.at,
+            render: (e) => <span className={cls.rowSub}>{fmtDateTime(e.at)}</span>,
+          },
+          {
+            key: 'actor',
+            label: 'Actor',
+            render: (e) => e.actorUsername,
+          },
+          {
+            key: 'action',
+            label: 'Action',
+            render: (e) => (
+              <Badge variant={ACTION_VARIANT[e.action]}>{ACTION_LABEL[e.action]}</Badge>
+            ),
+          },
+          {
+            key: 'target',
+            label: 'Target',
+            render: (e) => storeName(e.targetStoreId),
+          },
+          {
+            key: 'detail',
+            label: 'Detail',
+            render: (e) => <span className={cls.rowSub}>{e.detail ?? '—'}</span>,
+          },
+        ]}
+      />
 
       {confirmClear && (
         <ConfirmDialog

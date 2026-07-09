@@ -1,12 +1,12 @@
 // CustomersPage — list, search, create.
 // Row click navigates to /customers/:id.
-import { useMemo, useState, type FC, type FormEvent } from 'react';
+import { useState, type FC, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import cls from './pages.module.css';
 import { Badge, Button, Field, Input, Text, Textarea } from '@shared/atoms';
 import { Modal } from '@shared/organisms';
 import { ConfirmDialog } from '@shared/feedback';
-import { DataTable, DataTableRow, EmptyState, MobileNumberField, SearchBar } from '@shared/molecules';
+import { DataTable, MobileNumberField } from '@shared/molecules';
 import { PageHeader } from '@apps/counter/CounterShell';
 import { STRINGS } from '@shared/domain/strings';
 import { digitsOnly, fmtDate, formatPhone } from '@shared/domain/format';
@@ -31,17 +31,9 @@ export const CustomersPage: FC = () => {
   const canDelete = can('customer:delete');
   const navigate = useNavigate();
   const toast = useToast();
-  const [query, setQuery] = useState('');
   const [form, setForm] = useState<FormState | null>(null);
   const [mobileError, setMobileError] = useState<string | undefined>();
   const [confirmingDelete, setConfirmingDelete] = useState<Customer | null>(null);
-
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return customers;
-    return customers.filter((c) =>
-      c.name.toLowerCase().includes(q) || c.mobile.includes(q));
-  }, [customers, query]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -75,73 +67,93 @@ export const CustomersPage: FC = () => {
       <PageHeader
         title={STRINGS.customers.pageTitle}
         subtitle={STRINGS.customers.pageSubtitle}
-        actions={<Button variant="primary" leadingIcon="plus" onClick={() => { setMobileError(undefined); setForm(emptyForm()); }}>{STRINGS.customers.addNew}</Button>}
+        actions={
+          <Button
+            variant="primary"
+            leadingIcon="plus"
+            onClick={() => { setMobileError(undefined); setForm(emptyForm()); }}
+          >
+            {STRINGS.customers.addNew}
+          </Button>
+        }
       />
 
-      <div className={cls.card}>
-        <div className={cls.toolbar}>
-          <div className={cls.toolbar__search}>
-            <SearchBar value={query} onChange={setQuery}
-                       placeholder={STRINGS.customers.searchPlaceholder}
-                       clearLabel={STRINGS.customers.clearSearch} />
-          </div>
-        </div>
-
-        {filtered.length === 0 ? (
-          customers.length === 0 ? (
-            <EmptyState
-              icon="user"
-              title={STRINGS.customers.empty}
-              hint={STRINGS.customers.emptyHint}
-            />
-          ) : (
-            <EmptyState
-              icon="search"
-              title={STRINGS.customers.emptySearch}
-              hint={STRINGS.customers.emptySearchHint}
-            />
-          )
-        ) : (
-          <DataTable flush columns={[
-            { key: 'name',    label: STRINGS.customers.columnName },
-            { key: 'mobile',  label: STRINGS.customers.columnMobile },
-            { key: 'email',   label: STRINGS.customers.columnEmail },
-            { key: 'balance', label: STRINGS.customers.columnBalance, numeric: true },
-            { key: 'since',   label: STRINGS.customers.columnSince },
-            { key: 'actions', label: STRINGS.customers.columnActions, actions: true },
-          ]}>
-
-            {filtered.map((c) => (
-              <DataTableRow key={c.id} clickable onClick={() => navigate(`/customers/${c.id}`)}>  
-                    <td><Text weight="semibold" size="sm">{c.name}</Text></td>
-                    <td><Text size="sm">{formatPhone(c.mobile)}</Text></td>
-                    <td><Text size="sm" tone={c.email ? 'default' : 'muted'}>{c.email ?? '—'}</Text></td>
-                    <td className="numeric">
-                      {c.lendingBalance > 0
-                        ? <Badge variant="danger">{money(c.lendingBalance)}</Badge>
-                        : <Badge variant="success">Clear</Badge>}
-                    </td>
-                    <td><Text size="sm" tone="subtle">{fmtDate(c.createdAt)}</Text></td>
-                    <td className="actions">
-                      <Button variant="ghost" size="sm"
-                              onClick={(e) => { e.stopPropagation(); navigate(`/customers/${c.id}`); }}>
-                        {STRINGS.customers.view}
-                      </Button>
-                      {canDelete && (
-                        <Button
-                          variant="danger"
-                          size="sm"
-                          onClick={(e) => { e.stopPropagation(); setConfirmingDelete(c); }}
-                        >
-                          Delete
-                        </Button>
-                      )}
-                    </td>
-              </DataTableRow>
-            ))}
-          </DataTable>
-        )}
-      </div>
+      <DataTable
+        data={customers}
+        getKey={(c) => c.id}
+        searchPlaceholder={STRINGS.customers.searchPlaceholder}
+        searchFn={(c, q) => c.name.toLowerCase().includes(q) || c.mobile.includes(q)}
+        onRowClick={(c) => navigate(`/customers/${c.id}`)}
+        emptyIcon="user"
+        emptyTitle={STRINGS.customers.empty}
+        emptyHint={STRINGS.customers.emptyHint}
+        emptySearchTitle={STRINGS.customers.emptySearch}
+        emptySearchHint={STRINGS.customers.emptySearchHint}
+        defaultPageSize={25}
+        columns={[
+          {
+            key: 'name',
+            label: STRINGS.customers.columnName,
+            sortValue: (c) => c.name,
+            render: (c) => <Text weight="semibold" size="sm">{c.name}</Text>,
+          },
+          {
+            key: 'mobile',
+            label: STRINGS.customers.columnMobile,
+            render: (c) => <Text size="sm">{formatPhone(c.mobile)}</Text>,
+          },
+          {
+            key: 'email',
+            label: STRINGS.customers.columnEmail,
+            render: (c) => (
+              <Text size="sm" tone={c.email ? 'default' : 'muted'}>{c.email ?? '—'}</Text>
+            ),
+          },
+          {
+            key: 'balance',
+            label: STRINGS.customers.columnBalance,
+            numeric: true,
+            sortValue: (c) => c.lendingBalance,
+            render: (c) =>
+              c.lendingBalance > 0 ? (
+                <Badge variant="danger">{money(c.lendingBalance)}</Badge>
+              ) : (
+                <Badge variant="success">Clear</Badge>
+              ),
+          },
+          {
+            key: 'since',
+            label: STRINGS.customers.columnSince,
+            sortValue: (c) => c.createdAt,
+            render: (c) => <Text size="sm" tone="subtle">{fmtDate(c.createdAt)}</Text>,
+          },
+          {
+            key: 'actions',
+            label: STRINGS.customers.columnActions,
+            actions: true,
+            render: (c) => (
+              <>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={(e) => { e.stopPropagation(); navigate(`/customers/${c.id}`); }}
+                >
+                  {STRINGS.customers.view}
+                </Button>
+                {canDelete && (
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    onClick={(e) => { e.stopPropagation(); setConfirmingDelete(c); }}
+                  >
+                    Delete
+                  </Button>
+                )}
+              </>
+            ),
+          },
+        ]}
+      />
 
       {form && (
         <Modal
@@ -150,8 +162,12 @@ export const CustomersPage: FC = () => {
           closeLabel={STRINGS.ariaLabels.closeModal}
           footer={
             <>
-              <Button variant="secondary" onClick={() => setForm(null)}>{STRINGS.common.cancel}</Button>
-              <Button variant="primary" onClick={handleSubmit} leadingIcon="check">{STRINGS.customers.save}</Button>
+              <Button variant="secondary" onClick={() => setForm(null)}>
+                {STRINGS.common.cancel}
+              </Button>
+              <Button variant="primary" onClick={handleSubmit} leadingIcon="check">
+                {STRINGS.customers.save}
+              </Button>
             </>
           }
         >
@@ -179,22 +195,25 @@ export const CustomersPage: FC = () => {
           </form>
         </Modal>
       )}
+
       {confirmingDelete && (
         <ConfirmDialog
           title="Delete customer?"
           message={
             confirmingDelete.lendingBalance > 0
               ? `${confirmingDelete.name} has an outstanding lending balance of ${money(confirmingDelete.lendingBalance)}. Clear it before deleting.`
-              : `${confirmingDelete.name} and all their payment history will be permanently removed. This can’t be undone.`
+              : `${confirmingDelete.name} and all their payment history will be permanently removed. This can't be undone.`
           }
           confirmLabel="Delete customer"
           danger
           onConfirm={async () => {
             const res = await remove(confirmingDelete.id);
             if (!res.ok) {
-              toast.error(res.error === 'hasBalance'
-                ? 'Cannot delete — outstanding balance.'
-                : 'Customer not found.');
+              toast.error(
+                res.error === 'hasBalance'
+                  ? 'Cannot delete — outstanding balance.'
+                  : 'Customer not found.',
+              );
             } else {
               toast.success(`${confirmingDelete.name} deleted.`);
             }

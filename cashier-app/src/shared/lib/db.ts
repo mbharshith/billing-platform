@@ -61,6 +61,28 @@ class AppDB extends Dexie {
         if (!(s as any).status) (s as any).status = 'active';
       });
     });
+
+    // v4 - online orders: add channel + orderStatus indexes on sales. Backfill legacy rows as counter/null.
+    this.version(4).stores({
+      stores:            'id, name, status',
+      users:             'id, username, storeId, role',
+      products:          'id, storeId, [storeId+sku], category, active',
+      customers:         'id, storeId, [storeId+mobile]',
+      sales:             'id, storeId, completedAt, customerId, cashierId, voided, channel, orderStatus, [storeId+channel], [storeId+orderStatus]',
+      customerPayments:  'id, customerId, receivedAt',
+      auditLog:          'id, at, actorUsername, targetStoreId, action',
+    }).upgrade(async (tx) => {
+      await tx.table('sales').toCollection().modify((s) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const row = s as any;
+        if (!row.channel)          row.channel = 'counter';
+        if (row.orderStatus       === undefined) row.orderStatus       = null;
+        if (row.customerName      === undefined) row.customerName      = null;
+        if (row.deliveryAddress   === undefined) row.deliveryAddress   = null;
+        if (row.customerNotes     === undefined) row.customerNotes     = null;
+        if (row.statusHistory     === undefined) row.statusHistory     = null;
+      });
+    });
   }
 }
 

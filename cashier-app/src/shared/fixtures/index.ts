@@ -8,4 +8,5 @@ export { SEED_USERS }     from './users';
 export { SEED_CUSTOMERS } from './customers';
 export { SEED_PRODUCTS }  from './products';
 export { buildDemoSales } from './sales';
+export { buildDemoOrders } from './orders';
 export { DEFAULT_SETTINGS } from './settings';

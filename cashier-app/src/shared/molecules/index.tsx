@@ -16,7 +16,7 @@ import { useMoney } from '@shared/hooks/useMoney';
 interface ProductBadgeProps {
   name: string;
   tone: BadgeTone;
-  size?: 'sm' | 'md';
+  size?: 'xs' | 'sm' | 'md' | 'lg';
 }
 
 export const ProductBadge: FC<ProductBadgeProps> = ({ name, tone, size = 'md' }) => (
@@ -318,11 +318,19 @@ export const PaymentMethodOption: FC<PaymentMethodOptionProps> = ({
 interface PaymentBadgeProps { method: PaymentMethod }
 
 export const PaymentBadge: FC<PaymentBadgeProps> = ({ method }) => {
-  const variantMap = { cash: 'success', card: 'primary', lending: 'accent' } as const;
+  const variantMap = {
+    cash:    'success',
+    card:    'primary',
+    lending: 'accent',
+    cod:     'accent',
+    online:  'primary',
+  } as const;
   const labelMap = {
-    cash: STRINGS.payment.methodCash,
-    card: STRINGS.payment.methodCard,
+    cash:    STRINGS.payment.methodCash,
+    card:    STRINGS.payment.methodCard,
     lending: STRINGS.payment.methodLending,
+    cod:     STRINGS.payment.methodCod,
+    online:  STRINGS.payment.methodOnline,
   };
   return <Badge variant={variantMap[method]}>{labelMap[method]}</Badge>;
 };

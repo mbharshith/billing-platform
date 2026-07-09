@@ -1,11 +1,9 @@
 // ProductsPage — catalog CRUD (admin only).
-// Search, list, add/edit modal, deactivate.
-import { useMemo, useState, type FC, type FormEvent } from 'react';
+import { useState, type FC, type FormEvent } from 'react';
 import cls from './pages.module.css';
 import { Badge, Button, Field, Input, Select, Text } from '@shared/atoms';
 import { Modal } from '@shared/organisms';
-import { ProductBadge, SearchBar } from '@shared/molecules';
-import { EmptyState } from '@shared/molecules';
+import { DataTable, ProductBadge } from '@shared/molecules';
 import { ConfirmDialog } from '@shared/feedback';
 import { PageHeader } from '@apps/counter/CounterShell';
 import { STRINGS } from '@shared/domain/strings';
@@ -28,16 +26,8 @@ export const ProductsPage: FC = () => {
   const { money } = useMoney();
   const { products, create, update, setActive } = useProducts();
   const toast = useToast();
-  const [query, setQuery] = useState('');
   const [form, setForm] = useState<FormState | null>(null);
   const [confirming, setConfirming] = useState<Product | null>(null);
-
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return products;
-    return products.filter((p) =>
-      p.name.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q));
-  }, [products, query]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -48,7 +38,8 @@ export const ProductsPage: FC = () => {
     }
     const payload: ProductInput = {
       sku: form.sku, name: form.name.trim(), price: Number(form.price) || 0,
-      category: form.category, tone: form.tone, stock: Math.max(Math.floor(Number(form.stock) || 0), 0),
+      category: form.category, tone: form.tone,
+      stock: Math.max(Math.floor(Number(form.stock) || 0), 0),
     };
     const result = form.id === null ? await create(payload) : await update(form.id, payload);
     if (!result.ok) {
@@ -72,79 +63,93 @@ export const ProductsPage: FC = () => {
       <PageHeader
         title={STRINGS.products.pageTitle}
         subtitle={STRINGS.products.pageSubtitle}
-        actions={<Button variant="primary" leadingIcon="plus" onClick={() => setForm(emptyForm())}>{STRINGS.products.addNew}</Button>}
+        actions={
+          <Button variant="primary" leadingIcon="plus" onClick={() => setForm(emptyForm())}>
+            {STRINGS.products.addNew}
+          </Button>
+        }
       />
 
-      <div className={cls.card}>
-        <div className={cls.toolbar}>
-          <div className={cls.toolbar__search}>
-            <SearchBar value={query} onChange={setQuery}
-                       placeholder={STRINGS.products.searchPlaceholder} clearLabel={STRINGS.products.clearSearch} />
-          </div>
-        </div>
-
-        {filtered.length === 0 ? (
-          products.length === 0 ? (
-            <EmptyState
-              icon="bag"
-              title={STRINGS.products.empty}
-              hint={STRINGS.products.emptyHint}
-            />
-          ) : (
-            <EmptyState
-              icon="search"
-              title={STRINGS.products.emptySearch}
-              hint={STRINGS.products.emptySearchHint}
-            />
-          )
-        ) : (
-          <div className={cls.tableWrap}>
-            <table className={cls.table}>
-              <thead>
-                <tr>
-                  <th>{STRINGS.products.columnSku}</th>
-                  <th>{STRINGS.products.columnName}</th>
-                  <th>Category</th>
-                  <th className="numeric">{STRINGS.products.columnPrice}</th>
-                  <th className="numeric">{STRINGS.products.columnStock}</th>
-                  <th>{STRINGS.products.columnStatus}</th>
-                  <th className="actions">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((p) => (
-                  <tr key={p.id} className={!p.active ? cls.mutedRow : undefined}>
-                    <td><Text size="sm" weight="semibold">{p.sku}</Text></td>
-                    <td>
-                      <span className={cls.rowChip}>
-                        <ProductBadge name={p.name} tone={p.tone} size="sm" />
-                        <Text weight="semibold" size="sm">{p.name}</Text>
-                      </span>
-                    </td>
-                    <td><Text size="sm" tone="subtle">{p.category}</Text></td>
-                    <td className="numeric"><Text weight="semibold" size="sm">{money(p.price)}</Text></td>
-                    <td className="numeric"><Text size="sm">{p.stock}</Text></td>
-                    <td>
-                      <Badge variant={p.active ? 'success' : 'danger'}>
-                        {p.active ? STRINGS.products.active : STRINGS.products.inactive}
-                      </Badge>
-                    </td>
-                    <td className="actions">
-                      <Button variant="ghost" size="sm" onClick={() => setForm(fromProduct(p))}>
-                        {STRINGS.products.edit}
-                      </Button>
-                      <Button variant={p.active ? 'danger' : 'secondary'} size="sm"
-                              onClick={() => handleToggle(p)}>
-                        {p.active ? STRINGS.products.deactivate : STRINGS.products.activate}
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+      <DataTable
+        data={products}
+        getKey={(p) => p.id}
+        searchPlaceholder={STRINGS.products.searchPlaceholder}
+        searchFn={(p, q) => p.name.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q)}
+        getRowMuted={(p) => !p.active}
+        emptyIcon="bag"
+        emptyTitle={STRINGS.products.empty}
+        emptyHint={STRINGS.products.emptyHint}
+        emptySearchTitle={STRINGS.products.emptySearch}
+        emptySearchHint={STRINGS.products.emptySearchHint}
+        defaultPageSize={25}
+        columns={[
+          {
+            key: 'sku',
+            label: STRINGS.products.columnSku,
+            sortValue: (p) => p.sku,
+            render: (p) => <Text size="sm" weight="semibold">{p.sku}</Text>,
+          },
+          {
+            key: 'name',
+            label: STRINGS.products.columnName,
+            sortValue: (p) => p.name,
+            render: (p) => (
+              <span className={cls.rowChip}>
+                <ProductBadge name={p.name} tone={p.tone} size="sm" />
+                <Text weight="semibold" size="sm">{p.name}</Text>
+              </span>
+            ),
+          },
+          {
+            key: 'category',
+            label: 'Category',
+            sortValue: (p) => p.category,
+            render: (p) => <Text size="sm" tone="subtle">{p.category}</Text>,
+          },
+          {
+            key: 'price',
+            label: STRINGS.products.columnPrice,
+            numeric: true,
+            sortValue: (p) => p.price,
+            render: (p) => <Text weight="semibold" size="sm">{money(p.price)}</Text>,
+          },
+          {
+            key: 'stock',
+            label: STRINGS.products.columnStock,
+            numeric: true,
+            sortValue: (p) => p.stock,
+            render: (p) => <Text size="sm">{p.stock}</Text>,
+          },
+          {
+            key: 'status',
+            label: STRINGS.products.columnStatus,
+            render: (p) => (
+              <Badge variant={p.active ? 'success' : 'danger'}>
+                {p.active ? STRINGS.products.active : STRINGS.products.inactive}
+              </Badge>
+            ),
+          },
+          {
+            key: 'actions',
+            label: 'Actions',
+            actions: true,
+            render: (p) => (
+              <>
+                <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); setForm(fromProduct(p)); }}>
+                  {STRINGS.products.edit}
+                </Button>
+                <Button
+                  variant={p.active ? 'danger' : 'secondary'}
+                  size="sm"
+                  onClick={(e) => { e.stopPropagation(); void handleToggle(p); }}
+                >
+                  {p.active ? STRINGS.products.deactivate : STRINGS.products.activate}
+                </Button>
+              </>
+            ),
+          },
+        ]}
+      />
 
       {form && (
         <Modal

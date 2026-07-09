@@ -19,6 +19,9 @@ export const BRAND = {
 
   // Prefix for localStorage / sessionStorage keys. Namespaces multiple products on one origin.
   storagePrefix: 'quickbill',
+
+  // Base domain for the storefront. Subdomains under this map to tenant slugs.
+  platformApex: 'quickbill.shop',
 } as const;
 
 export type Brand = typeof BRAND;

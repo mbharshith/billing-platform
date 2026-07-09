@@ -1,17 +1,12 @@
-// SalesContext — Dexie-backed sales ledger, store-scoped.
-
-// Sales - reads via useLiveQuery (real-time updates across tabs), store-scoped by index lookup.
-
-// The demo-seed effect runs exactly once when the sales table is empty
-// and the required parents (products + customers + stores) have loaded.
+// SalesContext - Dexie-backed sales ledger, store-scoped. Covers both counter and online orders.
 import {
   createContext, useCallback, useContext, useEffect, useMemo,
   type FC, type ReactNode,
 } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { buildDemoSales } from '@shared/fixtures';
+import { buildDemoSales, buildDemoOrders } from '@shared/fixtures';
 import { db } from '@shared/lib/db';
-import type { Sale } from '@shared/domain/types';
+import type { Sale, OrderStatus, OrderStatusEvent } from '@shared/domain/types';
 import { useCurrentStoreId } from './AuthContext';
 import { useCustomers } from './CustomersContext';
 import { useProducts } from './ProductsContext';
@@ -27,6 +22,9 @@ interface SalesContextValue {
   readonly recordSale: (sale: Sale) => Promise<void>;
   readonly voidSale: (id: string, reason: string) => Promise<void>;
   readonly clearSales: () => Promise<void>;
+  // Online-order lifecycle helpers.
+  readonly placeOnlineOrder: (sale: Sale) => Promise<void>;
+  readonly advanceOrderStatus: (id: string, next: OrderStatus, by: string, note?: string) => Promise<void>;
 }
 
 const SalesContext = createContext<SalesContextValue | null>(null);
@@ -39,57 +37,74 @@ export const SalesProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const { allCustomers } = useCustomers();
   const { stores } = useStores();
 
-  /* -- scoped read (dashboard / sales page / etc.) ---------------------- */
+  // -- scoped read (dashboard / sales page / etc.) ------------------------
   const scoped = useLiveQuery(
     async () => {
       if (!currentStoreId) return EMPTY;
-      // Fetch the tenant's rows via the `storeId` index, then order by
-      // completedAt descending in memory (per-tenant list, not global).
-      const rows = await db.sales
-        .where('storeId').equals(currentStoreId).toArray();
+      const rows = await db.sales.where('storeId').equals(currentStoreId).toArray();
       return rows.sort((a, b) => b.completedAt.localeCompare(a.completedAt));
     },
     [currentStoreId],
     EMPTY,
   ) ?? EMPTY;
 
-  /* -- unscoped: vendor dashboard + cross-store reporting only ---------- */
+  // -- unscoped: vendor dashboard + cross-store reporting only ------------
   const all = useLiveQuery(
     () => db.sales.orderBy('completedAt').reverse().toArray(),
     [],
     EMPTY,
   ) ?? EMPTY;
 
-  /* -- one-shot demo seeder --------------------------------------------- */
-  // Fires once when: no sales exist AND products/customers/stores are ready.
-  // `db.sales.count()` gate makes it idempotent across reloads.
+  // -- one-shot demo seeder -----------------------------------------------
+  // Counter sales seed once when the sales table is empty.
+  // Online orders seed separately: if no online orders exist for any tenant,
+  // backfill them. That way an existing DB (pre-v4) gets orders without wiping counter history.
   useEffect(() => {
     if (allProducts.length === 0 || stores.length === 0) return;
     let cancelled = false;
     (async () => {
-      const existing = await db.sales.count();
-      if (existing > 0 || cancelled) return;
+      const totalSales = await db.sales.count();
+      const onlineCount = await db.sales.where('channel').equals('online').count();
 
       const customerIdsByStore: Record<string, { id: string; mobile: string }[]> = {};
+      const customerIdByMobile = new Map<string, string>();
       allCustomers.forEach((c) => {
         (customerIdsByStore[c.storeId] ??= []).push({ id: c.id, mobile: c.mobile });
+        customerIdByMobile.set(`${c.storeId}::${c.mobile}`, c.id);
       });
       const taxRateByStore: Record<string, number> = {};
       stores.forEach((s) => { taxRateByStore[s.id] = s.taxRate; });
 
-      const demo = buildDemoSales({
-        products: allProducts,
-        customerIdsByStore,
-        taxRateByStore,
-      });
-      if (demo.length > 0) await db.sales.bulkAdd(demo);
+      if (totalSales === 0 && !cancelled) {
+        const demo = buildDemoSales({ products: allProducts, customerIdsByStore, taxRateByStore });
+        if (demo.length > 0) await db.sales.bulkAdd(demo);
+      }
+      if (onlineCount === 0 && !cancelled) {
+        const orders = buildDemoOrders({ products: allProducts, taxRateByStore, customerIdByMobile });
+        if (orders.length > 0) await db.sales.bulkAdd(orders);
+      }
     })();
     return () => { cancelled = true; };
   }, [allProducts, allCustomers, stores]);
 
-  /* -- writes ------------------------------------------------------------ */
+  // -- writes -------------------------------------------------------------
   const recordSale = useCallback(async (sale: Sale) => {
     await db.sales.add(sale);
+  }, []);
+
+  const placeOnlineOrder = useCallback(async (sale: Sale) => {
+    // Same as recordSale from a persistence standpoint - separate name signals intent.
+    await db.sales.add(sale);
+  }, []);
+
+  const advanceOrderStatus = useCallback(async (
+    id: string, next: OrderStatus, by: string, note: string = '',
+  ) => {
+    const existing = await db.sales.get(id);
+    if (!existing) return;
+    const event: OrderStatusEvent = { status: next, at: new Date().toISOString(), by, note };
+    const history: readonly OrderStatusEvent[] = [...(existing.statusHistory ?? []), event];
+    await db.sales.update(id, { orderStatus: next, statusHistory: history });
   }, []);
 
   const voidSale = useCallback(async (id: string, reason: string) => {
@@ -104,7 +119,7 @@ export const SalesProvider: FC<{ children: ReactNode }> = ({ children }) => {
     await db.sales.clear();
   }, []);
 
-  /* -- selectors (in-memory over the already-scoped list) --------------- */
+  // -- selectors (in-memory over the already-scoped list) -----------------
   const byId = useCallback(
     (id: string) => scoped.find((s) => s.id === id) ?? all.find((s) => s.id === id),
     [scoped, all],
@@ -118,7 +133,8 @@ export const SalesProvider: FC<{ children: ReactNode }> = ({ children }) => {
     sales: scoped,
     allSales: all,
     byId, forCustomer, recordSale, voidSale, clearSales,
-  }), [scoped, all, byId, forCustomer, recordSale, voidSale, clearSales]);
+    placeOnlineOrder, advanceOrderStatus,
+  }), [scoped, all, byId, forCustomer, recordSale, voidSale, clearSales, placeOnlineOrder, advanceOrderStatus]);
 
   return <SalesContext.Provider value={value}>{children}</SalesContext.Provider>;
 };

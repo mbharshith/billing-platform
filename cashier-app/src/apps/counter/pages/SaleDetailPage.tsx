@@ -3,7 +3,7 @@ import { useState, type FC } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import cls from './pages.module.css';
 import { Badge, Button, Field, Text, Textarea } from '@shared/atoms';
-import { PaymentBadge, ProductBadge } from '@shared/molecules';
+import { DataTable, PaymentBadge, ProductBadge } from '@shared/molecules';
 import { Modal } from '@shared/organisms';
 import { PageHeader } from '@apps/counter/CounterShell';
 import { STRINGS } from '@shared/domain/strings';
@@ -130,34 +130,13 @@ export const SaleDetailPage: FC = () => {
           <Text as="h2" size="lg" weight="bold">{STRINGS.receipt.itemsSold}</Text>
           <Badge variant="neutral">{STRINGS.sales.units(sale.unitCount)}</Badge>
         </div>
-        <div className={cls.tableWrap}>
-          <table className={cls.table}>
-            <thead>
-              <tr>
-                <th>{STRINGS.sales.columnProduct}</th>
-                <th>{STRINGS.sales.columnSku}</th>
-                <th className="numeric">{STRINGS.sales.columnQty}</th>
-                <th className="numeric">{STRINGS.sales.columnUnitPrice}</th>
-                <th className="numeric">{STRINGS.sales.columnLineTotal}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {sale.lines.map((l) => (
-                <tr key={l.productId}>
-                  <td>
-                    <span className={cls.rowChip}>
-                      <ProductBadge name={l.name} tone={l.tone} size="sm" />
-                      <Text weight="semibold" size="sm">{l.name}</Text>
-                    </span>
-                  </td>
-                  <td><Text size="sm" tone="subtle">{l.sku}</Text></td>
-                  <td className="numeric"><Text size="sm">{l.quantity}</Text></td>
-                  <td className="numeric"><Text size="sm">{money(l.unitPrice)}</Text></td>
-                  <td className="numeric"><Text weight="bold" size="sm">{money(l.lineTotal)}</Text></td>
-                </tr>
-              ))}
-            </tbody>
-            <tfoot>
+        <DataTable
+          flush
+          data={sale.lines}
+          getKey={(l) => l.productId}
+          hidePagination
+          footer={
+            <>
               <tr>
                 <td colSpan={4} className={cls.alignRight}>
                   <Text size="sm" tone="subtle">{STRINGS.cashier.subtotal}</Text>
@@ -180,9 +159,47 @@ export const SaleDetailPage: FC = () => {
                   </Text>
                 </td>
               </tr>
-            </tfoot>
-          </table>
-        </div>
+            </>
+          }
+          columns={[
+            {
+              key: 'product',
+              label: STRINGS.sales.columnProduct,
+              render: (l) => (
+                <span className={cls.rowChip}>
+                  <ProductBadge name={l.name} tone={l.tone} size="sm" />
+                  <Text weight="semibold" size="sm">{l.name}</Text>
+                </span>
+              ),
+            },
+            {
+              key: 'sku',
+              label: STRINGS.sales.columnSku,
+              render: (l) => <Text size="sm" tone="subtle">{l.sku}</Text>,
+            },
+            {
+              key: 'qty',
+              label: STRINGS.sales.columnQty,
+              numeric: true,
+              sortValue: (l) => l.quantity,
+              render: (l) => <Text size="sm">{l.quantity}</Text>,
+            },
+            {
+              key: 'unitPrice',
+              label: STRINGS.sales.columnUnitPrice,
+              numeric: true,
+              sortValue: (l) => l.unitPrice,
+              render: (l) => <Text size="sm">{money(l.unitPrice)}</Text>,
+            },
+            {
+              key: 'lineTotal',
+              label: STRINGS.sales.columnLineTotal,
+              numeric: true,
+              sortValue: (l) => l.lineTotal,
+              render: (l) => <Text weight="bold" size="sm">{money(l.lineTotal)}</Text>,
+            },
+          ]}
+        />
       </div>
 
       {voidOpen && (

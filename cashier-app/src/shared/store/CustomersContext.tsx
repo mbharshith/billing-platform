@@ -48,7 +48,7 @@ interface CustomersContextValue {
   }) => Promise<
     { ok: true } | { ok: false; error: 'tooHigh' | 'invalid' | 'notFound' }
   >;
-  readonly ensureFromMobile: (mobile: string, defaultName?: string) => Promise<Customer | null>;
+  readonly ensureFromMobile: (mobile: string, storeIdOverride?: string, defaultName?: string) => Promise<Customer | null>;
 }
 
 const CustomersContext = createContext<CustomersContextValue | null>(null);
@@ -173,20 +173,28 @@ export const CustomersProvider: FC<{ children: ReactNode }> = ({ children }) => 
   }, []);
 
   const ensureFromMobile = useCallback(
-    async (mobile: string, defaultName?: string): Promise<Customer | null> => {
-      if (!currentStoreId) return null;
+    async (mobile: string, storeIdOverride?: string, defaultName?: string): Promise<Customer | null> => {
+      const storeId = storeIdOverride ?? currentStoreId;
+      if (!storeId) return null;
       const existing = await db.customers
-        .where('[storeId+mobile]').equals([currentStoreId, mobile]).first();
-      if (existing) return existing;
+        .where('[storeId+mobile]').equals([storeId, mobile]).first();
+      if (existing) {
+        // If we have a defaultName and existing customer's name looks auto-generated, upgrade it.
+        if (defaultName && existing.name.startsWith('Customer · ')) {
+          await db.customers.update(existing.id, { name: defaultName.trim() });
+          return { ...existing, name: defaultName.trim() };
+        }
+        return existing;
+      }
       const customer: Customer = {
         id: crypto.randomUUID(),
         name: defaultName?.trim() || `Customer · ${mobile}`,
         mobile,
         email: null,
-        notes: 'Auto-created from lending sale.',
+        notes: storeIdOverride ? 'Auto-created from online order.' : 'Auto-created from lending sale.',
         lendingBalance: 0,
         createdAt: new Date().toISOString(),
-        storeId: currentStoreId,
+        storeId,
       };
       await db.customers.add(customer);
       return customer;

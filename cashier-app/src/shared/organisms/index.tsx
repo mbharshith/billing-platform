@@ -777,6 +777,13 @@ export const buildSale = (input: BuildSaleInput): Sale => ({
   voidedAt: null,
   voidedReason: null,
   storeId: input.storeId,
+  // Counter sales - null for every online-only field.
+  channel: 'counter',
+  orderStatus: null,
+  customerName: null,
+  deliveryAddress: null,
+  customerNotes: null,
+  statusHistory: null,
 });
 
 // Re-export spinner for pages that need it

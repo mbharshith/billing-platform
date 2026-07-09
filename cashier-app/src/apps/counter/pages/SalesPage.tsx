@@ -1,11 +1,13 @@
-// SalesPage — all sales, filterable by date range / payment / status,
-// with pagination for large datasets.
-import { useEffect, useMemo, useState, type FC } from 'react';
+// SalesPage — all sales, filterable by date range / payment / status.
+import { useMemo, useState, type FC } from 'react';
 import { useNavigate } from 'react-router-dom';
 import cls from './pages.module.css';
 import { Badge, Button, Text } from '@shared/atoms';
 import {
-  DateRangeFilter, EmptyState, Pagination, PaymentBadge, SearchBar,
+  DataTable,
+  DateRangeFilter,
+  PaymentBadge,
+  SearchBar,
   type DateRangeKey,
 } from '@shared/molecules';
 import { PageHeader } from '@apps/counter/CounterShell';
@@ -20,8 +22,6 @@ import type { PaymentMethod } from '@shared/domain/types';
 type PaymentFilter = 'all' | PaymentMethod;
 type StatusFilter  = 'all' | 'active' | 'voided';
 
-const DEFAULT_PAGE_SIZE = 25;
-
 export const SalesPage: FC = () => {
   const { money } = useMoney();
   const { sales } = useSales();
@@ -32,16 +32,9 @@ export const SalesPage: FC = () => {
   const [query,   setQuery]   = useState('');
   const [payment, setPayment] = useState<PaymentFilter>('all');
   const [status,  setStatus]  = useState<StatusFilter>('all');
-  // Cashiers are locked to today — they never see other days' revenue.
   const [dateRange, setDateRange] = useState<DateRangeKey>(canSeeAllTime ? 'all' : 'today');
   const [customFrom, setCustomFrom] = useState('');
   const [customTo,   setCustomTo]   = useState('');
-
-  const [page,     setPage]     = useState(1);
-  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
-
-  // Any filter change resets to page 1 so users don't get stranded on empty pages.
-  useEffect(() => { setPage(1); }, [query, payment, status, dateRange, customFrom, customTo, pageSize]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -75,11 +68,6 @@ export const SalesPage: FC = () => {
     }
     return { revenue, units, count: filtered.filter((s) => !s.voided).length };
   }, [filtered]);
-
-  const pageItems = useMemo(
-    () => filtered.slice((page - 1) * pageSize, page * pageSize),
-    [filtered, page, pageSize],
-  );
 
   const chip = (label: string, active: boolean, onClick: () => void) => (
     <Button variant={active ? 'primary' : 'secondary'} size="sm" onClick={onClick}>
@@ -129,89 +117,96 @@ export const SalesPage: FC = () => {
         <div className={cls.statsBar}>
           <Text size="sm">
             <b>{totals.count.toLocaleString()}</b> sales
-            {' · '}<b>{totals.units.toLocaleString()}</b> units
-            {' · '}<b>{money(totals.revenue)}</b> revenue
+            {' \u00b7 '}<b>{totals.units.toLocaleString()}</b> units
+            {' \u00b7 '}<b>{money(totals.revenue)}</b> revenue
           </Text>
         </div>
 
-        {filtered.length === 0 ? (
-          sales.length === 0 ? (
-            <EmptyState
-              icon="receipt"
-              title={STRINGS.sales.empty}
-              hint={STRINGS.sales.emptyHint}
-            />
-          ) : (
-            <EmptyState
-              icon="search"
-              title="No sales match your filters"
-              hint="Try widening the date range or payment filters."
-            />
-          )
-        ) : (
-          <>
-            <div className={cls.tableWrap}>
-              <table className={cls.table}>
-                <thead>
-                  <tr>
-                    <th>Invoice</th>
-                    <th>Date &amp; time</th>
-                    <th className="numeric">Items</th>
-                    <th>Payment</th>
-                    <th>Customer</th>
-                    <th>Cashier</th>
-                    <th>Status</th>
-                    <th className="numeric">Total</th>
-                    <th className="actions">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {pageItems.map((s) => (
-                    <tr
-                      key={s.id}
-                      className={cls.clickable}
-                      onClick={() => navigate(`/sales/${s.id}`)}
-                    >
-                      <td><Text weight="semibold" size="sm" tone="primary">{s.invoiceNo}</Text></td>
-                      <td><Text size="sm" tone="subtle">{fmtDateTime(s.completedAt)}</Text></td>
-                      <td className="numeric"><Text size="sm">{s.unitCount}</Text></td>
-                      <td><PaymentBadge method={s.paymentMethod} /></td>
-                      <td><Text size="sm" tone={s.customerMobile ? 'default' : 'muted'}>{s.customerMobile ?? 'Walk-in'}</Text></td>
-                      <td><Text size="sm" tone="subtle">{s.cashierName}</Text></td>
-                      <td>
-                        {s.voided
-                          ? <Badge variant="danger">{STRINGS.sales.voidedBadge}</Badge>
-                          : <Badge variant="success">Complete</Badge>}
-                      </td>
-                      <td className="numeric">
-                        <Text weight="bold" size="sm" tone={s.voided ? 'muted' : 'default'}>
-                          {money(s.total)}
-                        </Text>
-                      </td>
-                      <td className="actions">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={(e) => { e.stopPropagation(); navigate(`/sales/${s.id}`); }}
-                        >
-                          {STRINGS.sales.view}
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            <Pagination
-              page={page}
-              pageSize={pageSize}
-              totalItems={filtered.length}
-              onPageChange={setPage}
-              onPageSizeChange={setPageSize}
-            />
-          </>
-        )}
+        <DataTable
+          flush
+          data={filtered}
+          getKey={(s) => s.id}
+          onRowClick={(s) => navigate(`/sales/${s.id}`)}
+          defaultPageSize={25}
+          emptyIcon="receipt"
+          emptyTitle={sales.length === 0 ? STRINGS.sales.empty : 'No sales match your filters'}
+          emptyHint={sales.length === 0 ? STRINGS.sales.emptyHint : 'Try widening the date range or payment filters.'}
+          columns={[
+            {
+              key: 'invoice',
+              label: 'Invoice',
+              sortValue: (s) => s.invoiceNo,
+              render: (s) => <Text weight="semibold" size="sm" tone="primary">{s.invoiceNo}</Text>,
+            },
+            {
+              key: 'date',
+              label: 'Date & time',
+              sortValue: (s) => s.completedAt,
+              render: (s) => <Text size="sm" tone="subtle">{fmtDateTime(s.completedAt)}</Text>,
+            },
+            {
+              key: 'items',
+              label: 'Items',
+              numeric: true,
+              sortValue: (s) => s.unitCount,
+              render: (s) => <Text size="sm">{s.unitCount}</Text>,
+            },
+            {
+              key: 'payment',
+              label: 'Payment',
+              render: (s) => <PaymentBadge method={s.paymentMethod} />,
+            },
+            {
+              key: 'customer',
+              label: 'Customer',
+              render: (s) => (
+                <Text size="sm" tone={s.customerMobile ? 'default' : 'muted'}>
+                  {s.customerMobile ?? 'Walk-in'}
+                </Text>
+              ),
+            },
+            {
+              key: 'cashier',
+              label: 'Cashier',
+              render: (s) => <Text size="sm" tone="subtle">{s.cashierName}</Text>,
+            },
+            {
+              key: 'status',
+              label: 'Status',
+              render: (s) =>
+                s.voided ? (
+                  <Badge variant="danger">{STRINGS.sales.voidedBadge}</Badge>
+                ) : (
+                  <Badge variant="success">Complete</Badge>
+                ),
+            },
+            {
+              key: 'total',
+              label: 'Total',
+              numeric: true,
+              sortValue: (s) => s.total,
+              render: (s) => (
+                <Text weight="bold" size="sm" tone={s.voided ? 'muted' : 'default'}>
+                  {money(s.total)}
+                </Text>
+              ),
+            },
+            {
+              key: 'actions',
+              label: 'Actions',
+              actions: true,
+              render: (s) => (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={(e) => { e.stopPropagation(); navigate(`/sales/${s.id}`); }}
+                >
+                  {STRINGS.sales.view}
+                </Button>
+              ),
+            },
+          ]}
+        />
       </div>
     </>
   );

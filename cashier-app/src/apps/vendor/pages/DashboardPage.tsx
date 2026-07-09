@@ -5,11 +5,13 @@ import { useMemo, type FC } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import cls from '../vendor.module.css';
 import { Icon, Text } from '@shared/atoms';
+import { DataTable } from '@shared/molecules';
 import { db } from '@shared/lib/db';
 import { fmtDate, fmtDateTime, formatMoney, formatMoneyCompact, formatNumberCompact, num } from '@shared/domain/format';
+import { BRAND } from '@shared/brand';
 import { useStores } from '@shared/store/StoresContext';
 import { VENDOR_SCOPE } from '@shared/domain/types';
-import { EmptyState, SectionCard, StatusPill, useTenantStats } from '../hooks';
+import { SectionCard, StatusPill, useTenantStats } from '../hooks';
 
 export const DashboardPage: FC = () => {
   const { stores } = useStores();
@@ -51,7 +53,7 @@ export const DashboardPage: FC = () => {
       <div className={cls.pageHead}>
         <div>
           <h1>Fleet overview</h1>
-          <p>Cross-tenant metrics for the entire QuickBill SaaS.</p>
+          <p>Cross-tenant metrics for the entire {BRAND.name} SaaS.</p>
         </div>
       </div>
 
@@ -90,39 +92,56 @@ export const DashboardPage: FC = () => {
       </SectionCard>
 
       <SectionCard title="Top tenants by revenue" subtitle="Ranked in each tenant's native currency.">
-        {topTenants.length === 0 ? (
-          <EmptyState title="No tenants yet" hint="Onboard your first customer from the Tenants tab." />
-        ) : (
-          <div className={`${cls.tableWrap} ${cls['tableWrap--flush']}`}>
-            <table className={cls.table}>
-              <thead>
-                <tr>
-                  <th>Tenant</th>
-                  <th>Status</th>
-                  <th className={cls.numeric}>Sales</th>
-                  <th className={cls.numeric}>Revenue</th>
-                  <th>Last sale</th>
-                </tr>
-              </thead>
-              <tbody>
-                {topTenants.map(({ store, revenue, sales, lastSaleAt }) => (
-                  <tr key={store.id}>
-                    <td>
-                      <div className={cls.rowMain}>{store.name}</div>
-                      <div className={cls.rowSub}>{store.city} · {store.currency}</div>
-                    </td>
-                    <td><StatusPill status={store.status} /></td>
-                    <td className={cls.numeric}>{sales}</td>
-                    <td className={cls.numeric}>{formatMoney(revenue, store.currency)}</td>
-                    <td className={cls.rowSub}>
-                      {lastSaleAt ? fmtDateTime(lastSaleAt) : '—'}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+        <DataTable
+          flush
+          data={topTenants}
+          getKey={({ store }) => store.id}
+          hidePagination
+          emptyTitle="No tenants yet"
+          emptyHint="Onboard your first customer from the Tenants tab."
+          columns={[
+            {
+              key: 'tenant',
+              label: 'Tenant',
+              sortValue: ({ store }) => store.name,
+              render: ({ store }) => (
+                <>
+                  <div className={cls.rowMain}>{store.name}</div>
+                  <div className={cls.rowSub}>{store.city} · {store.currency}</div>
+                </>
+              ),
+            },
+            {
+              key: 'status',
+              label: 'Status',
+              render: ({ store }) => <StatusPill status={store.status} />,
+            },
+            {
+              key: 'sales',
+              label: 'Sales',
+              numeric: true,
+              sortValue: ({ sales }) => sales,
+              render: ({ sales }) => <Text size="sm">{sales}</Text>,
+            },
+            {
+              key: 'revenue',
+              label: 'Revenue',
+              numeric: true,
+              sortValue: ({ revenue }) => revenue,
+              render: ({ store, revenue }) => (
+                <Text size="sm">{formatMoney(revenue, store.currency)}</Text>
+              ),
+            },
+            {
+              key: 'lastSale',
+              label: 'Last sale',
+              sortValue: ({ lastSaleAt }) => lastSaleAt ?? '',
+              render: ({ lastSaleAt }) => (
+                <span className={cls.rowSub}>{lastSaleAt ? fmtDateTime(lastSaleAt) : '—'}</span>
+              ),
+            },
+          ]}
+        />
       </SectionCard>
 
       <SectionCard title="Recent signups" subtitle="Latest tenants provisioned by you.">
