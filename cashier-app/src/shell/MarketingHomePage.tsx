@@ -108,7 +108,12 @@ const Nav: FC = () => (
       </div>
       <div className={cls.nav__actions}>
         <ThemeToggle />
-        <Link to="/login" className={`${cls.btn} ${cls.btnPrimary}`}>Sign in</Link>
+        <Link
+              to="/login"
+              className={`${cls.btn} ${cls.btnPrimary}`}
+              onMouseEnter={() => { void import('./LoginPage').catch(() => {}); }}
+              onFocus={() => { void import('./LoginPage').catch(() => {}); }}
+            >Sign in</Link>
       </div>
     </div>
   </nav>
@@ -264,7 +269,18 @@ export const MarketingHomePage: FC = () => {
           />
           <div className={cls.demoGrid}>
             {DEMO_TENANTS.map((t) => (
-              <Link key={t.slug} to={`/${t.slug}`} className={cls.demoCard}>
+              <Link
+                key={t.slug}
+                to={`/${t.slug}`}
+                className={cls.demoCard}
+                /* Hover-prefetch the storefront chunk so click-to-render
+                   feels instant. onMouseEnter fires ~200ms before click,
+                   giving Vite time to fetch + parse the module. Silent
+                   catch: prefetch is a delight-only optimization, never
+                   surface an error to the user. */
+                onMouseEnter={() => { void import('@apps/storefront/StorefrontApp').catch(() => {}); }}
+                onFocus={() => { void import('@apps/storefront/StorefrontApp').catch(() => {}); }}
+              >
                 <div className={cls.demoCard__figure}>
                   <img src={t.image} alt={`${t.label} storefront example`} loading="lazy" />
                 </div>
@@ -312,7 +328,12 @@ export const MarketingHomePage: FC = () => {
           </p>
           <div className={cls.ctaBanner__ctas}>
             <Link to="/velvet" className={`${cls.btn} ${cls.btnPrimary}`}>Explore a live shop</Link>
-            <Link to="/login" className={`${cls.btn} ${cls.btnGhost}`}>Sign in</Link>
+            <Link
+                to="/login"
+                className={`${cls.btn} ${cls.btnGhost}`}
+                onMouseEnter={() => { void import('./LoginPage').catch(() => {}); }}
+                onFocus={() => { void import('./LoginPage').catch(() => {}); }}
+              >Sign in</Link>
             <a href="#contact" className={`${cls.btn} ${cls.btnGhost}`}>Get in touch</a>
           </div>
         </div>

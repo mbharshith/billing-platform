@@ -4,23 +4,30 @@
 // URL architecture (final):
 //   /                    -> SaaS marketing home (public, no auth)
 //   /login               -> auth
-//   /dashboard/*         -> SaaS owner console (Walmart-level, vendor role)
-//   /<slug>              -> customer shop (public, per-tenant, e.g. /myntra)
-//   /<slug>/cashier/*    -> tenant POS (staff auth, e.g. /myntra/cashier)
-//   /<slug>/admin/*      -> tenant admin (admin auth, e.g. /myntra/admin)
+//   /dashboard/*         -> SaaS owner console (platform vendor role)
+//   /<slug>              -> customer shop (public, per-tenant, e.g. /velvet)
+//   /<slug>/cashier/*    -> tenant POS (staff auth, e.g. /velvet/cashier)
+//   /<slug>/admin/*      -> tenant admin (admin auth, e.g. /velvet/admin)
 //
 // Legacy URLs redirect to their new equivalents so bookmarks/QR codes keep
 // working. Reserved slugs live in @shared/lib/tenantSlug.
 import { lazy, Suspense, type FC, type JSX } from 'react';
 import { BrowserRouter, Navigate, Route, Routes, useLocation, useParams } from 'react-router-dom';
 import { AppSplash, ErrorBoundary, NotFoundPage } from '@shared/errors';
-import { LoginPage } from './LoginPage';
-import { MarketingHomePage } from './MarketingHomePage';
 import { ProtectedRoute, AdminRoute, VendorRoute } from './RouteGuards';
 
 /* -------------------------------------------------------------------------- */
-/* Sub-apps - lazy so each ships its own JS chunk                             */
+/* Route-level code splits - every page below is its own JS chunk.            */
+/*                                                                            */
+/* Rationale:                                                                 */
+/*  - Staff who log straight into /cashier never download marketing/vendor.   */
+/*  - Public marketing visitors never download login/admin.                   */
+/*  - Vendor console (Recharts + tables) stays isolated from everything else. */
 /* -------------------------------------------------------------------------- */
+const MarketingHomePage = lazy(() => import('./MarketingHomePage')
+  .then((m) => ({ default: m.MarketingHomePage })));
+const LoginPage         = lazy(() => import('./LoginPage')
+  .then((m) => ({ default: m.LoginPage })));
 const CashierApp    = lazy(() => import('@apps/counter/CounterApp')
   .then((m) => ({ default: m.CashierApp })));
 const AdminApp      = lazy(() => import('@apps/counter/CounterApp')
@@ -69,10 +76,10 @@ export const Shell: FC = () => (
     <ErrorBoundary label="shell">
       <Routes>
         {/* ---------- SaaS marketing home ---------- */}
-        <Route path="/" element={<ErrorBoundary label="marketing"><MarketingHomePage /></ErrorBoundary>} />
+        <Route path="/" element={SubApp('marketing', <MarketingHomePage />)} />
 
         {/* ---------- auth ---------- */}
-        <Route path="/login" element={<ErrorBoundary label="login"><LoginPage /></ErrorBoundary>} />
+        <Route path="/login" element={SubApp('login', <LoginPage />)} />
         <Route path="/signup" element={<Navigate to="/login?onboard=1" replace />} />
 
         {/* ---------- SaaS owner console (vendor role) ---------- */}
