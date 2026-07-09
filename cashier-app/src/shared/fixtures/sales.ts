@@ -1,18 +1,18 @@
 /**
- * Demo-sales seeder — populates a burst of realistic-looking sales history
- * across the last 60 days for each store. Runs ONCE when the sales list is
- * empty on first mount. Purely for demo/testing; a real backend would never
- * fabricate history.
+ * FIXTURE - demo sales seeder. Scrap when the real backend is live.
  *
- * Distribution goals:
- *  - ~30 sales per store spanning today back to 60 days ago
- *  - Mix of cash / card / lending
- *  - A few voided
- *  - Lending sales reference existing seeded customers
- *  - Basket sizes 1–4 items, quantities 1–3
+ * Populates a burst of realistic-looking sales history across the last
+ * 60 days for each store. Runs ONCE when the sales list is empty on first
+ * mount. A real backend would never fabricate history.
+ *
+ * Distribution:
+ *   ~30 sales per store, today back to 60 days ago
+ *   Mix of cash / card / lending; ~7% voided
+ *   Lending sales reference existing seeded customers
+ *   Basket sizes 1-4 items, quantities 1-3
  */
-import type { PaymentMethod, Product, Sale, SaleLine } from './types';
-import { SEED_STORE_BRANCH_ID, SEED_STORE_MAIN_ID, SEED_STORE_THIRD_ID } from './seed';
+import type { PaymentMethod, Product, Sale, SaleLine } from '@shared/domain/types';
+import { SEED_STORE_BRANCH_ID, SEED_STORE_MAIN_ID, SEED_STORE_THIRD_ID } from './stores';
 
 /** Deterministic PRNG so demo data is stable across reloads. */
 const mulberry32 = (seed: number) => (): number => {

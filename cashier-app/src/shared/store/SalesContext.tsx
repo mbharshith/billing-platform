@@ -15,7 +15,7 @@ import {
   type FC, type ReactNode,
 } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { buildDemoSales } from '@shared/domain/demoSales';
+import { buildDemoSales } from '@shared/fixtures';
 import { db } from '@shared/lib/db';
 import type { Sale } from '@shared/domain/types';
 import { useCurrentStoreId } from './AuthContext';

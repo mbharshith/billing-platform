@@ -6,7 +6,7 @@ import {
   createContext, useCallback, useContext, useEffect, useMemo, useState,
   type FC, type ReactNode,
 } from 'react';
-import { DEFAULT_SETTINGS } from '@shared/domain/seed';
+import { DEFAULT_SETTINGS } from '@shared/fixtures';
 import { storage } from '@shared/lib/storage';
 import type { StoreSettings } from '@shared/domain/types';
 

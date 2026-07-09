@@ -13,8 +13,9 @@
 
 import { db } from './db';
 import { storage } from './storage';
-import { SEED_STORES, SEED_USERS, SEED_CUSTOMERS } from '@shared/domain/seed';
-import { SEED_PRODUCTS } from '@shared/domain/catalog';
+import {
+  SEED_STORES, SEED_USERS, SEED_CUSTOMERS, SEED_PRODUCTS,
+} from '@shared/fixtures';
 import type {
   Customer, CustomerPayment, Product, Sale, Store, User, UserRole,
 } from '@shared/domain/types';
