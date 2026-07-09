@@ -4,15 +4,21 @@
 //
 // This is where the world meets the product. Its ONE job is to explain what
 // we do so well that a first-time visitor understands:
-//   1. What the platform is                      (Retail commerce cloud)
-//   2. What surfaces they get                    (POS + Storefront + Admin + Vendor)
-//   3. Who each surface is for                   (Shop owners, staff, customers)
-//   4. How to try it right now                   (Live demo tenants + creds)
-//   5. How to reach the parent org to buy it     (Contact block)
+//   1. What the platform is                      (hero)
+//   2. What surfaces they get                    (3 product pillars)
+//   3. How to try it right now                   (live demo tenants + creds)
+//   4. How to start                              (big CTA)
+//   5. How to reach the parent org to buy it     (contact + footer)
 //
-// EVERY piece of brand text (product name, wordmark, tagline, hero headline,
-// parent org, contact, HQ) flows from @shared/brand. Renaming the product
-// or switching parent orgs is a single-file edit; nothing here is hardcoded.
+// Five sections total. Ruthlessly trimmed from the original ten - repeated
+// splits and abstract personas were adding scroll without adding conviction.
+// Every piece of brand text flows from @shared/brand; renaming the product
+// or switching parent orgs is a single-file edit.
+//
+// Design language: luxury black + gold, editorial spacing, Fraunces italics
+// for headlines and generous negative space. Both themes render cleanly via
+// --mk-* tokens in the CSS module. NO human photography anywhere - spaces,
+// products, and packages only.
 //
 // Design language: luxury black + gold, editorial spacing, Fraunces italics
 // for headlines and generous negative space. Both themes render cleanly via
@@ -86,39 +92,6 @@ const DEMO_CREDS: readonly Credential[] = [
   { role: 'Shopper',       user: '—',                pass: '—',          lands: '/myntra (public)' },
 ];
 
-interface Persona { readonly icon: ReactNode; readonly title: string; readonly desc: string }
-
-// Icons - tiny SVGs so we don't ship an icon font just for four cards.
-const IconStore   = (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l1.5-5h15L21 9M4 9v10h16V9M9 13h6"/></svg>);
-const IconTag     = (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 12l-8 8-9-9V3h8l9 9zM7 7h.01"/></svg>);
-const IconBag     = (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M6 7h12l-1 13H7L6 7zM9 7V5a3 3 0 0 1 6 0v2"/></svg>);
-const IconShield  = (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3z"/></svg>);
-
-const PERSONAS: readonly Persona[] = [
-  { icon: IconStore,  title: 'Shop owners',     desc: 'Launch a branded storefront in an afternoon; skip the bespoke build.' },
-  { icon: IconTag,    title: 'Cashiers',        desc: 'A single-screen counter that trains in ten minutes and forgives typos.' },
-  { icon: IconBag,    title: 'Customers',       desc: 'Browse, order, and check out on a phone without downloading an app.' },
-  { icon: IconShield, title: 'Enterprise',      desc: 'Multi-tenant isolation, audit trail, and Walmart-grade support.' },
-];
-
-interface Vertical { readonly label: string; readonly desc: string }
-
-/**
- * Verticals the product is built for. Presentational only - the product isn't
- * fashion-only or grocery-only. It's the ledger under any counter that takes
- * payment: restaurant, cafe, boutique, pharmacy, whatever.
- */
-const VERTICALS: readonly Vertical[] = [
-  { label: 'Restaurants', desc: 'Table orders, split checks, kitchen tickets' },
-  { label: 'Cafés',       desc: 'Fast tickets, loyalty stamps, refills' },
-  { label: 'Boutiques',   desc: 'Curated inventory, size ladders, holds' },
-  { label: 'Pharmacies',  desc: 'Batch tracking, prescription notes' },
-  { label: 'Groceries',   desc: 'Weight items, barcodes, bag counts' },
-  { label: 'Electronics', desc: 'Serials, warranties, trade-ins' },
-  { label: 'Salons',      desc: 'Services, tips, package deals' },
-  { label: 'Bookshops',   desc: 'ISBN lookup, layaway, gift cards' },
-];
-
 /* -------------------------------------------------------------------------- */
 /* Small building blocks                                                      */
 /* -------------------------------------------------------------------------- */
@@ -132,7 +105,6 @@ const Nav: FC = () => (
       <div className={cls.nav__links}>
         <a href="#product"  className={cls.nav__link}>Product</a>
         <a href="#demo"     className={cls.nav__link}>Live demo</a>
-        <a href="#audiences" className={cls.nav__link}>Who it's for</a>
         <a href="#contact"  className={cls.nav__link}>Contact</a>
       </div>
       <div className={cls.nav__actions}>
@@ -153,15 +125,6 @@ const Pillar: FC<PillarProps> = ({ num, title, lead, bullets }) => (
       {bullets.map((b) => <li key={b}>{b}</li>)}
     </ul>
   </article>
-);
-
-interface StepProps { num: string; title: string; desc: string }
-const Step: FC<StepProps> = ({ num, title, desc }) => (
-  <div className={cls.step}>
-    <div className={cls.step__num}>{num}</div>
-    <h3 className={cls.step__title}>{title}</h3>
-    <p className={cls.step__desc}>{desc}</p>
-  </div>
 );
 
 interface SectionHeadProps { eyebrow: string; title: ReactNode; lead: string }
@@ -292,117 +255,6 @@ export const MarketingHomePage: FC = () => {
         </div>
       </section>
 
-      {/* -------------------- Split: Online delivery ----------------- */}
-      <section className={`${cls.section} ${cls['section--alt']}`}>
-        <div className={cls.shell}>
-          <div className={cls.split}>
-            <figure className={cls.split__figure}>
-              <img
-                src="https://images.unsplash.com/photo-1595246140625-573b715d11dc?auto=format&fit=crop&w=1400&q=80"
-                alt="Minimalist kraft packaging ready to ship"
-              />
-            </figure>
-            <div>
-              <div className={`${cls.eyebrow} ${cls['eyebrow--sm']}`}>Online + delivery</div>
-              <h2 className={`${cls.serifHead} ${cls.split__title}`}>Ship the same catalogue<br /><em>to every doorstep.</em></h2>
-              <p className={`${cls.leadCopy} ${cls.split__lead}`}>
-                Your customers reach the shop at <code className={cls.inlineCode}>quickbill.shop/your-tenant</code>
-                &mdash; no separate app, no separate stock ledger.
-              </p>
-              <ul className={cls.split__list}>
-                <li><strong>One catalogue</strong><span>The dishes, dresses, or dispensary items you sold at the counter this morning are online this afternoon &mdash; same SKUs, same stock levels.</span></li>
-                <li><strong>One ledger</strong><span>Online orders write to the exact same Sales table as counter sales. Your daily total is one number, not four exports.</span></li>
-                <li><strong>One brand</strong><span>Storefront inherits your tenant's currency, tax rate, and receipt copy automatically.</span></li>
-                <li><strong>Zero install</strong><span>PWA-ready responsive site. Works on the customer's phone, no App Store detour.</span></li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* -------------------- Split: Vendor console ------------------ */}
-      <section className={cls.section}>
-        <div className={cls.shell}>
-          <div className={`${cls.split} ${cls['split--reverse']}`}>
-            <figure className={cls.split__figure}>
-              <img
-                src="https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1400&q=80"
-                alt="Abstract data visualisation surface"
-              />
-            </figure>
-            <div>
-              <div className={`${cls.eyebrow} ${cls['eyebrow--sm']}`}>SaaS owner console</div>
-              <h2 className={`${cls.serifHead} ${cls.split__title}`}>Run the whole fleet<br /><em>from one screen.</em></h2>
-              <p className={`${cls.leadCopy} ${cls.split__lead}`}>
-                The vendor console at <code style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '0.9em' }}>/dashboard</code> is
-                for the people who sell {BRAND.name} to tenants.
-              </p>
-              <ul className={cls.split__list}>
-                <li><strong>Cross-tenant KPIs</strong><span>Revenue grouped by tenant currency &mdash; INR and USD reported side-by-side, never FX-fudged.</span></li>
-                <li><strong>Tenant lifecycle</strong><span>Create, edit, suspend a tenant in a click. Every action lands in the audit log with actor and timestamp.</span></li>
-                <li><strong>Sign in as</strong><span>Impersonate any tenant admin to reproduce a support ticket, with full audit trail.</span></li>
-                <li><strong>Immutable audit</strong><span>Every vendor and admin action &mdash; login, tenant edit, impersonation &mdash; is append-only.</span></li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* -------------------- Personas ------------------------------- */}
-      <section id="audiences" className={`${cls.section} ${cls['section--alt']}`}>
-        <div className={cls.shell}>
-          <SectionHead
-            eyebrow="Who it's for"
-            title={<>Four audiences,<br /><em>one product.</em></>}
-            lead="Each role sees the same underlying data through a surface tailored to how they actually work."
-          />
-          <div className={cls.personaGrid}>
-            {PERSONAS.map((p) => (
-              <article key={p.title} className={cls.persona}>
-                <div className={cls.persona__icon} aria-hidden="true">{p.icon}</div>
-                <h3 className={cls.persona__title}>{p.title}</h3>
-                <p className={cls.persona__desc}>{p.desc}</p>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* -------------------- Verticals ------------------------------ */}
-      <section className={cls.section}>
-        <div className={cls.shell}>
-          <SectionHead
-            eyebrow="Built for every counter"
-            title={<>Restaurant, boutique,<br /><em>pharmacy, market.</em></>}
-            lead="Any counter that takes payment fits. Swap the catalogue and receipt copy; the ledger underneath doesn't care what you're selling."
-          />
-          <div className={cls.verticalGrid}>
-            {VERTICALS.map((v) => (
-              <div key={v.label} className={cls.vertical}>
-                <h3 className={cls.vertical__label}>{v.label}</h3>
-                <p className={cls.vertical__desc}>{v.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* -------------------- How it works --------------------------- */}
-      <section className={cls.section}>
-        <div className={cls.shell}>
-          <SectionHead
-            eyebrow="How it works"
-            title={<>Live in the time it takes<br /><em>to brew coffee.</em></>}
-            lead="No infra to provision, no schema to design. Onboarding is a form, then a login."
-          />
-          <div className={cls.steps}>
-            <Step num="I"   title="Provision the tenant" desc="Vendor console creates a store with name, currency, tax rate, and admin credentials in a single dialog." />
-            <Step num="II"  title="Import the catalogue" desc="Add products with photos, SKUs, and stock. Same table powers the counter and the storefront &mdash; no dual entry." />
-            <Step num="III" title="Open the doors"       desc="Cashiers sign in at /tenant/cashier. Customers browse at /tenant. The vendor watches the fleet at /dashboard." />
-          </div>
-        </div>
-      </section>
-
       {/* -------------------- Demo tenants --------------------------- */}
       <section id="demo" className={`${cls.section} ${cls['section--alt']}`}>
         <div className={cls.shell}>
@@ -529,7 +381,6 @@ export const MarketingHomePage: FC = () => {
               <ul className={cls.footer__colList}>
                 <li><a href="#product">Capabilities</a></li>
                 <li><a href="#demo">Live demo</a></li>
-                <li><a href="#audiences">Who it's for</a></li>
                 <li><Link to="/login">Sign in</Link></li>
               </ul>
             </div>
