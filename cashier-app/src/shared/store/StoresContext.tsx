@@ -1,14 +1,7 @@
-/**
- * StoresContext — Dexie-backed tenant catalog.
- *
- * All reads go through `useLiveQuery` so the UI reactively updates whenever
- * a store row changes — including changes made in another tab.
- * All writes go straight to `db.stores` (async, non-blocking).
- *
- * Uniqueness (case-insensitive name) is enforced at the app layer, not
- * as an IDB `& unique` index, so we can return a typed 'duplicateName'
- * error instead of a raw Dexie throw.
- */
+// StoresContext — Dexie-backed tenant catalog.
+
+// Reads via useLiveQuery (reactive, cross-tab). Writes hit db.stores directly (async, non-blocking).
+// Name uniqueness is enforced at the app layer for typed 'duplicateName' errors (not & unique index).
 import {
   createContext, useCallback, useContext, useMemo,
   type FC, type ReactNode,
@@ -37,7 +30,7 @@ interface StoresContextValue {
   readonly create: (input: StoreInput) => Promise<CreateResult>;
   readonly update: (id: string, patch: Partial<StoreInput>) => Promise<CreateResult>;
   readonly setActive: (id: string, active: boolean) => Promise<void>;
-  /** Vendor-only lifecycle: suspended stores block their users at login. */
+  // Vendor-only lifecycle: suspended stores block their users at login.
   readonly setStatus: (id: string, status: 'active' | 'suspended') => Promise<void>;
   readonly remove: (id: string) => Promise<
     { ok: true } | { ok: false; error: 'notFound' }
@@ -84,12 +77,8 @@ export const StoresProvider: FC<{ children: ReactNode }> = ({ children }) => {
   }, []);
 
   const update: StoresContextValue['update'] = useCallback(async (id, patch) => {
-    // VENDOR-ONLY: this is intentionally only invoked from the vendor console
-    // (EditTenantModal). Tenant admins have a READ-ONLY StorePage. Store
-    // metadata (name, currency, tax) ripples through every past invoice and
-    // analytic — letting tenants self-edit would silently corrupt reports.
-    // If we ever add a backend, this rule moves into an RLS policy that
-    // requires the caller to have role='vendor'.
+    // VENDOR-ONLY: tenant admins have a READ-ONLY StorePage; store metadata
+    // ripples through every past invoice. Backend will enforce via RLS.
     const target = await db.stores.get(id);
     if (!target) return { ok: false, error: 'invalid' };
 

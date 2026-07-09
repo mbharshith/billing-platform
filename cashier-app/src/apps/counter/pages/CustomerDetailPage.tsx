@@ -1,6 +1,4 @@
-/**
- * CustomerDetailPage — profile, lending balance, record payment, history.
- */
+// CustomerDetailPage — profile, lending balance, record payment, history.
 import { useMemo, useState, type FC, type FormEvent } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import cls from './pages.module.css';
@@ -97,7 +95,7 @@ export const CustomerDetailPage: FC = () => {
         </div>
         {!clearBalance && (
           <Button variant="primary" leadingIcon="coins" onClick={() => setPaying(true)}
-                  style={{ background: 'var(--app-accent)', color: 'var(--app-primary)' }}>
+                  className={cls.recordPayBtn}>
             {STRINGS.customers.recordPayment}
           </Button>
         )}
@@ -124,7 +122,7 @@ export const CustomerDetailPage: FC = () => {
               <Text weight="semibold">{fmtDate(customer.createdAt)}</Text>
             </div>
             {customer.notes && (
-              <div className={cls.kv} style={{ gridColumn: '1 / -1' }}>
+              <div className={`${cls.kv} ${cls['kv--spanAll']}`}>
                 <Text size="xs" tone="subtle" weight="semibold" upper>{STRINGS.customers.columnNotes}</Text>
                 <Text>{customer.notes}</Text>
               </div>

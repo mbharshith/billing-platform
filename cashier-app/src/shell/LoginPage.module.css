@@ -91,3 +91,13 @@
   text-decoration: none;
 }
 .authLink:hover { text-decoration: underline; }
+
+/* Utility classes to avoid inline styles */
+.loginHint--center { text-align: center; }
+.loginHint--note {
+  text-align: center;
+  background: var(--app-blue-5, #eff6ff);
+  border: 1px solid var(--app-blue-10, #dbeafe);
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-md);
+}

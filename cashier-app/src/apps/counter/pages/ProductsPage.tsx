@@ -1,7 +1,5 @@
-/**
- * ProductsPage — catalog CRUD (admin only).
- * Search, list, add/edit modal, deactivate.
- */
+// ProductsPage — catalog CRUD (admin only).
+// Search, list, add/edit modal, deactivate.
 import { useMemo, useState, type FC, type FormEvent } from 'react';
 import cls from './pages.module.css';
 import { Badge, Button, Field, Input, Select, Text } from '@shared/atoms';

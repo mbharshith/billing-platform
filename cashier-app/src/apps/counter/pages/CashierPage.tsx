@@ -1,10 +1,5 @@
-/**
- * CashierPage — the primary "ring up a sale" experience.
- * Local state: cart, filters, payment/receipt modal.
- * Reads: ProductsContext (active catalog), SettingsContext (tax rate), AuthContext.
- * Writes: SalesContext (record sale), ProductsContext (decrement stock),
- *         CustomersContext (create/link customer + add lending balance).
- */
+// CashierPage - primary "ring up a sale" experience. Reads Products/Settings/Auth,
+// writes Sales (record), Products (stock), Customers (create/link + lending).
 import { useMemo, useState, type FC } from 'react';
 import pages from './pages.module.css';
 import {
@@ -196,26 +191,9 @@ export const CashierPage: FC = () => {
           aria-modal="true"
           aria-label={STRINGS.cashier.cartTitle}
           onClick={(e) => { if (e.target === e.currentTarget) setMobileCartOpen(false); }}
-          style={{
-            position: 'fixed', inset: 0,
-            background: 'rgba(15, 23, 42, 0.55)',
-            zIndex: 200,
-            display: 'flex',
-            alignItems: 'flex-end',
-            animation: 'app-fade-in 200ms ease-out',
-          }}
+          className={pages.sheetOverlay}
         >
-          <div style={{
-            background: 'var(--app-surface)',
-            width: '100%',
-            maxHeight: '92vh',
-            borderTopLeftRadius: 20,
-            borderTopRightRadius: 20,
-            overflow: 'hidden',
-            display: 'flex',
-            flexDirection: 'column',
-            animation: 'app-slide-up 220ms ease-out',
-          }}>
+          <div className={pages.sheetPanel}>
             <CartPanel
               variant="sheet"
               onClose={() => setMobileCartOpen(false)}

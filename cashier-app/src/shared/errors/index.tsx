@@ -1,19 +1,5 @@
-/**
- * Error surfaces — the pages/cards we show when things go sideways.
- *
- * There are three completely separate failure modes and each gets its
- * own visual treatment so users always know what to do:
- *
- *   1) <ErrorBoundary>   React render/lifecycle throw → in-place fallback
- *                        card + "Try again" that resets the boundary's key.
- *   2) <AppSplash>       Boot is still running or bootstrapDb() rejected.
- *                        Full-screen splash with an optional retry button.
- *   3) NotFoundPage      Router matched no route → friendly 404 with a link
- *                        back to the cashier.
- *
- * Everything else (validation, forbidden, not-found records) is handled
- * inline by the individual pages via inline error text or toasts.
- */
+// Error surfaces: <ErrorBoundary> for render throws, <AppSplash> for boot,
+// NotFoundPage for unmatched routes. Everything else is inline (toasts + field errors).
 import { Component, useEffect, useState, type FC, type ReactNode, type ErrorInfo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import cls from './errors.module.css';
@@ -25,9 +11,9 @@ import { STRINGS } from '@shared/domain/strings';
 /* ------------------------------------------------------------------------- */
 interface BoundaryProps {
   children: ReactNode;
-  /** Optional label so we can distinguish nested boundaries in logs. */
+  // Optional label so we can distinguish nested boundaries in logs.
   label?: string;
-  /** Optional custom fallback renderer. Receives error + reset callback. */
+  // Optional custom fallback renderer. Receives error + reset callback.
   fallback?: (error: Error, reset: () => void) => ReactNode;
 }
 interface BoundaryState {
@@ -42,9 +28,7 @@ export class ErrorBoundary extends Component<BoundaryProps, BoundaryState> {
   }
 
   componentDidCatch(error: Error, info: ErrorInfo): void {
-    // Log loudly to the console. When Sentry (or equivalent) is wired in,
-    // forward `error` and `info.componentStack` there before this line.
-    // eslint-disable-next-line no-console
+    // eslint-disable-next-line no-console -- forward to Sentry once wired.
     console.error(
       `[ErrorBoundary${this.props.label ? `:${this.props.label}` : ''}]`,
       error,

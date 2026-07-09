@@ -1,21 +1,4 @@
-/**
- * RootProvider \u2014 composes every context in the correct order.
- *
- * Lives in @shell because it's a HOST concern: the shell owns app boot,
- * data provider composition, and the boot-splash. Sub-apps just consume
- * the contexts via `@shared/store/*`.
- *
- * Provider order matters:
- *   Users + Stores must be above Auth (Auth reads both to resolve
- *     session + store scope).
- *   Products / Customers / Sales must be BELOW Auth so they can call
- *     useCurrentStoreId().
- *
- * On first mount we wait for `bootstrapDb()` to finish (imports legacy
- * localStorage OR seeds fresh demo data) so no context flashes empty.
- * If IDB is unavailable (private mode / storage disabled) we show a
- * full-screen splash with a retry \u2014 never a blank white page.
- */
+// RootProvider - composes every context in the correct order (see provider tree below). Waits for bootstrapDb() before first paint.
 import { useCallback, useEffect, useState, type FC, type ReactNode } from 'react';
 import { bootstrapDb } from '@shared/lib/db-bootstrap';
 import { AppSplash } from '@shared/errors';
@@ -41,8 +24,7 @@ export const RootProvider: FC<{ children: ReactNode }> = ({ children }) => {
     bootstrapDb()
       .then(() => { if (!cancelled) setBoot('ready'); })
       .catch((err) => {
-        // IndexedDB is unavailable (private-mode Safari, locked storage).
-        // Move boot to 'failed'; AppSplash offers a retry.
+        // IndexedDB unavailable (private-mode Safari, locked storage): show retry splash.
         // eslint-disable-next-line no-console
         console.error('[bootstrapDb] failed:', err);
         if (!cancelled) setBoot('failed');

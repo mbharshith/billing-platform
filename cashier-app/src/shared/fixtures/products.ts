@@ -1,11 +1,6 @@
-/**
- * FIXTURE - demo product catalog. Scrap when the real backend is live.
- *
- * Each tenant gets a thematic catalog so multi-tenancy is obvious:
- *   Myntra   -> fashion / apparel      (INR)
- *   Flipkart -> electronics            (INR)
- *   Walmart  -> grocery + household    (USD)
- */
+// FIXTURE - demo product catalog. Scrap when the real backend is live.
+
+// Thematic catalogs per tenant (fashion/electronics/grocery) so multi-tenancy is obvious.
 import type { Product } from '@shared/domain/types';
 import {
   SEED_STORE_MAIN_ID, SEED_STORE_BRANCH_ID, SEED_STORE_THIRD_ID,
@@ -19,9 +14,7 @@ const p = (
   storeId: string,
 ): Product => ({ id, sku, name, price, category, tone, stock, active: true, createdAt: NOW, storeId });
 
-// ---------------------------------------------------------------------------
 // Myntra Mumbai - apparel (Personal / Other)
-// ---------------------------------------------------------------------------
 const MYNTRA: readonly Product[] = [
   p('m01', 'APP-0001', 'Cotton Kurta',        1299, 'Personal', 'sky',    40, SEED_STORE_MAIN_ID),
   p('m02', 'APP-0002', 'Denim Jeans',         1899, 'Personal', 'slate',  35, SEED_STORE_MAIN_ID),
@@ -35,9 +28,7 @@ const MYNTRA: readonly Product[] = [
   p('m10', 'FTW-0002', 'Sandals',              999, 'Other',    'orange', 30, SEED_STORE_MAIN_ID),
 ];
 
-// ---------------------------------------------------------------------------
 // Flipkart Bengaluru - electronics
-// ---------------------------------------------------------------------------
 const FLIPKART: readonly Product[] = [
   p('f01', 'ELE-0001', 'Wireless Earbuds',    2999, 'Electronics', 'slate',  40, SEED_STORE_BRANCH_ID),
   p('f02', 'ELE-0002', 'Bluetooth Speaker',   1799, 'Electronics', 'stone',  30, SEED_STORE_BRANCH_ID),
@@ -50,9 +41,7 @@ const FLIPKART: readonly Product[] = [
   p('f09', 'ELE-0009', 'Wireless Mouse',       699, 'Electronics', 'sky',    60, SEED_STORE_BRANCH_ID),
 ];
 
-// ---------------------------------------------------------------------------
 // Walmart Springfield - grocery + household
-// ---------------------------------------------------------------------------
 const WALMART: readonly Product[] = [
   p('w01', 'GRO-0001', 'Whole Milk 1gal',      3.48, 'Grocery',   'sky',    120, SEED_STORE_THIRD_ID),
   p('w02', 'GRO-0002', 'Bread Loaf',           2.28, 'Grocery',   'amber',   60, SEED_STORE_THIRD_ID),

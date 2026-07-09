@@ -1,11 +1,7 @@
-/**
- * Theme — light / dark with localStorage persistence + system-preference default.
- * Keeps the toggle logic in one place; every consumer just calls `useTheme()`.
- *
- * The initial <html data-theme=…> attribute is set inline in index.html to
- * avoid a light-flash on first paint. This module keeps the DOM attribute
- * and localStorage in sync after hydration.
- */
+// Theme — light / dark with localStorage persistence + system-preference default.
+// Keeps the toggle logic in one place; every consumer just calls `useTheme()`.
+
+// Initial <html data-theme> is set in index.html to avoid light-flash. This module keeps DOM + localStorage in sync post-hydration.
 import { useCallback, useEffect, useState } from 'react';
 
 export type Theme = 'light' | 'dark';

@@ -1,13 +1,11 @@
-/**
- * CounterShell — top-level layout for the counter sub-app.
- * Header, nav, tenant badge, user menu; all counter pages render via <Outlet />.
- *
- * Header composition (left → right):
- *   Brand · TenantBadge · Nav (role-scoped) · ThemeToggle · UserMenu
- *
- * The TenantBadge is the SaaS "workspace name" (like Jira's site name).
- * It's read-only for cashiers; admins can click to jump to /store.
- */
+// CounterShell — top-level layout for the counter sub-app.
+// Header, nav, tenant badge, user menu; all counter pages render via <Outlet />.
+
+// Header composition (left → right):
+//   Brand · TenantBadge · Nav (role-scoped) · ThemeToggle · UserMenu
+
+// The TenantBadge is the SaaS "workspace name" (like Jira's site name).
+// It's read-only for cashiers; admins can click to jump to /store.
 import { useEffect, useRef, useState, type FC, type ReactNode } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import cls from './layout.module.css';

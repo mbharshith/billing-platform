@@ -1,20 +1,9 @@
-/**
- * FIXTURE - demo sales seeder. Scrap when the real backend is live.
- *
- * Populates a burst of realistic-looking sales history across the last
- * 60 days for each store. Runs ONCE when the sales list is empty on first
- * mount. A real backend would never fabricate history.
- *
- * Distribution:
- *   ~30 sales per store, today back to 60 days ago
- *   Mix of cash / card / lending; ~7% voided
- *   Lending sales reference existing seeded customers
- *   Basket sizes 1-4 items, quantities 1-3
- */
+// FIXTURE - demo sales seeder. Scrap when the real backend is live.
+// Seeds ~30 sales/store over the last 60 days (cash/card/lending mix, ~7% voided, baskets 1-4 x 1-3 qty). Runs once when empty.
 import type { PaymentMethod, Product, Sale, SaleLine } from '@shared/domain/types';
 import { SEED_STORE_BRANCH_ID, SEED_STORE_MAIN_ID, SEED_STORE_THIRD_ID } from './stores';
 
-/** Deterministic PRNG so demo data is stable across reloads. */
+// Deterministic PRNG so demo data is stable across reloads.
 const mulberry32 = (seed: number) => (): number => {
   seed = (seed + 0x6d2b79f5) | 0;
   let t = seed;
@@ -49,10 +38,8 @@ const buildLine = (p: Product, qty: number): SaleLine => ({
 const pick = <T,>(arr: readonly T[], rand: () => number): T =>
   arr[Math.floor(rand() * arr.length)];
 
-/**
- * Generate demo sales for a single store.
- * Returns Sale objects (id/uuid, storeId set, cashier fields populated).
- */
+// Generate demo sales for a single store.
+// Returns Sale objects (id/uuid, storeId set, cashier fields populated).
 const seedStore = (
   storeId: string,
   ctx: SeedContext,

@@ -1,7 +1,5 @@
-/**
- * Tiny localStorage helper — safe JSON round-trip, no throw on quota/JSON errors.
- * Frontend-only persistence. Swap for API calls when the backend arrives (§2, §21).
- */
+// Tiny localStorage helper — safe JSON round-trip, no throw on quota/JSON errors.
+// Frontend-only persistence. Swap for API calls when the backend arrives (§2, §21).
 
 const NAMESPACE = 'cashier-app::v1::';
 
@@ -23,10 +21,7 @@ export const storage = {
     try {
       window.localStorage.setItem(key(name), JSON.stringify(value));
     } catch {
-      // Quota exceeded or storage blocked (e.g. Safari private mode).
-      // Silently drop the write — the user will see stale data after reload.
-      // When the backend API is integrated, surface this as a persistent
-      // error toast so the user knows their data was not saved.
+      // Quota exceeded or storage blocked (Safari private mode); drop silently. Surface as toast once backend lands.
     }
   },
 

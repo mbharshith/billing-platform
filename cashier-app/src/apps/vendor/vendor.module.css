@@ -552,3 +552,7 @@
 :global([data-theme="dark"]) .brandMark { box-shadow: 0 4px 12px rgba(124, 58, 237, 0.5); }
 :global([data-theme="dark"]) .navLinkActive { box-shadow: 0 2px 12px rgba(124, 58, 237, 0.4); }
 :global([data-theme="dark"]) .kpi { background: var(--app-surface); }
+
+/* Pagination utility */
+.pageBtn--ellipsis { border: none; cursor: default; pointer-events: none; }
+.audit__topMargin  { margin-top: 0.25rem; }

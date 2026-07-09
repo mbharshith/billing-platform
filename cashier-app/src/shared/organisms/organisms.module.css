@@ -403,3 +403,26 @@
 
 /* Dark-mode rank badge tones */
 :global([data-theme="dark"]) .rankBadge--bronze { background: #2a1f12; color: #d6b48a; }
+
+/* Utility classes to avoid inline styles */
+.cartHeaderMeta { display: inline-flex; align-items: center; gap: var(--app-space-2); }
+.cartCloseBtn {
+  background: rgba(255,255,255,0.15);
+  color: var(--app-text-inverse);
+  border: none;
+  width: 36px; height: 36px;
+  border-radius: 8px;
+  display: grid; place-items: center;
+  cursor: pointer;
+}
+.dashKpiGrid {
+  display: grid;
+  gap: var(--app-space-4);
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+.thRankCell   { width: 44px; }
+.thStockCell  { min-width: 180px; }
+.dashRowInner {
+  display: flex; align-items: center; gap: var(--app-space-3);
+}
+.tableWrap--flush { border: none; }

@@ -1,21 +1,5 @@
-/**
- * Permissions — single source of truth for role capabilities.
- *
- * SaaS tenant model (SAP-style):
- *   - Every user is bound to exactly one store (tenant) at login.
- *   - There is NO cross-tenant role in this app. Vendor-level ops lives elsewhere.
- *   - Segregation of Duties is enforced by this MATRIX; UI calls `can(user, action)`,
- *     never checks role strings inline.
- *
- * Roles:
- *   vendor   — SaaS owner. Cross-tenant control plane. NEVER on the MATRIX
- *              because they don't operate inside a tenant — vendor actions
- *              are gated by <VendorRoute> instead.
- *   admin    — tenant owner: edits store settings, CRUD everything in the store,
- *              creates other admins + cashiers, full sales history.
- *   cashier  — front-line staff: rings up sales, records lending payments, sees
- *              customers, TODAY-only sales view, no destructive actions.
- */
+// Permissions - role->action matrix. UI calls `can(user, action)`; never inline role checks.
+// Vendor is intentionally empty here - they're gated by <VendorRoute>, not tenant-scoped actions.
 import type { SessionUser } from './types';
 
 export type Action =
@@ -51,7 +35,7 @@ const CASHIER: readonly Action[] = [
 ];
 
 const MATRIX: Record<SessionUser['role'], readonly Action[]> = {
-  vendor:  [],   // vendors never invoke tenant-scoped actions
+  vendor:  [],
   admin:   ADMIN,
   cashier: CASHIER,
 };

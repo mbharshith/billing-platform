@@ -1,9 +1,7 @@
-/**
- * /vendor/audit — immutable log of every vendor action.
- *
- * Filter by action kind, paginate, clear (in production this action would
- * itself be audited — here it's a demo convenience).
- */
+// /vendor/audit — immutable log of every vendor action.
+
+// Filter by action kind, paginate, clear (in production this action would
+// itself be audited — here it's a demo convenience).
 import { useMemo, useState, type FC } from 'react';
 import cls from '../vendor.module.css';
 import { Badge, Button } from '@shared/atoms';

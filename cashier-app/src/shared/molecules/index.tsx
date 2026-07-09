@@ -1,10 +1,7 @@
-/**
- * Molecules — purposeful compositions of two or more atoms.
- * A molecule manages its own internal interaction state (e.g. the clear
- * button inside SearchBar) but receives all domain data and callbacks
- * from outside via props. The only context a molecule may read directly
- * is `useMoney` for currency-aware display formatting.
- */
+// Molecules - compositions of 2+ atoms. May own internal interaction state (e.g. SearchBar's
+// clear button); domain data + callbacks come via props. Only context allowed: useMoney().
+export { DataTable, DataTableRow } from './DataTable';
+export type { DataTableColumn } from './DataTable';
 import type { ChangeEvent, FC, ReactNode } from 'react';
 import cls from './molecules.module.css';
 import { Badge, Field, Icon, IconButton, Input, Text, type IconName } from '../atoms';
@@ -189,11 +186,7 @@ type StatTone = 'primary' | 'accent' | 'success' | 'danger';
 interface StatCardProps {
   label: string;
   value: string;
-  /**
-   * Optional exact value to show on hover / long-press. Use for compact-
-   * formatted metrics so users can still see the precise figure without a
-   * separate 'details' click. Also sets aria-label to preserve a11y.
-   */
+  // Optional exact value shown on hover/long-press + aria-label (for compact-formatted metrics).
   fullValue?: string;
   icon: IconName;
   tone?: StatTone;
@@ -201,9 +194,7 @@ interface StatCardProps {
 }
 
 export const StatCard: FC<StatCardProps> = ({ label, value, fullValue, icon, tone = 'primary', hint }) => {
-  // Only show the 'hover for exact value' cue when the compact value actually
-  // differs from the full value — otherwise the dotted underline is a false
-  // affordance for numbers that are already displayed literally (M-03).
+  // Only show the hover cue when compact differs from full - otherwise the dotted underline is a false affordance (M-03).
   const isCompacted = fullValue !== undefined && fullValue !== value;
   return (
     <div className={cls.statCard}>
@@ -396,7 +387,7 @@ export const Pagination: FC<PaginationProps> = ({
             disabled={currentPage === 1}
             aria-label="Previous page"
           >
-            <Icon name="arrow" size={14} style={{ transform: 'rotate(180deg)' }} />
+            <Icon name="arrow" size={14} flipX />
           </button>
 
           {pageList.map((p, i) =>

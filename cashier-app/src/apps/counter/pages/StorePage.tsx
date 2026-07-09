@@ -1,15 +1,10 @@
-/**
- * StorePage — the Admin's "my store" READ-ONLY view.
- *
- * IMPORTANT: Store metadata (name, address, tax, currency) is edited
- * ONLY by the SaaS vendor from /vendor/tenants. Tenants can't self-edit
- * because currency + tax + name changes ripple through every historical
- * invoice and analytic — they belong to a single source of truth (the
- * vendor). Tenants see their identity + stats + a "how to change" note.
- *
- * SoD: only admins can access this route (guarded by <AdminRoute>).
- * Cashiers don't need this page at all.
- */
+// StorePage — the Admin's "my store" READ-ONLY view.
+
+// Store metadata is edited ONLY by the vendor (fields ripple through every past invoice).
+// Tenants see their identity + stats + a "how to change" note.
+
+// SoD: only admins can access this route (guarded by <AdminRoute>).
+// Cashiers don't need this page at all.
 import { useMemo, type FC } from 'react';
 import cls from './pages.module.css';
 import { Badge, Icon, Text } from '@shared/atoms';

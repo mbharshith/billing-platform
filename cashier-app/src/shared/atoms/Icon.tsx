@@ -1,8 +1,6 @@
-/**
- * Icon — single source of truth for SVG icons (§1 RULE).
- * All icons use `currentColor` so parent-color tinting works.
- */
+// Icon - single source of truth for SVG icons. Uses currentColor; `tone`/`flipX` props kill inline style={{color/transform}}.
 import type { FC, SVGProps } from 'react';
+import cls from './atoms.module.css';
 
 export type IconName =
   | 'search' | 'close' | 'plus' | 'minus' | 'trash' | 'check'
@@ -10,11 +8,23 @@ export type IconName =
   | 'shield' | 'zap' | 'chart' | 'arrow' | 'lock' | 'cash'
   | 'card' | 'coins' | 'spark' | 'store' | 'sun' | 'moon' | 'edit';
 
+export type IconTone = 'primary' | 'accent' | 'success' | 'danger' | 'muted';
+
 interface IconProps extends Omit<SVGProps<SVGSVGElement>, 'name'> {
   name: IconName;
   size?: number | string;
   title?: string;
+  tone?: IconTone;
+  flipX?: boolean;
 }
+
+const TONE_CLASS: Record<IconTone, string> = {
+  primary: cls['icon--primary']!,
+  accent:  cls['icon--accent']!,
+  success: cls['icon--success']!,
+  danger:  cls['icon--danger']!,
+  muted:   cls['icon--muted']!,
+};
 
 const PATHS: Record<IconName, JSX.Element> = {
   search:  <path d="M11 4a7 7 0 105.196 11.696l3.554 3.554 1.414-1.414-3.554-3.554A7 7 0 0011 4zm0 2a5 5 0 110 10 5 5 0 010-10z"/>,
@@ -45,22 +55,24 @@ const PATHS: Record<IconName, JSX.Element> = {
 };
 
 export const Icon: FC<IconProps> = ({
-  name,
-  size = 20,
-  title,
-  ...rest
-}) => (
-  <svg
-    viewBox="0 0 24 24"
-    width={size}
-    height={size}
-    fill="currentColor"
-    aria-hidden={title ? undefined : true}
-    role={title ? 'img' : undefined}
-    focusable="false"
-    {...rest}
-  >
-    {title && <title>{title}</title>}
-    {PATHS[name]}
-  </svg>
-);
+  name, size = 20, title, tone, flipX, className, ...rest
+}) => {
+  const classes = [tone && TONE_CLASS[tone], flipX && cls['icon--flipX'], className]
+    .filter(Boolean).join(' ') || undefined;
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width={size}
+      height={size}
+      fill="currentColor"
+      aria-hidden={title ? undefined : true}
+      role={title ? 'img' : undefined}
+      focusable="false"
+      className={classes}
+      {...rest}
+    >
+      {title && <title>{title}</title>}
+      {PATHS[name]}
+    </svg>
+  );
+};

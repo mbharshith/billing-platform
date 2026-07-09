@@ -290,3 +290,28 @@
   margin-top: var(--app-space-2);
 }
 
+
+/* --- utility helpers to avoid inline styles in JSX ---------------------- */
+.kv--spanAll     { grid-column: 1 / -1; }
+.alignRight      { text-align: right; }
+.recordPayBtn    { background: var(--app-accent); color: var(--app-primary); }
+.sheetOverlay {
+  position: fixed; inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  z-index: 200;
+  display: flex; align-items: flex-end;
+  animation: app-fade-in 200ms ease-out;
+}
+.sheetPanel {
+  background: var(--app-surface);
+  width: 100%; max-height: 92vh;
+  border-top-left-radius: 20px; border-top-right-radius: 20px;
+  overflow: hidden;
+  display: flex; flex-direction: column;
+  animation: app-slide-up 220ms ease-out;
+}
+.statsBar {
+  padding: var(--app-space-4) var(--app-space-6);
+  display: flex; gap: var(--app-space-6); flex-wrap: wrap;
+  border-bottom: 1px solid var(--app-border);
+}

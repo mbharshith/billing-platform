@@ -1,15 +1,13 @@
-/**
- * FIXTURE — demo tenants. Scrap when the real backend is live.
- *
- * Three tenants chosen to look OBVIOUSLY separate (₹ apparel, ₹ electronics,
- * $ grocery) so the multi-tenancy story is unmistakable in demos.
- */
+// FIXTURE — demo tenants. Scrap when the real backend is live.
+
+// Three tenants chosen to look OBVIOUSLY separate (₹ apparel, ₹ electronics,
+// $ grocery) so the multi-tenancy story is unmistakable in demos.
 import type { Store } from '@shared/domain/types';
 
 const now = (): string => new Date().toISOString();
 
-/** Well-known store ids referenced by other fixture files (users, products,
- *  customers, sales) so they can join back to the right tenant. */
+// Well-known store ids referenced by other fixture files (users, products,
+//  customers, sales) so they can join back to the right tenant.
 export const SEED_STORE_MAIN_ID   = 'store-myntra';
 export const SEED_STORE_BRANCH_ID = 'store-flipkart';
 export const SEED_STORE_THIRD_ID  = 'store-walmart';

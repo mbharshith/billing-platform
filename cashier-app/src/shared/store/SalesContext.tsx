@@ -1,15 +1,9 @@
-/**
- * SalesContext — Dexie-backed sales ledger, store-scoped.
- *
- * All reads use `useLiveQuery` so the dashboard/history pages update in
- * real time whenever a sale is recorded or voided (including from another
- * tab). Store-scoping is done at the index level:
- *   db.sales.where('storeId').equals(currentStoreId)
- * — which is an O(log n) B-tree lookup, not an O(n) array filter.
- *
- * The demo-seed effect runs exactly once when the sales table is empty
- * and the required parents (products + customers + stores) have loaded.
- */
+// SalesContext — Dexie-backed sales ledger, store-scoped.
+
+// Sales - reads via useLiveQuery (real-time updates across tabs), store-scoped by index lookup.
+
+// The demo-seed effect runs exactly once when the sales table is empty
+// and the required parents (products + customers + stores) have loaded.
 import {
   createContext, useCallback, useContext, useEffect, useMemo,
   type FC, type ReactNode,
@@ -24,13 +18,9 @@ import { useProducts } from './ProductsContext';
 import { useStores } from './StoresContext';
 
 interface SalesContextValue {
-  /** Sales for the current tenant, newest first. */
+  // Sales for the current tenant, newest first.
   readonly sales: readonly Sale[];
-  /**
-   * All sales across every store, newest-first. Unscoped by tenant.
-   * Only needed by vendor/super-admin views that require cross-tenant
-   * visibility. Regular pages should use the scoped `sales` array.
-   */
+  // All sales across every store, newest-first, unscoped by tenant. Vendor views only - regular pages use `sales`.
   readonly allSales: readonly Sale[];
   readonly byId: (id: string) => Sale | undefined;
   readonly forCustomer: (customerId: string) => readonly Sale[];

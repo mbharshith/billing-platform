@@ -1,13 +1,9 @@
-/**
- * FIXTURE — demo user accounts. Scrap when the real backend is live.
- *
- * Every user is bound to exactly ONE tenant except the vendor, whose
- * `storeId` is the `VENDOR_SCOPE` sentinel (cross-tenant SaaS-owner scope).
- *
- * Login credentials shown on the login screen come from this list.
- * Passwords are plaintext because this is a fully client-side demo —
- * real auth lives in the backend once it ships.
- */
+// FIXTURE — demo user accounts. Scrap when the real backend is live.
+
+// Every user is bound to exactly ONE tenant except the vendor, whose
+// `storeId` is the `VENDOR_SCOPE` sentinel (cross-tenant SaaS-owner scope).
+
+// Login credentials shown on the login screen come from this list. Plaintext passwords (client-side demo).
 import type { User } from '@shared/domain/types';
 import { VENDOR_SCOPE } from '@shared/domain/types';
 import { BRAND } from '@shared/brand';

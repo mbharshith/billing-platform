@@ -1,8 +1,4 @@
-/**
- * Domain types — shared vocabulary across features.
- * All entities carry `id` (uuid) + `createdAt` (ISO) minimally.
- * Multi-tenancy-ready: when backend arrives, add `tenantId` to every entity.
- */
+// Domain types - shared vocabulary. Every entity carries id+createdAt; add tenantId once backend arrives.
 
 /* -------------------------------------------------------------------------- */
 /* Shared primitives                                                          */
@@ -19,24 +15,22 @@ export interface Store {
   readonly city: string;
   readonly phone: string;
   readonly address: string;
-  /** Sales tax rate as a decimal (e.g. 0.0825 = 8.25%). */
+  // Sales tax rate as a decimal (e.g. 0.0825 = 8.25%).
   readonly taxRate: number;
-  /** ISO 4217 currency code. */
+  // ISO 4217 currency code.
   readonly currency: string;
   readonly active: boolean;
-  /** Vendor-controlled lifecycle: 'suspended' stores can't log in. Defaults to 'active'. */
+  // Vendor-controlled lifecycle: 'suspended' stores can't log in. Defaults to 'active'.
   readonly status: 'active' | 'suspended';
   readonly createdAt: Iso8601;
 }
 
-/** All non-store entities carry a storeId (required, never null).
- *  Users too — every user belongs to exactly one store. */
+// All non-store entities carry a storeId (required, never null).
+//  Users too — every user belongs to exactly one store.
 export type StoreScope = string;
 
-/**
- * Discriminated status union for async state — enforces "handle all 4 states".
- * (§2 RULE — never render on data alone; render on state.)
- */
+// Discriminated status union for async state — enforces "handle all 4 states".
+// (§2 RULE — never render on data alone; render on state.)
 export type AsyncStatus<T, E = string> =
   | { readonly kind: 'idle' }
   | { readonly kind: 'loading' }
@@ -50,7 +44,7 @@ export type ProductCategory =
   | 'Grocery' | 'Produce' | 'Beverages' | 'Snacks'
   | 'Household' | 'Personal' | 'Meat' | 'Frozen' | 'Electronics' | 'Other';
 
-/** Tone controls the pastel colour tile behind each product monogram. */
+// Tone controls the pastel colour tile behind each product monogram.
 export type BadgeTone =
   | 'sky' | 'amber' | 'yellow' | 'red' | 'stone'
   | 'orange' | 'brown' | 'rose' | 'slate';
@@ -62,11 +56,11 @@ export interface Product {
   readonly price: number;
   readonly category: ProductCategory;
   readonly tone: BadgeTone;
-  /** Total stock available (unit count). */
+  // Total stock available (unit count).
   readonly stock: number;
   readonly active: boolean;
   readonly createdAt: Iso8601;
-  /** Store that owns this product. */
+  // Store that owns this product.
   readonly storeId: string;
 }
 
@@ -93,18 +87,18 @@ export interface Sale {
   readonly total: number;
   readonly unitCount: number;
   readonly paymentMethod: PaymentMethod;
-  /** Set when payment method === 'lending'. */
+  // Set when payment method === 'lending'.
   readonly customerMobile: string | null;
-  /** FK to customer entity — set for lending sales. */
+  // FK to customer entity — set for lending sales.
   readonly customerId: string | null;
-  /** Who rang up the sale. */
+  // Who rang up the sale.
   readonly cashierId: string;
   readonly cashierName: string;
-  /** Voided sales stay in history for audit. */
+  // Voided sales stay in history for audit.
   readonly voided: boolean;
   readonly voidedAt: Iso8601 | null;
   readonly voidedReason: string | null;
-  /** Store where the sale happened. */
+  // Store where the sale happened.
   readonly storeId: string;
 }
 
@@ -114,14 +108,14 @@ export interface Sale {
 export interface Customer {
   readonly id: string;
   readonly name: string;
-  /** 10-digit mobile (digits only). Unique per tenant. */
+  // 10-digit mobile (digits only). Unique per tenant.
   readonly mobile: string;
   readonly email: string | null;
   readonly notes: string | null;
-  /** Outstanding lending balance in currency units. */
+  // Outstanding lending balance in currency units.
   readonly lendingBalance: number;
   readonly createdAt: Iso8601;
-  /** Store that owns this customer record. */
+  // Store that owns this customer record.
   readonly storeId: string;
 }
 
@@ -136,20 +130,10 @@ export interface CustomerPayment {
 }
 
 /* -------------------------------------------------------------------------- */
-/* Users (staff)                                                              */
-/* -------------------------------------------------------------------------- */
-/**
- * vendor  — SaaS owner (us). Cross-tenant. Sees every store, can suspend/
- *           reactivate/impersonate. Uses a sentinel storeId (VENDOR_SCOPE)
- *           since they don't belong to any single tenant.
- * admin   — owns their store: edit store settings, CRUD products/customers/users,
- *           creates other admins + cashiers, full sales/lending history, deactivate/delete anything except themselves.
- * cashier — rings up sales at their store, views customers, records lending payments,
- *           only sees TODAY's sales, no destructive actions.
- */
+// Users (staff). Role capabilities live in permissions.ts, not here.
 export type UserRole = 'vendor' | 'admin' | 'cashier';
 
-/** Sentinel storeId for vendor accounts — they don't belong to any tenant. */
+// Sentinel storeId for vendor accounts — they don't belong to any tenant.
 export const VENDOR_SCOPE = '__vendor__';
 
 export interface User {
@@ -159,14 +143,14 @@ export interface User {
   readonly role: UserRole;
   readonly active: boolean;
   readonly createdAt: Iso8601;
-  /** Every user belongs to exactly one store. */
+  // Every user belongs to exactly one store.
   readonly storeId: string;
-  /** Password lives here only because this is a mock/frontend-only build.
-   *  When a backend arrives this MUST be moved server-side + hashed (§6). */
+  // Password lives here only because this is a mock/frontend-only build.
+  //  When a backend arrives this MUST be moved server-side + hashed (§6).
   readonly password: string;
 }
 
-/** Subset of User safe to keep in the browser session. */
+// Subset of User safe to keep in the browser session.
 export type SessionUser = Omit<User, 'password'>;
 
 /* -------------------------------------------------------------------------- */
@@ -178,7 +162,7 @@ export interface StoreSettings {
   readonly phone: string;
   readonly gstin: string;
   readonly taxRate: number;
-  /** ISO 4217 currency code, e.g. USD, INR. */
+  // ISO 4217 currency code, e.g. USD, INR.
   readonly currency: string;
   readonly receiptFooter: string;
 }
@@ -186,8 +170,8 @@ export interface StoreSettings {
 /* -------------------------------------------------------------------------- */
 /* Vendor audit log                                                           */
 /* -------------------------------------------------------------------------- */
-/** Immutable record of a vendor action across the tenant fleet.
- *  Written server-side in production; here we append to a Dexie table. */
+// Immutable record of a vendor action across the tenant fleet.
+//  Written server-side in production; here we append to a Dexie table.
 export type VendorAction =
   | 'tenant.create'
   | 'tenant.edit'
@@ -203,7 +187,7 @@ export interface AuditEntry {
   readonly at: Iso8601;
   readonly actorUsername: string;
   readonly action: VendorAction;
-  /** storeId the action targeted (may be VENDOR_SCOPE for self-actions). */
+  // storeId the action targeted (may be VENDOR_SCOPE for self-actions).
   readonly targetStoreId: string;
   readonly detail?: string;
 }

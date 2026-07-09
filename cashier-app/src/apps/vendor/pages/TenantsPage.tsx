@@ -1,10 +1,6 @@
-/**
- * /vendor/tenants — the operational nerve center.
- *
- * Search + status filter (all/active/suspended) + pagination. Every row
- * exposes Impersonate + Suspend/Reactivate. New tenants go through the
- * CreateTenantModal (vendor is the single source of truth for onboarding).
- */
+// /vendor/tenants — the operational nerve center.
+
+// Tenant management: search + status filter + pagination. Rows expose Impersonate + Suspend/Reactivate.
 import { useMemo, useState, type FC } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useNavigate } from 'react-router-dom';

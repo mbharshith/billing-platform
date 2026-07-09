@@ -1,7 +1,5 @@
-/**
- * SettingsContext — store-wide config (tax, currency, receipt, etc.).
- * Persisted in localStorage.
- */
+// SettingsContext — store-wide config (tax, currency, receipt, etc.).
+// Persisted in localStorage.
 import {
   createContext, useCallback, useContext, useEffect, useMemo, useState,
   type FC, type ReactNode,

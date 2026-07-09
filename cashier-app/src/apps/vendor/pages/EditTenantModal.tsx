@@ -1,18 +1,7 @@
-/**
- * EditTenantModal — vendor-only edit of a tenant's store metadata and,
- * optionally, its admin's name + password.
- *
- * Kept as a peer of CreateTenantModal (not a shared component) because:
- *   - Edit doesn't need currency defaults / password-required semantics
- *   - Prefilled state + admin reset flow diverge enough that abstracting
- *     would tangle the two more than it would DRY them.
- *
- * Password reset is intentionally OPT-IN: leaving the field blank means
- * "don't change it". Vendors edit metadata far more often than they
- * touch credentials, and silent password churn is a footgun.
- */
+// EditTenantModal - vendor-only edit of store metadata + optional admin name/password.
+// Peer (not merged) with Create: diff-tracking and opt-in password reset would tangle both.
 import { useMemo, useState, type FC, type FormEvent } from 'react';
-import { Button, Field, Icon, Input, Text } from '@shared/atoms';
+import { Button, Field, Input } from '@shared/atoms';
 import { Modal } from '@shared/organisms';
 import { STRINGS } from '@shared/domain/strings';
 import type { Store, User } from '@shared/domain/types';
@@ -21,6 +10,10 @@ import { useAuth } from '@shared/store/AuthContext';
 import { useStores } from '@shared/store/StoresContext';
 import { useToast } from '@shared/store/ToastContext';
 import { useUsers } from '@shared/store/UsersContext';
+import {
+  CURRENCY_CODES, TenantCheckboxRow, TenantForm, TenantFormDivider, TenantPreview,
+  TenantSection, TenantStoreFields, TenantTwoCol,
+} from './tenantForm';
 
 interface EditTenantModalProps {
   readonly store: Store;
@@ -34,8 +27,6 @@ type FormErrors = Partial<Record<
   string
 >>;
 
-const CURRENCIES = ['INR', 'USD', 'EUR', 'GBP', 'AED'] as const;
-
 export const EditTenantModal: FC<EditTenantModalProps> = ({ store, admin, onClose }) => {
   const { update: updateStore } = useStores();
   const { update: updateUser } = useUsers();
@@ -43,7 +34,7 @@ export const EditTenantModal: FC<EditTenantModalProps> = ({ store, admin, onClos
   const { currentUser } = useAuth();
   const toast = useToast();
 
-  // Store fields — seed from current values.
+  // Store fields - seed from current values.
   const [name, setName]         = useState(store.name);
   const [city, setCity]         = useState(store.city);
   const [phone, setPhone]       = useState(store.phone ?? '');
@@ -51,7 +42,7 @@ export const EditTenantModal: FC<EditTenantModalProps> = ({ store, admin, onClos
   const [currency, setCurrency] = useState(store.currency);
   const [taxRate, setTaxRate]   = useState(String(Math.round(store.taxRate * 10000) / 100));
 
-  // Admin fields — password is opt-in; blank = don't change.
+  // Admin fields - password is opt-in; blank = don't change.
   const [adminName, setAdminName]         = useState(admin?.name ?? '');
   const [resetPassword, setResetPassword] = useState(false);
   const [adminPassword, setAdminPassword] = useState('');
@@ -59,17 +50,17 @@ export const EditTenantModal: FC<EditTenantModalProps> = ({ store, admin, onClos
   const [errors, setErrors] = useState<FormErrors>({});
   const [submitting, setSubmitting] = useState(false);
 
-  /** Track what will change so we can show a helpful summary + skip no-op writes. */
+  // Track what will change so we can show a helpful summary + skip no-op writes.
   const diff = useMemo(() => {
     const patch: Partial<{
       name: string; city: string; phone: string; address: string;
       currency: string; taxRate: number;
     }> = {};
-    if (name.trim()          !== store.name)             patch.name     = name.trim();
-    if (city.trim()          !== store.city)             patch.city     = city.trim();
-    if (phone.trim()         !== (store.phone ?? ''))    patch.phone    = phone.trim();
-    if (address.trim()       !== (store.address ?? ''))  patch.address  = address.trim();
-    if (currency.toUpperCase() !== store.currency)       patch.currency = currency.toUpperCase();
+    if (name.trim()            !== store.name)             patch.name     = name.trim();
+    if (city.trim()            !== store.city)             patch.city     = city.trim();
+    if (phone.trim()           !== (store.phone ?? ''))    patch.phone    = phone.trim();
+    if (address.trim()         !== (store.address ?? ''))  patch.address  = address.trim();
+    if (currency.toUpperCase() !== store.currency)         patch.currency = currency.toUpperCase();
     const t = Number(taxRate) / 100;
     if (Number.isFinite(t) && Math.abs(t - store.taxRate) > 1e-9) patch.taxRate = t;
 
@@ -84,9 +75,9 @@ export const EditTenantModal: FC<EditTenantModalProps> = ({ store, admin, onClos
 
   const validate = (): FormErrors => {
     const next: FormErrors = {};
-    if (!name.trim())    next.name    = 'Store name is required.';
-    if (!city.trim())    next.city    = 'City is required.';
-    if (!address.trim()) next.address = 'Address is required.';
+    if (!name.trim())     next.name     = 'Store name is required.';
+    if (!city.trim())     next.city     = 'City is required.';
+    if (!address.trim())  next.address  = 'Address is required.';
     if (!currency.trim()) next.currency = 'Currency is required.';
     const tax = Number(taxRate);
     if (!Number.isFinite(tax) || tax < 0 || tax > 100) {
@@ -115,14 +106,13 @@ export const EditTenantModal: FC<EditTenantModalProps> = ({ store, admin, onClos
       if (!res.ok) {
         setSubmitting(false);
         setErrors({ name: res.error === 'duplicateName'
-          ? 'Another tenant already uses that name.'
-          : 'Invalid tenant details.' });
+          ? 'Another tenant already uses that name.' : 'Invalid tenant details.' });
         return;
       }
       changes.push(`store: ${Object.keys(diff.patch).join(', ')}`);
     }
 
-    // 2. Admin patch — name + optional password.
+    // 2. Admin patch - name + optional password.
     if (admin && (diff.adminNameChanged || diff.passwordChanging)) {
       const patch: { name?: string; password?: string } = {};
       if (diff.adminNameChanged) patch.name = adminName.trim();
@@ -139,17 +129,24 @@ export const EditTenantModal: FC<EditTenantModalProps> = ({ store, admin, onClos
       actorUsername: currentUser?.username ?? 'unknown',
       action: 'tenant.edit',
       targetStoreId: store.id,
-      detail: `${store.name} · ${changes.join(' · ')}`,
+      detail: `${store.name} - ${changes.join(' | ')}`,
     });
 
-    toast.success(
-      diff.passwordChanging
-        ? `${name.trim()} updated. Admin must sign in with the new password.`
-        : `${name.trim()} updated.`,
-    );
+    toast.success(diff.passwordChanging
+      ? `${name.trim()} updated. Admin must sign in with the new password.`
+      : `${name.trim()} updated.`);
     setSubmitting(false);
     onClose();
   };
+
+  // Currency options: standard set + the current store's currency if it's exotic.
+  const currencyOptions = useMemo(() => {
+    const base: { code: string; label: string }[] = CURRENCY_CODES.map((c) => ({ code: c, label: c }));
+    if (!CURRENCY_CODES.includes(store.currency as (typeof CURRENCY_CODES)[number])) {
+      base.push({ code: store.currency, label: `${store.currency} (current)` });
+    }
+    return base;
+  }, [store.currency]);
 
   return (
     <Modal
@@ -161,159 +158,72 @@ export const EditTenantModal: FC<EditTenantModalProps> = ({ store, admin, onClos
       footer={
         <>
           <Button variant="secondary" onClick={onClose} disabled={submitting}>Cancel</Button>
-          <Button
-            variant="primary"
-            onClick={handleSubmit}
-            disabled={submitting || nothingToDo}
-            leadingIcon="check"
-          >
-            {submitting ? 'Saving…' : nothingToDo ? 'No changes' : 'Save changes'}
+          <Button variant="primary" onClick={handleSubmit}
+            disabled={submitting || nothingToDo} leadingIcon="check">
+            {submitting ? 'Saving\u2026' : nothingToDo ? 'No changes' : 'Save changes'}
           </Button>
         </>
       }
     >
-      <form onSubmit={handleSubmit} noValidate style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        <section>
-          <Text as="h3" size="sm" weight="bold" upper tone="subtle">Store details</Text>
-          <div style={twoCol}>
-            <Field label="Store name" required htmlFor="et-name" error={errors.name}>
-              <Input
-                id="et-name" leadingIcon="store"
-                value={name} onChange={(e) => setName(e.target.value)}
-                invalid={!!errors.name} autoFocus
-              />
-            </Field>
-            <Field label="City" required htmlFor="et-city" error={errors.city}>
-              <Input
-                id="et-city"
-                value={city} onChange={(e) => setCity(e.target.value)}
-                invalid={!!errors.city}
-              />
-            </Field>
-          </div>
-
-          <Field label="Full address" required htmlFor="et-addr" error={errors.address}>
-            <Input
-              id="et-addr"
-              value={address} onChange={(e) => setAddress(e.target.value)}
-              invalid={!!errors.address}
-            />
-          </Field>
-
-          <div style={twoCol}>
-            <Field label="Phone" htmlFor="et-phone" hint="Optional">
-              <Input
-                id="et-phone" leadingIcon="phone"
-                value={phone} onChange={(e) => setPhone(e.target.value)}
-              />
-            </Field>
-            <Field label="Currency" required htmlFor="et-currency">
-              <select
-                id="et-currency"
-                value={currency}
-                onChange={(e) => setCurrency(e.target.value)}
-                style={selectStyle}
-              >
-                {CURRENCIES.map((c) => <option key={c} value={c}>{c}</option>)}
-                {/* Also allow the current currency if it's a custom one */}
-                {!CURRENCIES.includes(store.currency as typeof CURRENCIES[number]) && (
-                  <option value={store.currency}>{store.currency} (current)</option>
-                )}
-              </select>
-            </Field>
-          </div>
-
-          <Field label="Tax rate (%)" required htmlFor="et-tax" error={errors.taxRate}>
-            <Input
-              id="et-tax" type="number" step="0.01" min="0" max="100"
-              value={taxRate} onChange={(e) => setTaxRate(e.target.value)}
-              invalid={!!errors.taxRate}
-            />
-          </Field>
-        </section>
+      <TenantForm onSubmit={handleSubmit}>
+        <TenantStoreFields
+          idPrefix="et" autoFocusName
+          name={name} onName={setName}
+          city={city} onCity={setCity}
+          phone={phone} onPhone={setPhone}
+          address={address} onAddress={setAddress}
+          currency={currency} onCurrency={setCurrency}
+          taxRate={taxRate} onTaxRate={setTaxRate}
+          errors={errors}
+          currencyOptions={currencyOptions}
+        />
 
         {admin && (
           <>
-            <hr style={{ border: 0, borderTop: '1px solid var(--app-border)', margin: '0.5rem 0' }} />
-            <section>
-              <Text as="h3" size="sm" weight="bold" upper tone="subtle">Admin</Text>
-              <div style={twoCol}>
+            <TenantFormDivider />
+            <TenantSection heading="Admin">
+              <TenantTwoCol>
                 <Field label="Admin full name" required htmlFor="et-aname" error={errors.adminName}>
-                  <Input
-                    id="et-aname" leadingIcon="user"
+                  <Input id="et-aname" leadingIcon="user"
                     value={adminName} onChange={(e) => setAdminName(e.target.value)}
-                    invalid={!!errors.adminName}
-                  />
+                    invalid={!!errors.adminName} />
                 </Field>
                 <Field label="Username" htmlFor="et-auser" hint="Read-only">
                   <Input id="et-auser" value={admin.username} disabled readOnly />
                 </Field>
-              </div>
+              </TenantTwoCol>
 
-              <label style={checkboxRow}>
-                <input
-                  type="checkbox"
-                  checked={resetPassword}
-                  onChange={(e) => {
-                    setResetPassword(e.target.checked);
-                    if (!e.target.checked) setAdminPassword('');
-                  }}
-                />
-                <Text size="sm">Reset the admin's password</Text>
-              </label>
+              <TenantCheckboxRow
+                checked={resetPassword}
+                onChange={(next) => {
+                  setResetPassword(next);
+                  if (!next) setAdminPassword('');
+                }}
+                label="Reset the admin's password"
+              />
 
               {resetPassword && (
-                <Field
-                  label="New password" required htmlFor="et-apass" error={errors.adminPassword}
-                  hint="8+ chars. Admin will need to use this next time they sign in."
-                >
-                  <Input
-                    id="et-apass" type="password" leadingIcon="lock"
+                <Field label="New password" required htmlFor="et-apass" error={errors.adminPassword}
+                  hint="8+ chars. Admin will need to use this next time they sign in.">
+                  <Input id="et-apass" type="password" leadingIcon="lock"
                     value={adminPassword} onChange={(e) => setAdminPassword(e.target.value)}
-                    autoComplete="new-password"
-                    invalid={!!errors.adminPassword}
-                  />
+                    autoComplete="new-password" invalid={!!errors.adminPassword} />
                 </Field>
               )}
-            </section>
+            </TenantSection>
           </>
         )}
 
-        {/* Change summary — reassures the vendor exactly what will happen. */}
-        <div style={previewStyle}>
-          <Icon name="shield" size={14} />
-          <Text size="xs" tone="subtle">
-            {nothingToDo
-              ? 'No pending changes.'
-              : `Will update: ${[
-                  Object.keys(diff.patch).length > 0 && `store (${Object.keys(diff.patch).join(', ')})`,
-                  diff.adminNameChanged && 'admin name',
-                  diff.passwordChanging && 'admin password',
-                ].filter(Boolean).join(' · ')}.`}
-          </Text>
-        </div>
-      </form>
+        <TenantPreview>
+          {nothingToDo
+            ? 'No pending changes.'
+            : `Will update: ${[
+                Object.keys(diff.patch).length > 0 && `store (${Object.keys(diff.patch).join(', ')})`,
+                diff.adminNameChanged && 'admin name',
+                diff.passwordChanging && 'admin password',
+              ].filter(Boolean).join(' | ')}.`}
+        </TenantPreview>
+      </TenantForm>
     </Modal>
   );
-};
-
-const twoCol: React.CSSProperties = {
-  display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginTop: '0.5rem',
-};
-const selectStyle: React.CSSProperties = {
-  width: '100%', padding: '0.625rem 0.75rem',
-  border: '1px solid var(--app-border)',
-  borderRadius: 'var(--radius-md)',
-  background: 'var(--app-surface)', color: 'var(--app-text)', font: 'inherit',
-};
-const checkboxRow: React.CSSProperties = {
-  display: 'flex', alignItems: 'center', gap: '0.5rem',
-  padding: '0.5rem 0', cursor: 'pointer',
-};
-const previewStyle: React.CSSProperties = {
-  display: 'flex', alignItems: 'center', gap: '0.5rem',
-  padding: '0.5rem 0.75rem',
-  background: 'var(--app-blue-5, #eff6ff)',
-  border: '1px solid var(--app-blue-10, #dbeafe)',
-  borderRadius: 'var(--radius-md)',
 };

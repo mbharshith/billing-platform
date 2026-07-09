@@ -1,18 +1,11 @@
-/**
- * SettingsPage — tenant admin's local preferences + read-only store profile.
- *
- * Store profile (name, address, tax rate, currency, GSTIN, phone) is READ-ONLY
- * here because those fields ripple through every past invoice and every
- * analytic. A tenant flipping INR -> USD retroactively re-denominates their
- * entire sales history. Only the SaaS vendor can edit these, via
- * /vendor/tenants -> Edit dialog.
- *
- * Tenants CAN still self-serve:
- *   * Receipt footer message (cosmetic, forward-looking only)
- *   * Local data wipe (browser-scoped)
- *
- * Admin-only (enforced by <AdminRoute> at the router level).
- */
+// SettingsPage — tenant admin's local preferences + read-only store profile.
+
+// Store profile is READ-ONLY here - fields ripple through every past invoice.
+// Only the vendor can edit them, via /vendor/tenants -> Edit dialog.
+
+// Tenants can still self-serve the receipt footer message and a local browser-scoped data wipe.
+
+// Admin-only (enforced by <AdminRoute> at the router level).
 import { useState, type ChangeEvent, type FC, type FormEvent } from 'react';
 import cls from './pages.module.css';
 import { Button, Field, Icon, Text, Textarea } from '@shared/atoms';
@@ -126,7 +119,7 @@ export const SettingsPage: FC = () => {
   );
 };
 
-/** Compact <dt>/<dd> pair for read-only display. */
+// Compact <dt>/<dd> pair for read-only display.
 const ReadOnlyField: FC<{ label: string; value: string }> = ({ label, value }) => (
   <div className={cls.readOnlyField}>
     <dt><Text size="xs" tone="subtle" upper weight="semibold">{label}</Text></dt>

@@ -1,7 +1,5 @@
-/**
- * ToastContext — transient success / error / info banners.
- * Not persisted (transient by design).
- */
+// ToastContext — transient success / error / info banners.
+// Not persisted (transient by design).
 import {
   createContext, useCallback, useContext, useEffect, useMemo, useRef, useState,
   type FC, type ReactNode,

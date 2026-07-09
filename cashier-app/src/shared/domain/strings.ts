@@ -1,12 +1,5 @@
-/**
- * All user-facing copy lives here (§1, §11).
- * Sentence case for actions, Title Case for headings.
- * Error messages start with what happened, not user blame.
- *
- * Brand text (name, tagline, product label) is imported from
- * `src/shared/brand.ts` — the single swap point for a rebrand.
- * DO NOT duplicate brand strings here; extend BRAND instead.
- */
+// All user-facing copy. Sentence-case actions, Title Case headings, errors start with what happened.
+// Brand text (name/tagline/product label) is imported from @shared/brand - never duplicate here.
 
 import { BRAND } from '@shared/brand';
 

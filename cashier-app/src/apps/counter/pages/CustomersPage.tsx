@@ -1,14 +1,12 @@
-/**
- * CustomersPage — list, search, create.
- * Row click navigates to /customers/:id.
- */
+// CustomersPage — list, search, create.
+// Row click navigates to /customers/:id.
 import { useMemo, useState, type FC, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import cls from './pages.module.css';
 import { Badge, Button, Field, Input, Text, Textarea } from '@shared/atoms';
 import { Modal } from '@shared/organisms';
 import { ConfirmDialog } from '@shared/feedback';
-import { EmptyState, MobileNumberField, SearchBar } from '@shared/molecules';
+import { DataTable, DataTableRow, EmptyState, MobileNumberField, SearchBar } from '@shared/molecules';
 import { PageHeader } from '@apps/counter/CounterShell';
 import { STRINGS } from '@shared/domain/strings';
 import { digitsOnly, fmtDate, formatPhone } from '@shared/domain/format';
@@ -104,22 +102,17 @@ export const CustomersPage: FC = () => {
             />
           )
         ) : (
-          <div className={cls.tableWrap}>
-            <table className={cls.table}>
-              <thead>
-                <tr>
-                  <th>{STRINGS.customers.columnName}</th>
-                  <th>{STRINGS.customers.columnMobile}</th>
-                  <th>{STRINGS.customers.columnEmail}</th>
-                  <th className="numeric">{STRINGS.customers.columnBalance}</th>
-                  <th>{STRINGS.customers.columnSince}</th>
-                  <th className="actions">{STRINGS.customers.columnActions}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((c) => (
-                  <tr key={c.id} className={cls.clickable}
-                      onClick={() => navigate(`/customers/${c.id}`)}>
+          <DataTable flush columns={[
+            { key: 'name',    label: STRINGS.customers.columnName },
+            { key: 'mobile',  label: STRINGS.customers.columnMobile },
+            { key: 'email',   label: STRINGS.customers.columnEmail },
+            { key: 'balance', label: STRINGS.customers.columnBalance, numeric: true },
+            { key: 'since',   label: STRINGS.customers.columnSince },
+            { key: 'actions', label: STRINGS.customers.columnActions, actions: true },
+          ]}>
+
+            {filtered.map((c) => (
+              <DataTableRow key={c.id} clickable onClick={() => navigate(`/customers/${c.id}`)}>  
                     <td><Text weight="semibold" size="sm">{c.name}</Text></td>
                     <td><Text size="sm">{formatPhone(c.mobile)}</Text></td>
                     <td><Text size="sm" tone={c.email ? 'default' : 'muted'}>{c.email ?? '—'}</Text></td>
@@ -144,11 +137,9 @@ export const CustomersPage: FC = () => {
                         </Button>
                       )}
                     </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+              </DataTableRow>
+            ))}
+          </DataTable>
         )}
       </div>
 

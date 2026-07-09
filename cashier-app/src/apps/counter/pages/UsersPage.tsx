@@ -1,15 +1,8 @@
-/**
- * UsersPage — staff management for the Admin of a single tenant.
- *
- * Every user shown here belongs to THIS tenant. Admin can:
- *   - invite new admins (co-owners) or cashiers to their store
- *   - edit name/role/password of anyone in their store
- *   - deactivate anyone except themselves
- *
- * Cross-tenant users are never visible or mutable — enforced by scoping the
- * list to `currentStoreId` and the UsersContext create() call always writing
- * `storeId = current tenant`.
- */
+// UsersPage — staff management for the Admin of a single tenant.
+
+// Tenant admin manages their own store's users: invite/edit/deactivate (never self).
+// Cross-tenant users are never visible - scoped to currentStoreId at read+write.
+
 import { useMemo, useState, type FC, type FormEvent } from 'react';
 import cls from './pages.module.css';
 import { Badge, Button, Field, Input, Select, Text } from '@shared/atoms';

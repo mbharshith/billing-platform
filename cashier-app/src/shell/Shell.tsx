@@ -1,28 +1,4 @@
-/**
- * Shell — the host application.
- *
- * Owns:
- *   - Top-level BrowserRouter (only one in the entire app)
- *   - Public routes: /login (+ /signup redirect for stale bookmarks)
- *   - Route guards (ProtectedRoute / AdminRoute / VendorRoute)
- *   - Lazy-loading of every sub-app under `src/apps/*`
- *   - Global ErrorBoundary + suspense fallback
- *
- * Does NOT own:
- *   - Any business page or component logic (that lives inside sub-apps)
- *   - Data providers (they live inside <RootProvider>, mounted in main.tsx
- *     above <Shell />; anything the shell OR sub-apps need to render
- *     hangs off that single provider tree)
- *
- * Adding a new sub-app is exactly three lines:
- *   1) const Foo = lazy(() => import('@apps/foo/FooApp'));
- *   2) A guard-wrapped <Route path="/foo/*" element={<Foo />} /> below
- *   3) A folder src/apps/foo/FooApp.tsx exporting the sub-app router
- *
- * No global registry, no manifest, no module federation. Vite handles the
- * chunking automatically because each import() is dynamic — the picker's
- * tablet never downloads the storefront bundle, and vice versa.
- */
+// Shell - host app. Owns the ONE BrowserRouter, /login, route guards, and lazy-loads sub-apps from src/apps/.
 import { lazy, Suspense, type FC, type JSX } from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { AppSplash, ErrorBoundary, NotFoundPage } from '@shared/errors';
@@ -39,9 +15,7 @@ const VendorApp     = lazy(() => import('@apps/vendor/VendorApp')
 const StorefrontApp = lazy(() => import('@apps/storefront/StorefrontApp')
   .then((m) => ({ default: m.StorefrontApp })));
 
-/** Wraps a lazy sub-app in its own error boundary + suspense fallback.
- *  Keeps a crash in one sub-app from taking the whole shell down, and
- *  gives every chunk a consistent loading experience. */
+
 const SubApp = (label: string, node: JSX.Element): JSX.Element => (
   <ErrorBoundary label={label}>
     <Suspense fallback={<AppSplash state="loading" onRetry={() => window.location.reload()} />}>
@@ -91,6 +65,6 @@ export const Shell: FC = () => (
   </BrowserRouter>
 );
 
-/** Re-export AdminRoute so counter/vendor sub-apps don't reach into shell/
- *  internals — they get everything they need from a single import. */
+// Re-export AdminRoute so counter/vendor sub-apps don't reach into shell/
+//  internals — they get everything they need from a single import.
 export { AdminRoute, ProtectedRoute, VendorRoute };

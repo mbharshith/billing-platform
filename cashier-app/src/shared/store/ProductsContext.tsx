@@ -1,15 +1,8 @@
-/**
- * ProductsContext — Dexie-backed catalog, store-scoped.
- *
- * `products` / `activeProducts` are live-queried on the compound index
- * `[storeId+sku]` for the current tenant. Uniqueness (case-insensitive SKU
- * within a tenant) is enforced by an app-layer lookup so we can return a
- * typed 'duplicateSku' error instead of a raw Dexie throw.
- *
- * Stock adjustments (`decrementStock` / `incrementStock`) run inside a
- * single Dexie transaction so a mid-write reload never leaves an
- * inconsistent basket.
- */
+// ProductsContext — Dexie-backed catalog, store-scoped.
+
+// Products - live-queried on [storeId+sku] for current tenant. SKU uniqueness enforced at app layer for typed 'duplicateSku' errors.
+
+// Stock adjustments run inside a single Dexie transaction to keep basket state consistent across reloads.
 import {
   createContext, useCallback, useContext, useMemo,
   type FC, type ReactNode,
@@ -76,9 +69,7 @@ export const ProductsProvider: FC<{ children: ReactNode }> = ({ children }) => {
     if (!storeId) return { ok: false, error: 'noStore' };
     const sku = input.sku.trim();
 
-    // Case-insensitive uniqueness within the tenant. The compound index
-    // ('[storeId+sku]') gives us the fast common case; a case-difference
-    // collision falls through to the filter scan (rare).
+
     const exact = await db.products
       .where('[storeId+sku]').equals([storeId, sku]).first();
     const dup = exact ?? await db.products

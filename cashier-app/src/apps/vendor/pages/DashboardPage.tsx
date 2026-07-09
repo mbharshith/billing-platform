@@ -1,10 +1,6 @@
-/**
- * /vendor/dashboard — fleet overview.
- *
- * Four color-accented KPI cards, revenue split by currency (we don't FX-
- * convert — mixing currencies would lie to the vendor), top tenants
- * leaderboard, and latest signups.
- */
+// /vendor/dashboard — fleet overview.
+
+// Vendor dashboard: KPI cards, per-currency revenue split (no FX conversion), top tenants, latest signups.
 import { useMemo, type FC } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import cls from '../vendor.module.css';
@@ -97,7 +93,7 @@ export const DashboardPage: FC = () => {
         {topTenants.length === 0 ? (
           <EmptyState title="No tenants yet" hint="Onboard your first customer from the Tenants tab." />
         ) : (
-          <div className={cls.tableWrap} style={{ border: 'none' }}>
+          <div className={`${cls.tableWrap} ${cls['tableWrap--flush']}`}>
             <table className={cls.table}>
               <thead>
                 <tr>
@@ -154,7 +150,7 @@ interface KpiCardProps {
   readonly tone: 'indigo' | 'emerald' | 'amber' | 'rose' | 'purple';
   readonly label: string;
   readonly value: number | string;
-  /** Optional exact value shown on hover (title + aria-label) when `value` is compacted. */
+  // Optional exact value shown on hover (title + aria-label) when `value` is compacted.
   readonly fullValue?: string;
   readonly hint?: string;
   readonly icon?: 'store' | 'chart' | 'user' | 'shield';

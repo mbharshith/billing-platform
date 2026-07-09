@@ -1,7 +1,5 @@
-/**
- * SalesPage — all sales, filterable by date range / payment / status,
- * with pagination for large datasets.
- */
+// SalesPage — all sales, filterable by date range / payment / status,
+// with pagination for large datasets.
 import { useEffect, useMemo, useState, type FC } from 'react';
 import { useNavigate } from 'react-router-dom';
 import cls from './pages.module.css';
@@ -128,11 +126,7 @@ export const SalesPage: FC = () => {
           </div>
         </div>
 
-        <div style={{
-          padding: 'var(--app-space-4) var(--app-space-6)',
-          display: 'flex', gap: 'var(--app-space-6)', flexWrap: 'wrap',
-          borderBottom: '1px solid var(--app-border)',
-        }}>
+        <div className={cls.statsBar}>
           <Text size="sm">
             <b>{totals.count.toLocaleString()}</b> sales
             {' · '}<b>{totals.units.toLocaleString()}</b> units

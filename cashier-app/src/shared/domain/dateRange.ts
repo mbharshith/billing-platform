@@ -1,7 +1,5 @@
-/**
- * Date-range helpers — resolve a DateRangeKey into a [from, to] window.
- * All boundaries are inclusive; "today" spans the local midnight-to-midnight window.
- */
+// Date-range helpers — resolve a DateRangeKey into a [from, to] window.
+// All boundaries are inclusive; "today" spans the local midnight-to-midnight window.
 import type { DateRangeKey } from '@shared/molecules';
 
 export interface DateWindow {
@@ -21,7 +19,7 @@ const addDays = (d: Date, n: number): Date => {
   return x;
 };
 
-/** Monday-based week start (ISO). Adjust the +1/-1 offsets if you want Sunday. */
+// Monday-based week start (ISO). Adjust the +1/-1 offsets if you want Sunday.
 const startOfWeek = (d: Date): Date => {
   const x = startOfDay(d);
   const dow = (x.getDay() + 6) % 7;   // Mon=0 … Sun=6

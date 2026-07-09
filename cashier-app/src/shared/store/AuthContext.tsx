@@ -1,11 +1,4 @@
-/**
- * AuthContext — login / logout / current session.
- *
- * SaaS model: every user belongs to exactly one tenant (store).
- * `currentStoreId` is derived from `currentUser.storeId` — there is no
- * runtime switcher, no cross-tenant view, no ambient scope choice.
- * This is the same pattern Jira / Shopify / Notion enforce.
- */
+
 import {
   createContext, useCallback, useContext, useEffect, useMemo, useRef, useState,
   type FC, type ReactNode,
@@ -25,12 +18,12 @@ export type LoginResult =
 
 interface AuthContextValue {
   readonly currentUser: SessionUser | null;
-  /** The tenant id this session is bound to. Null iff not logged in. */
+  // The tenant id this session is bound to. Null iff not logged in.
   readonly currentStoreId: string | null;
   readonly isAdmin: boolean;
   readonly isVendor: boolean;
   readonly login: (username: string, password: string) => Promise<LoginResult>;
-  /** Directly promote a freshly-created user (e.g. right after signup). */
+  // Directly promote a freshly-created user (e.g. right after signup).
   readonly loginAs: (user: SessionUser) => void;
   readonly logout: () => void;
   readonly can: (action: Action) => boolean;
@@ -45,10 +38,7 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
     () => storage.load<SessionUser | null>(SESSION_KEY, null),
   );
 
-  // Re-hydrate the persisted session against the LIVE users list once it's
-  // actually loaded from IndexedDB. Guarded by a ref so we only run the
-  // reconciliation the first time we see a non-empty users array — otherwise
-  // the empty first-render list would spuriously log the user out.
+  // Reconcile the persisted session against the live users list, guarded to run once after first non-empty load.
   const reconciledRef = useRef(false);
   useEffect(() => {
     if (reconciledRef.current) return;
@@ -60,12 +50,8 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
     if (fresh.storeId !== currentUser.storeId || fresh.role !== currentUser.role) {
       setCurrentUser(toSessionUser(fresh));
     }
-    // Intentionally omit `findByUsername` from the dependency array.
-    // It is a stable useCallback memoized on `users`, so listing it would
-    // re-run this effect on every users update — defeating the "run once
-    // after first non-empty load" intent tracked by reconciledRef.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [users]);
+
+  }, [users]);  // eslint-disable-line react-hooks/exhaustive-deps -- findByUsername is stable; listing it re-runs on every users change
 
   useEffect(() => {
     if (currentUser) storage.save(SESSION_KEY, currentUser);
@@ -114,5 +100,5 @@ export const useAuth = (): AuthContextValue => {
   return ctx;
 };
 
-/** Helper — the tenant id this session is bound to. */
+// Helper — the tenant id this session is bound to.
 export const useCurrentStoreId = (): string | null => useAuth().currentStoreId;

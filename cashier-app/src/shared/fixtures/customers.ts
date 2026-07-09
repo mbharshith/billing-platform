@@ -1,6 +1,4 @@
-/**
- * FIXTURE — demo customers. Scrap when the real backend is live.
- */
+// FIXTURE — demo customers. Scrap when the real backend is live.
 import type { Customer } from '@shared/domain/types';
 import {
   SEED_STORE_MAIN_ID, SEED_STORE_BRANCH_ID, SEED_STORE_THIRD_ID,

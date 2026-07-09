@@ -1,7 +1,5 @@
-/**
- * DashboardPage — KPIs + recent sales + top products + inventory.
- * Reads from SalesContext + ProductsContext; ignores voided sales in KPIs.
- */
+// DashboardPage — KPIs + recent sales + top products + inventory.
+// Reads from SalesContext + ProductsContext; ignores voided sales in KPIs.
 import { useMemo, type FC } from 'react';
 import pages from './pages.module.css';
 import {

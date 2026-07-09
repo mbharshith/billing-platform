@@ -1,10 +1,7 @@
-/**
- * VendorShell — dedicated layout for /vendor/*.
- *
- * Visually distinct from the tenant AppShell (purple gradient brand) so a
- * vendor never wonders "am I inside a tenant or above them?". Ships the
- * theme toggle (light/dark), logout, and pill-style tab nav.
- */
+// VendorShell — dedicated layout for /vendor/*.
+
+// Visually distinct from tenant AppShell (purple gradient) so vendors never confuse
+// scopes. Ships theme toggle, logout, and pill-style tab nav.
 import { useEffect, useRef, type FC } from 'react';
 import { NavLink, Navigate, Outlet, useNavigate } from 'react-router-dom';
 import cls from './vendor.module.css';

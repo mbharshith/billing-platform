@@ -437,3 +437,86 @@
   background: #0071dc;
   color: #fff;
 }
+
+/* Empty state hint spacing */
+.empty__hint { margin-top: 0.25rem; }
+
+/* --- DataTable ---------------------------------------------------------- */
+
+.dataTableWrap {
+  overflow-x: auto;
+  position: relative;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-lg);
+  background: var(--app-surface);
+}
+/* flush — use inside a .card that already provides the container chrome */
+.dataTableWrap--flush {
+  border: none;
+  border-radius: 0;
+  background: transparent;
+}
+/* Right-edge gradient hint on mobile so users know more columns are off-screen */
+@media (max-width: 767px) {
+  .dataTableWrap::after {
+    content: '';
+    position: sticky;
+    top: 0; right: 0;
+    float: right;
+    display: block;
+    width: 32px; height: 100%;
+    margin-left: -32px;
+    pointer-events: none;
+    background: linear-gradient(to right, transparent, var(--app-surface));
+  }
+}
+
+.dataTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--app-font-size-sm);
+}
+.dataTable th,
+.dataTable td {
+  padding: var(--app-space-3) var(--app-space-4);
+  text-align: left;
+  vertical-align: middle;
+}
+@media (max-width: 767px) {
+  .dataTable th,
+  .dataTable td { padding: var(--app-space-2) var(--app-space-3); white-space: nowrap; }
+}
+.dataTable th {
+  background: var(--app-gray-5);
+  color: var(--app-text-subtle);
+  font-weight: var(--app-font-weight-semibold);
+  font-size: var(--app-font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border-bottom: 1px solid var(--app-border);
+}
+.dataTable tbody tr {
+  border-top: 1px solid var(--app-border);
+  transition: background var(--app-motion-fast);
+}
+.dataTable tbody tr:hover { background: var(--app-gray-5); }
+.dataTable tfoot td {
+  border-top: 1px solid var(--app-border);
+  background: var(--app-gray-5);
+}
+
+/* numeric + actions: scoped via :global so plain className="numeric" on <td>/<th> works */
+.dataTable :global(th.numeric),
+.dataTable :global(td.numeric) { text-align: right; font-variant-numeric: tabular-nums; }
+.dataTable :global(th.actions),
+.dataTable :global(td.actions) { text-align: right; white-space: nowrap; }
+.dataTable :global(td.actions > * + *) { margin-left: var(--app-space-2); }
+@media (max-width: 767px) {
+  .dataTable :global(td.actions button),
+  .dataTable :global(td.actions a) { padding: 0.35rem 0.5rem; font-size: 0.75rem; }
+}
+
+/* Row state variants */
+.dataTableRow--clickable { cursor: pointer; }
+.dataTableRow--muted td { color: var(--app-text-muted); }

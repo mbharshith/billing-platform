@@ -1,10 +1,5 @@
-/**
- * Organisms — self-contained page-region compositions.
- * Each organism owns a complete functional area (navigation header,
- * product grid, cart panel, payment flow, receipt) and wires together
- * molecules and atoms. Organisms may read from React Context directly.
- * Pages compose organisms; they never reach past them to import atoms.
- */
+// Organisms - self-contained page-region compositions (header, product grid, cart, etc.).
+// May read React Context directly. Pages compose organisms; never reach past them to atoms.
 import { useEffect, useMemo, useState, type FC, type ReactNode } from 'react';
 import cls from './organisms.module.css';
 import { Badge, Button, Icon, IconButton, Spinner, Text } from '../atoms';
@@ -144,7 +139,7 @@ interface CartPanelProps {
   onRemove: (productId: string) => void;
   onClear: () => void;
   onCharge: () => void;
-  /** When set, panel drops sticky positioning + shows a close button (mobile sheet). */
+  // When set, panel drops sticky positioning + shows a close button (mobile sheet).
   onClose?: () => void;
   variant?: 'inline' | 'sheet';
 }
@@ -161,10 +156,10 @@ export const CartPanel: FC<CartPanelProps> = ({
   >
     <div className={cls.cartPanel__header}>
       <div className={cls.cartPanel__title}>
-        <Icon name="cart" size={18} style={{ color: 'var(--app-accent)' }} />
+        <Icon name="cart" size={18} tone="accent" />
         <Text weight="bold" tone="inverse">{STRINGS.cashier.cartTitle}</Text>
       </div>
-      <div style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--app-space-2)' }}>
+      <div className={cls.cartHeaderMeta}>
         <Badge variant="accent">
           {unitCount} {unitCount === 1 ? STRINGS.cashier.itemSuffix : STRINGS.cashier.itemsSuffix}
         </Badge>
@@ -173,15 +168,7 @@ export const CartPanel: FC<CartPanelProps> = ({
             type="button"
             onClick={onClose}
             aria-label="Close cart"
-            style={{
-              background: 'rgba(255,255,255,0.15)',
-              color: 'var(--app-text-inverse)',
-              border: 'none',
-              width: 36, height: 36,
-              borderRadius: 8,
-              display: 'grid', placeItems: 'center',
-              cursor: 'pointer',
-            }}
+            className={cls.cartCloseBtn}
           >
             <Icon name="close" size={18} />
           </button>
@@ -603,7 +590,7 @@ export const TopProductsTable: FC<TopProductsTableProps> = ({ aggregates }) => {
           <table className={cls.dataTable}>
             <thead>
               <tr>
-                <th style={{ width: 44 }}>{STRINGS.dashboard.columnRank}</th>
+                <th className={cls.thRankCell}>{STRINGS.dashboard.columnRank}</th>
                 <th>{STRINGS.dashboard.columnProduct}</th>
                 <th className="numeric">{STRINGS.dashboard.columnSold}</th>
                 <th className="numeric">{STRINGS.dashboard.columnRevenue}</th>
@@ -670,7 +657,7 @@ export const InventoryTable: FC<InventoryTableProps> = ({ aggregates }) => {
                 <th>{STRINGS.dashboard.columnProduct}</th>
                 <th>{STRINGS.dashboard.columnCategory}</th>
                 <th className="numeric">{STRINGS.dashboard.columnMovement}</th>
-                <th style={{ minWidth: 180 }}>{STRINGS.dashboard.columnStock}</th>
+                <th className={cls.thStockCell}>{STRINGS.dashboard.columnStock}</th>
               </tr>
             </thead>
             <tbody>
@@ -693,7 +680,7 @@ export const InventoryTable: FC<InventoryTableProps> = ({ aggregates }) => {
                         : <Text size="sm" tone="muted">—</Text>}
                     </td>
                     <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--app-space-3)' }}>
+                      <div className={cls.dashRowInner}>
                         <div
                           className={cls.stockBar}
                           role="progressbar"
@@ -737,13 +724,7 @@ export const DashboardKpis: FC<DashboardKpisProps> = ({
 }) => {
   const { money, moneyCompact } = useMoney();
   return (
-  <div
-    style={{
-      display: 'grid',
-      gap: 'var(--app-space-4)',
-      gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-    }}
-  >
+  <div className={cls.dashKpiGrid}>
     <StatCard label={STRINGS.dashboard.kpiRevenue}
               value={moneyCompact(revenue)}       fullValue={money(revenue)}
               icon="coins" tone="success" />

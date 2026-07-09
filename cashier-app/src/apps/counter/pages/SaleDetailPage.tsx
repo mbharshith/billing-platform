@@ -1,6 +1,4 @@
-/**
- * SaleDetailPage — full receipt view, print, and void.
- */
+// SaleDetailPage — full receipt view, print, and void.
 import { useState, type FC } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import cls from './pages.module.css';
@@ -115,7 +113,7 @@ export const SaleDetailPage: FC = () => {
               </div>
             )}
             {sale.voided && (
-              <div className={cls.kv} style={{ gridColumn: '1 / -1' }}>
+              <div className={`${cls.kv} ${cls['kv--spanAll']}`}>
                 <Text size="xs" tone="danger" weight="semibold" upper>{STRINGS.sales.labelVoidReason}</Text>
                 <Text>{sale.voidedReason ?? '—'}</Text>
                 {sale.voidedAt && (
@@ -161,19 +159,19 @@ export const SaleDetailPage: FC = () => {
             </tbody>
             <tfoot>
               <tr>
-                <td colSpan={4} style={{ textAlign: 'right' }}>
+                <td colSpan={4} className={cls.alignRight}>
                   <Text size="sm" tone="subtle">{STRINGS.cashier.subtotal}</Text>
                 </td>
                 <td className="numeric"><Text weight="semibold" size="sm">{money(sale.subtotal)}</Text></td>
               </tr>
               <tr>
-                <td colSpan={4} style={{ textAlign: 'right' }}>
+                <td colSpan={4} className={cls.alignRight}>
                   <Text size="sm" tone="subtle">{STRINGS.cashier.tax}</Text>
                 </td>
                 <td className="numeric"><Text weight="semibold" size="sm">{money(sale.tax)}</Text></td>
               </tr>
               <tr>
-                <td colSpan={4} style={{ textAlign: 'right' }}>
+                <td colSpan={4} className={cls.alignRight}>
                   <Text size="md" weight="heavy">{STRINGS.receipt.amountPaid}</Text>
                 </td>
                 <td className="numeric">

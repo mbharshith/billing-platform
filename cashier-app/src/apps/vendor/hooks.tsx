@@ -1,17 +1,4 @@
-/**
- * Vendor console shared primitives.
- *
- * Kept dead-simple:
- *   - `useTenantStats()` rolls per-tenant sales into one Map for KPIs.
- *   - `usePagination()` slices any readonly array into pages + resets to
- *     page 1 whenever the source array shrinks below the current page.
- *   - `Pagination` renders the standard bar (info + prev/next + numbered).
- *   - `StatusPill` and `SectionCard` keep JSX terse in the page files.
- *
- * Why a dedicated hook for pagination? Two pages need it (tenants +
- * audit) and the "clamp page when data shrinks" logic is easy to get
- * subtly wrong — DRY wins.
- */
+// Vendor console primitives: useTenantStats, usePagination, Pagination, StatusPill, SectionCard.
 import { useEffect, useMemo, useState, type FC, type ReactNode } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import cls from './vendor.module.css';
@@ -28,7 +15,7 @@ export interface TenantStat {
   readonly lastSaleAt: string | null;
 }
 
-/** Live per-tenant totals. Excludes voided sales; multiplies nothing. */
+// Live per-tenant totals. Excludes voided sales; multiplies nothing.
 export const useTenantStats = (): ReadonlyMap<string, TenantStat> => {
   const sales = useLiveQuery(() => db.sales.toArray(), [], [] as Sale[]) ?? [];
 
@@ -127,11 +114,11 @@ export const Pagination: FC<PaginationProps> = ({
           disabled={page <= 1}
           aria-label="Previous page"
         >
-          <Icon name="arrow" size={14} style={{ transform: 'scaleX(-1)' }} />
+          <Icon name="arrow" size={14} flipX />
         </button>
         {nums.map((n, i) =>
           n === '…' ? (
-            <span key={`ellipsis-${i}`} className={cls.pageBtn} style={{ border: 'none', cursor: 'default', pointerEvents: 'none' }}>…</span>
+            <span key={`ellipsis-${i}`} className={`${cls.pageBtn} ${cls['pageBtn--ellipsis']}`}>…</span>
           ) : (
             <button
               key={n}
@@ -156,7 +143,7 @@ export const Pagination: FC<PaginationProps> = ({
   );
 };
 
-/** Return numbers + ellipses for the pagination bar. Max ~7 slots. */
+// Return numbers + ellipses for the pagination bar. Max ~7 slots.
 const pageWindow = (page: number, totalPages: number): readonly (number | '…')[] => {
   if (totalPages <= 7) return Array.from({ length: totalPages }, (_, i) => i + 1);
   const out: (number | '…')[] = [1];
@@ -207,7 +194,7 @@ export const EmptyState: FC<EmptyProps> = ({ icon = 'store', title, hint }) => (
     <div className={cls.emptyIcon}><Icon name={icon} size={22} /></div>
     <Text weight="semibold">{title}</Text>
     {hint && (
-      <div style={{ marginTop: '0.25rem' }}>
+      <div className={cls['audit__topMargin']}>
         <Text size="sm" tone="subtle">{hint}</Text>
       </div>
     )}

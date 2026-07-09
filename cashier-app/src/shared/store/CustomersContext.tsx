@@ -1,12 +1,10 @@
-/**
- * CustomersContext — Dexie-backed CRUD + lending payments.
- *
- * Uniqueness on `mobile` is per-tenant, enforced app-side so we can return
- * a typed 'duplicateMobile' error.
- *
- * `recordPayment` runs inside a Dexie transaction so the payment row and
- * the customer's lending-balance decrement land atomically.
- */
+// CustomersContext — Dexie-backed CRUD + lending payments.
+
+// Uniqueness on `mobile` is per-tenant, enforced app-side so we can return
+// a typed 'duplicateMobile' error.
+
+// `recordPayment` runs inside a Dexie transaction so the payment row and
+// the customer's lending-balance decrement land atomically.
 import {
   createContext, useCallback, useContext, useMemo,
   type FC, type ReactNode,

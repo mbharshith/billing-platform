@@ -1,12 +1,10 @@
-/**
- * UsersContext — Dexie-backed staff CRUD.
- *
- * Passwords still live plain-text in the browser because this is a
- * mock/frontend-only build. A real backend MUST hash them (§6).
- *
- * Uniqueness on `username` is global (case-insensitive) — enforced
- * app-side so we can return a typed 'duplicate' error.
- */
+// UsersContext — Dexie-backed staff CRUD.
+
+// Passwords still live plain-text in the browser because this is a
+// mock/frontend-only build. A real backend MUST hash them (§6).
+
+// Uniqueness on `username` is global (case-insensitive) — enforced
+// app-side so we can return a typed 'duplicate' error.
 import {
   createContext, useCallback, useContext, useMemo,
   type FC, type ReactNode,
@@ -86,7 +84,7 @@ export const useUsers = (): UsersContextValue => {
   return ctx;
 };
 
-/** Convert a full User to a SessionUser (strips password). */
+// Convert a full User to a SessionUser (strips password).
 export const toSessionUser = (u: User): SessionUser => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { password, ...rest } = u;

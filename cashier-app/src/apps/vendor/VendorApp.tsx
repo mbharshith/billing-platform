@@ -1,15 +1,9 @@
-/**
- * VendorApp — sub-app router for the SaaS-owner control plane.
- *
- * Mounted at /vendor/* by <Shell />. The parent <VendorRoute> in Shell
- * has already enforced that only the vendor role reaches this tree.
- *
- * Routes (all under /vendor):
- *   /vendor            → redirect to /vendor/dashboard
- *   /vendor/dashboard  fleet-wide KPIs
- *   /vendor/tenants    provision / edit / suspend tenants
- *   /vendor/audit      immutable log of vendor actions
- */
+// VendorApp — sub-app router for the SaaS-owner control plane.
+
+// Mounted at /vendor/* by <Shell />. The parent <VendorRoute> in Shell
+// has already enforced that only the vendor role reaches this tree.
+
+// Vendor sub-app: /vendor/{dashboard,tenants,audit}. Guarded by <VendorRoute>.
 import type { FC, JSX } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { ErrorBoundary, NotFoundPage } from '@shared/errors';

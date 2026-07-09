@@ -1,13 +1,9 @@
-/**
- * AuditContext — vendor-scope action log.
- *
- * Every impersonation, suspension, deletion, and vendor login writes an
- * immutable row here. Live-queried so the /vendor/audit page updates in
- * real time (and cross-tab).
- *
- * In a real backend this table would be append-only + server-signed;
- * here it's just a Dexie table that anyone with DB access can nuke.
- */
+// AuditContext — vendor-scope action log.
+
+// Immutable audit log for impersonation/suspension/deletion/vendor login. Live-queried, cross-tab.
+
+// In a real backend this table would be append-only + server-signed;
+// here it's just a Dexie table that anyone with DB access can nuke.
 import { createContext, useCallback, useContext, useMemo, type FC, type ReactNode } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@shared/lib/db';

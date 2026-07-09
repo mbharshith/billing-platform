@@ -182,3 +182,11 @@ select.inputControl { cursor: pointer; appearance: none; -webkit-appearance: non
   animation: wm-spin 640ms linear infinite;
 }
 @keyframes wm-spin { to { transform: rotate(360deg); } }
+
+/* --- Icon tones + flip -------------------------------------------------- */
+.icon--primary { color: var(--app-primary); }
+.icon--accent  { color: var(--app-accent); }
+.icon--success { color: var(--app-success); }
+.icon--danger  { color: var(--app-danger); }
+.icon--muted   { color: var(--app-text-muted); }
+.icon--flipX   { transform: scaleX(-1); }

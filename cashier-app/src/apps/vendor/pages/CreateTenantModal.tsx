@@ -1,21 +1,7 @@
-/**
- * CreateTenantModal — vendor-only tenant provisioning.
- *
- * SINGLE SOURCE OF TRUTH for tenant creation. There is no /signup path —
- * new customers are onboarded by us (the SaaS owner). This mirrors how
- * every real B2B SaaS works: Stripe, Salesforce, Jira Cloud Enterprise,
- * Shopify Plus. Self-serve signup would be a separate GTM decision.
- *
- * On confirm we create BOTH:
- *   1. the Store row (with the vendor-supplied metadata)
- *   2. the first admin User for that store (so they can immediately log in)
- * plus an audit log entry (tenant.create).
- *
- * If step 2 fails (e.g. duplicate username) we roll back step 1 by hand —
- * Dexie doesn't span our contexts in a transaction, so we compensate.
- */
+// CreateTenantModal - vendor-only tenant provisioning. Creates Store + first admin User
+// + audit entry; if admin creation fails, rolls back the store (Dexie doesn't span contexts).
 import { useState, type FC, type FormEvent } from 'react';
-import { Button, Field, Icon, Input, Text } from '@shared/atoms';
+import { Button, Field, Input } from '@shared/atoms';
 import { Modal } from '@shared/organisms';
 import { db } from '@shared/lib/db';
 import { STRINGS } from '@shared/domain/strings';
@@ -24,20 +10,15 @@ import { useAuth } from '@shared/store/AuthContext';
 import { useStores } from '@shared/store/StoresContext';
 import { useToast } from '@shared/store/ToastContext';
 import { useUsers } from '@shared/store/UsersContext';
+import {
+  CURRENCY_PRESETS, TenantForm, TenantFormDivider, TenantPreview, TenantSection,
+  TenantStoreFields, TenantTwoCol,
+} from './tenantForm';
 
 interface CreateTenantModalProps {
   readonly onClose: () => void;
   readonly onCreated?: () => void;
 }
-
-/** Currencies we ship with. Vendor can still type any 3-letter ISO code. */
-const CURRENCIES = [
-  { code: 'INR', label: '₹ Indian Rupee', tax: 0.18 },
-  { code: 'USD', label: '$ US Dollar',    tax: 0.0825 },
-  { code: 'EUR', label: '€ Euro',         tax: 0.20 },
-  { code: 'GBP', label: '£ British Pound', tax: 0.20 },
-  { code: 'AED', label: 'د.إ UAE Dirham', tax: 0.05 },
-] as const;
 
 type FormErrors = Partial<Record<
   | 'name' | 'city' | 'phone' | 'address' | 'taxRate' | 'currency'
@@ -68,11 +49,13 @@ export const CreateTenantModal: FC<CreateTenantModalProps> = ({ onClose, onCreat
   const [errors, setErrors] = useState<FormErrors>({});
   const [submitting, setSubmitting] = useState(false);
 
-  /** Bump defaults when currency changes — nice UX touch. */
+  // Bump the tax default when currency changes - but only if the user hasn't
+  // already customized it away from the previous currency's default.
   const handleCurrency = (code: string) => {
     setCurrency(code);
-    const preset = CURRENCIES.find((c) => c.code === code);
-    if (preset && taxRate === '' + (CURRENCIES.find((c) => c.code === currency)?.tax ?? 0) * 100) {
+    const preset = CURRENCY_PRESETS.find((c) => c.code === code);
+    const prev   = CURRENCY_PRESETS.find((c) => c.code === currency);
+    if (preset && prev && taxRate === String(prev.tax * 100)) {
       setTaxRate(String(preset.tax * 100));
     }
   };
@@ -108,20 +91,15 @@ export const CreateTenantModal: FC<CreateTenantModalProps> = ({ onClose, onCreat
 
     // 1. Create the store.
     const storeRes = await createStore({
-      name:    name.trim(),
-      city:    city.trim(),
-      phone:   phone.trim(),
+      name: name.trim(), city: city.trim(), phone: phone.trim(),
       address: address.trim(),
       taxRate: Number(taxRate) / 100,
       currency: currency.trim().toUpperCase(),
     });
-
     if (!storeRes.ok) {
       setSubmitting(false);
-      const msg = storeRes.error === 'duplicateName'
-        ? 'A tenant with this name already exists.'
-        : 'Invalid tenant details.';
-      setErrors({ name: msg });
+      setErrors({ name: storeRes.error === 'duplicateName'
+        ? 'A tenant with this name already exists.' : 'Invalid tenant details.' });
       return;
     }
 
@@ -133,18 +111,15 @@ export const CreateTenantModal: FC<CreateTenantModalProps> = ({ onClose, onCreat
       role:     'admin',
       storeId:  storeRes.store.id,
     });
-
     if (!userRes.ok) {
-      // Compensate: remove the store we just created so we don't leave a
-      // "ghost tenant" with no admin. Real backend would use a transaction.
+      // Compensate: remove the ghost store. Real backend would use a transaction.
       await removeStore(storeRes.store.id);
       setSubmitting(false);
       const msg = userRes.error === 'duplicate'
         ? 'That admin username is already taken. Try another.'
         : 'Password too weak. Use 8+ characters.';
       setErrors(userRes.error === 'duplicate'
-        ? { adminUsername: msg }
-        : { adminPassword: msg });
+        ? { adminUsername: msg } : { adminPassword: msg });
       return;
     }
 
@@ -153,11 +128,10 @@ export const CreateTenantModal: FC<CreateTenantModalProps> = ({ onClose, onCreat
       actorUsername: currentUser?.username ?? 'unknown',
       action: 'tenant.create',
       targetStoreId: storeRes.store.id,
-      detail: `${storeRes.store.name} · admin: ${adminUsername.trim()}`,
+      detail: `${storeRes.store.name} - admin: ${adminUsername.trim()}`,
     });
 
-    // Dexie put-events fire on their own — no manual refresh needed.
-    void db;
+    void db; // Dexie put-events fire on their own - no manual refresh needed.
     toast.success(`${storeRes.store.name} onboarded. Admin '${adminUsername.trim()}' can now sign in.`);
     setSubmitting(false);
     onCreated?.();
@@ -175,154 +149,59 @@ export const CreateTenantModal: FC<CreateTenantModalProps> = ({ onClose, onCreat
         <>
           <Button variant="secondary" onClick={onClose} disabled={submitting}>Cancel</Button>
           <Button variant="primary" onClick={handleSubmit} disabled={submitting} leadingIcon="plus">
-            {submitting ? 'Onboarding…' : 'Create tenant'}
+            {submitting ? 'Onboarding\u2026' : 'Create tenant'}
           </Button>
         </>
       }
     >
-      <form onSubmit={handleSubmit} noValidate style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        <section>
-          <Text as="h3" size="sm" weight="bold" upper tone="subtle">Store details</Text>
-          <div style={twoCol}>
-            <Field label="Store name" required htmlFor="tt-name" error={errors.name}>
-              <Input
-                id="tt-name" leadingIcon="store"
-                value={name} onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. Nike Andheri West"
-                autoFocus invalid={!!errors.name}
-              />
-            </Field>
-            <Field label="City" required htmlFor="tt-city" error={errors.city}>
-              <Input
-                id="tt-city"
-                value={city} onChange={(e) => setCity(e.target.value)}
-                placeholder="Mumbai"
-                invalid={!!errors.city}
-              />
-            </Field>
-          </div>
+      <TenantForm onSubmit={handleSubmit}>
+        <TenantStoreFields
+          idPrefix="tt" autoFocusName
+          name={name} onName={setName}
+          city={city} onCity={setCity}
+          phone={phone} onPhone={setPhone}
+          address={address} onAddress={setAddress}
+          currency={currency} onCurrency={handleCurrency}
+          taxRate={taxRate} onTaxRate={setTaxRate}
+          errors={errors}
+          taxHint="e.g. 18 for GST, 8.25 for MO sales tax"
+          namePlaceholder="e.g. Nike Andheri West"
+          cityPlaceholder="Mumbai"
+          addressPlaceholder="Shop 12, Infiniti Mall, Andheri West, Mumbai 400053"
+          phonePlaceholder="+91 22 4000 5000"
+        />
 
-          <Field label="Full address" required htmlFor="tt-addr" error={errors.address}>
-            <Input
-              id="tt-addr"
-              value={address} onChange={(e) => setAddress(e.target.value)}
-              placeholder="Shop 12, Infiniti Mall, Andheri West, Mumbai 400053"
-              invalid={!!errors.address}
-            />
-          </Field>
+        <TenantFormDivider />
 
-          <div style={twoCol}>
-            <Field label="Phone" htmlFor="tt-phone" hint="Optional">
-              <Input
-                id="tt-phone" leadingIcon="phone"
-                value={phone} onChange={(e) => setPhone(e.target.value)}
-                placeholder="+91 22 4000 5000"
-              />
-            </Field>
-            <Field label="Currency" required htmlFor="tt-currency">
-              <select
-                id="tt-currency"
-                value={currency}
-                onChange={(e) => handleCurrency(e.target.value)}
-                style={selectStyle}
-              >
-                {CURRENCIES.map((c) => (
-                  <option key={c.code} value={c.code}>{c.label}</option>
-                ))}
-              </select>
-            </Field>
-          </div>
-
-          <Field label="Tax rate (%)" required htmlFor="tt-tax" error={errors.taxRate}
-            hint="e.g. 18 for GST, 8.25 for MO sales tax"
-          >
-            <Input
-              id="tt-tax" type="number" step="0.01" min="0" max="100"
-              value={taxRate} onChange={(e) => setTaxRate(e.target.value)}
-              invalid={!!errors.taxRate}
-            />
-          </Field>
-        </section>
-
-        <hr style={{ border: 0, borderTop: '1px solid var(--app-border)', margin: '0.5rem 0' }} />
-
-        <section>
-          <Text as="h3" size="sm" weight="bold" upper tone="subtle">Initial admin</Text>
-          <Text size="xs" tone="subtle">
-            The tenant will sign in with these credentials. They can create additional users after logging in.
-          </Text>
-
-          <div style={twoCol}>
+        <TenantSection heading="Initial admin"
+          caption="The tenant will sign in with these credentials. They can create additional users after logging in.">
+          <TenantTwoCol>
             <Field label="Admin full name" required htmlFor="tt-aname" error={errors.adminName}>
-              <Input
-                id="tt-aname" leadingIcon="user"
+              <Input id="tt-aname" leadingIcon="user"
                 value={adminName} onChange={(e) => setAdminName(e.target.value)}
-                placeholder="e.g. Priya Sharma"
-                invalid={!!errors.adminName}
-              />
+                placeholder="e.g. Priya Sharma" invalid={!!errors.adminName} />
             </Field>
             <Field label="Username" required htmlFor="tt-auser" error={errors.adminUsername}
-              hint="letters/digits/._-"
-            >
-              <Input
-                id="tt-auser"
+              hint="letters/digits/._-">
+              <Input id="tt-auser"
                 value={adminUsername} onChange={(e) => setAdminUsername(e.target.value)}
-                placeholder="nike"
-                autoComplete="off"
-                invalid={!!errors.adminUsername}
-              />
+                placeholder="nike" autoComplete="off" invalid={!!errors.adminUsername} />
             </Field>
-          </div>
-
+          </TenantTwoCol>
           <Field label="Initial password" required htmlFor="tt-apass" error={errors.adminPassword}
-            hint="8+ chars. Tenant should change on first login."
-          >
-            <Input
-              id="tt-apass" type="password" leadingIcon="lock"
+            hint="8+ chars. Tenant should change on first login.">
+            <Input id="tt-apass" type="password" leadingIcon="lock"
               value={adminPassword} onChange={(e) => setAdminPassword(e.target.value)}
-              placeholder="••••••"
-              autoComplete="new-password"
-              invalid={!!errors.adminPassword}
-            />
+              placeholder="\u2022\u2022\u2022\u2022\u2022\u2022"
+              autoComplete="new-password" invalid={!!errors.adminPassword} />
           </Field>
-        </section>
+        </TenantSection>
 
-        {/* Reveal-only sanity check so the vendor sees the resolved data. */}
-        <div style={previewStyle}>
-          <Icon name="shield" size={14} />
-          <Text size="xs" tone="subtle">
-            Creating tenant <strong>{name || '—'}</strong> in <strong>{currency}</strong>.
-            First login: <strong>{adminUsername || '—'}</strong>.
-          </Text>
-        </div>
-      </form>
+        <TenantPreview>
+          Creating tenant <strong>{name || '\u2014'}</strong> in <strong>{currency}</strong>.
+          First login: <strong>{adminUsername || '\u2014'}</strong>.
+        </TenantPreview>
+      </TenantForm>
     </Modal>
   );
-};
-
-const twoCol: React.CSSProperties = {
-  display: 'grid',
-  gridTemplateColumns: '1fr 1fr',
-  gap: '0.75rem',
-  marginTop: '0.5rem',
-};
-
-const selectStyle: React.CSSProperties = {
-  width: '100%',
-  padding: '0.625rem 0.75rem',
-  border: '1px solid var(--app-border)',
-  borderRadius: 'var(--radius-md)',
-  background: 'var(--app-surface)',
-  color: 'var(--app-text)',
-  font: 'inherit',
-};
-
-const previewStyle: React.CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: '0.5rem',
-  padding: '0.5rem 0.75rem',
-  background: 'var(--app-blue-5, #eff6ff)',
-  border: '1px solid var(--app-blue-10, #dbeafe)',
-  borderRadius: 'var(--radius-md)',
 };

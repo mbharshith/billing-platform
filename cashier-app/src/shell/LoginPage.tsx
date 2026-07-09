@@ -1,7 +1,5 @@
-/**
- * LoginPage — full-screen sign-in card.
- * Uses AuthContext. Redirects to /cashier (or the intended path) on success.
- */
+// LoginPage — full-screen sign-in card.
+// Uses AuthContext. Redirects to /cashier (or the intended path) on success.
 import { useState, type FC, type FormEvent } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import cls from './LoginPage.module.css';
@@ -114,21 +112,11 @@ export const LoginPage: FC = () => {
               {submitting ? STRINGS.auth.signingIn : STRINGS.auth.signIn}
             </Button>
             <div className={cls.loginHint}>{STRINGS.auth.demoHint}</div>
-            <div className={cls.loginHint} style={{ textAlign: 'center' }}>
+            <div className={`${cls.loginHint} ${cls['loginHint--center']}`}>
               New here? <strong>Contact your SaaS provider</strong> to be onboarded.
             </div>
             {showOnboardHint && (
-              <div
-                className={cls.loginHint}
-                style={{
-                  textAlign: 'center',
-                  background: 'var(--app-blue-5, #eff6ff)',
-                  border: '1px solid var(--app-blue-10, #dbeafe)',
-                  padding: '0.5rem 0.75rem',
-                  borderRadius: 'var(--radius-md)',
-                }}
-                role="note"
-              >
+              <div className={`${cls.loginHint} ${cls['loginHint--note']}`} role="note">
                 Self-signup has moved. Ask your SaaS vendor to provision a tenant for you.
               </div>
             )}

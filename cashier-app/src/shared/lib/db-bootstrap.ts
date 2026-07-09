@@ -1,15 +1,10 @@
-/**
- * One-shot bootstrap:
- *   1. If IndexedDB tables are non-empty → nothing to do (already migrated).
- *   2. If old localStorage data exists → import it (users upgrading in place).
- *   3. Otherwise → seed the fresh demo data (first-time visitors).
- *
- * Runs exactly once per browser: gated by a flag in localStorage so we don't
- * import twice even if the user reloads mid-migration.
- *
- * Kept in a dedicated module so <RootProvider> can `await` it before any
- * context provider mounts. That way live-queries never flash empty on boot.
- */
+// One-shot bootstrap: skip if IDB already has data, else import legacy localStorage or seed demo data.
+
+// Runs exactly once per browser: gated by a flag in localStorage so we don't
+// import twice even if the user reloads mid-migration.
+
+// Kept in a dedicated module so <RootProvider> can `await` it before any
+// context provider mounts. That way live-queries never flash empty on boot.
 
 import { db } from './db';
 import { storage } from './storage';
@@ -22,14 +17,8 @@ import type {
 
 const MIGRATION_FLAG = 'db-bootstrap::v1';
 
-/**
- * Normalise legacy user roles to the current UserRole union:
- *  - 'super_admin' rows are dropped entirely — the cross-tenant role no
- *    longer exists; that surface moved to the dedicated vendor account.
- *  - 'master' rows (used in v1 of the app) are renamed to 'admin' to
- *    match the current schema.
- * Safe to run on an already-migrated list — no-ops for current roles.
- */
+// Normalise legacy user roles: drop 'super_admin' rows (that surface moved to the
+// dedicated vendor account), rename 'master' -> 'admin' (v1 schema). Idempotent.
 const migrateUsers = (list: readonly User[]): readonly User[] =>
   list
     .filter((u) => u.role !== ('super_admin' as UserRole))
@@ -38,7 +27,7 @@ const migrateUsers = (list: readonly User[]): readonly User[] =>
       role: (u.role === ('master' as UserRole) ? 'admin' : u.role) as UserRole,
     }));
 
-/** Backfill missing storeId on legacy pre-multi-tenant rows. */
+// Backfill missing storeId on legacy pre-multi-tenant rows.
 const backfillStoreId = <T extends { storeId?: string }>(
   list: readonly T[],
   fallbackId: string,
@@ -99,9 +88,7 @@ export const bootstrapDb = async (): Promise<void> => {
   await ensureVendorUser();
 };
 
-/** Idempotent: create the vendor account if it isn't already there. Called
- *  on every boot so old installs (pre-v3) get the vendor without needing a
- *  full re-seed. */
+  // Idempotent: create the vendor account if missing (runs every boot so pre-v3 installs get vendor too).
 const ensureVendorUser = async (): Promise<void> => {
   const vendor = SEED_USERS.find((u) => u.role === 'vendor');
   if (!vendor) return;
@@ -109,7 +96,7 @@ const ensureVendorUser = async (): Promise<void> => {
   if (!existing) await db.users.put(vendor);
 };
 
-/** Clear the migration flag AND wipe IDB. Used by the demo-reset UI. */
+// Clear the migration flag AND wipe IDB. Used by the demo-reset UI.
 export const resetBootstrap = (): void => {
   storage.remove(MIGRATION_FLAG);
 };
