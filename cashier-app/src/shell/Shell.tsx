@@ -51,7 +51,14 @@ const SubApp = (label: string, node: JSX.Element): JSX.Element => (
 );
 
 export const Shell: FC = () => (
-  <BrowserRouter>
+  <BrowserRouter
+    future={{
+      // Opt into v7 semantics now so the v6 -> v7 upgrade is a no-op.
+      // Silences the "Future Flag Warning" console noise on every route.
+      v7_startTransition: true,
+      v7_relativeSplatPath: true,
+    }}
+  >
     <ErrorBoundary label="shell">
       <Routes>
         {/* -------------------- public entry -------------------- */}
