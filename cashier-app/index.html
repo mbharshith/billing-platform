@@ -3,26 +3,32 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Security: strict CSP — no inline scripts/styles, allow only known origins.
+         frame-ancestors must be set as an HTTP response header; meta CSP ignores it. -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://images.unsplash.com; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self';" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+
     <!-- Placeholder title only — replaced at runtime by AppShell using
          BRAND.fullTitle from src/shared/brand.ts. Keep it generic so the
          static HTML never leaks a stale product name after a rebrand. -->
     <title>Loading…</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400&display=swap" rel="stylesheet">
-    <script>
-      // Set theme before paint to prevent light-flash on dark reloads.
-      (function () {
-        try {
-          var stored = localStorage.getItem('app-theme');
-          var systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-          var theme = (stored === 'dark' || stored === 'light') ? stored : (systemPrefersDark ? 'dark' : 'light');
-          document.documentElement.dataset.theme = theme;
-        } catch (_) {
-          document.documentElement.dataset.theme = 'light';
-        }
-      })();
-    </script>
+
+    <!-- Font origins: establish TCP+TLS early so font CSS and woff2 files
+         don't wait for the main document's connection. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="dns-prefetch" href="https://images.unsplash.com" />
+
+    <!-- Full font stack: Montserrat (UI), Fraunces (editorial), JetBrains Mono (code). -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Theme detection: runs synchronously before first paint — no flash.
+         Kept in a separate file so CSP can use script-src 'self'. -->
+    <script src="/theme-init.js"></script>
   </head>
   <body>
     <div id="root"></div>

@@ -1,5 +1,10 @@
 // tenantTheme - deterministic per-tenant accent palette.
-// Well-known brands get their signature colors; unknowns get a hash-picked palette.
+//
+// Each seeded tenant gets a palette that matches its brand character;
+// any unknown tenant falls back to the hash-picked pool below.
+//
+// tenants are our own boutique / restaurant / luxury brands and their
+// palettes reflect that voice (jewel tones + terracotta + gold).
 
 interface TenantTheme {
   readonly accent: string;        // primary CTA color
@@ -13,37 +18,47 @@ interface TenantTheme {
   readonly tagline: string;       // shown under brand in header
 }
 
+// Keys MUST match the store IDs in fixtures/stores.ts (SEED_STORE_*_ID).
+// Adding a new seeded tenant? Add its palette here so it doesn't fall
+// back to a random hash pick.
 const BRAND_MAP: Record<string, TenantTheme> = {
-  'store-myntra': {
-    accent: '#ff3f6c', accentHover: '#e13560', accentSoft: 'rgba(255, 63, 108, 0.10)',
+  'store-velvet': {
+    // Velvet Mumbai Flagship - luxury Indian fashion. Deep aubergine +
+    // rose gold: reads as bridal / couture without being loud.
+    accent: '#7c2d5a', accentHover: '#60214a', accentSoft: 'rgba(124, 45, 90, 0.10)',
     onAccent: '#fff',
-    heroFrom: '#ff3f6c', heroTo: '#ff905a',
+    heroFrom: '#7c2d5a', heroTo: '#b8862a',
     deliveryEta: '2-3 days', deliveryEtaShort: '2 days',
-    tagline: 'Fashion delivered to your door',
+    tagline: 'Couture, delivered.',
   },
-  'store-flipkart': {
-    accent: '#2874f0', accentHover: '#1e5fc2', accentSoft: 'rgba(40, 116, 240, 0.10)',
+  'store-spiceroute': {
+    // Spice Route Kitchen - Indian non-veg restaurant. Warm terracotta +
+    // saffron: appetite-driving without going full fast-food red.
+    accent: '#c2410c', accentHover: '#9a3308', accentSoft: 'rgba(194, 65, 12, 0.10)',
     onAccent: '#fff',
-    heroFrom: '#2874f0', heroTo: '#5b9bff',
-    deliveryEta: 'Same-day', deliveryEtaShort: 'today',
-    tagline: 'Explore Plus. Shop the world.',
+    heroFrom: '#c2410c', heroTo: '#f59e0b',
+    deliveryEta: '30-45 min', deliveryEtaShort: '30 min',
+    tagline: 'Freshly plated, quickly delivered.',
   },
-  'store-walmart': {
-    accent: '#0071dc', accentHover: '#005ab8', accentSoft: 'rgba(0, 113, 220, 0.10)',
+  'store-lamaison': {
+    // La Maison Boutique - luxury SoHo boutique, USD. Ink black + gold:
+    // the editorial-magazine aesthetic that matches the storefront chrome.
+    accent: '#0a0a0a', accentHover: '#1f1f1f', accentSoft: 'rgba(10, 10, 10, 0.08)',
     onAccent: '#fff',
-    heroFrom: '#0071dc', heroTo: '#ffc220',
-    deliveryEta: '2-hour delivery', deliveryEtaShort: '2h',
-    tagline: 'Save money. Live better.',
+    heroFrom: '#0a0a0a', heroTo: '#b8862a',
+    deliveryEta: '3-5 days', deliveryEtaShort: '3 days',
+    tagline: 'Designer pieces, personally curated.',
   },
 };
 
 // Fallback palette pool for unknown tenants.
+// All jewel/earthy tones - no primary-red or primary-blue big-box vibes.
 const FALLBACK_POOL: ReadonlyArray<Pick<TenantTheme, 'accent' | 'accentHover' | 'heroTo'>> = [
   { accent: '#10b981', accentHover: '#0f9b73', heroTo: '#34d399' }, // emerald
   { accent: '#8b5cf6', accentHover: '#7047d8', heroTo: '#a78bfa' }, // violet
   { accent: '#f59e0b', accentHover: '#d68906', heroTo: '#fbbf24' }, // amber
-  { accent: '#ef4444', accentHover: '#d43737', heroTo: '#f87171' }, // red
-  { accent: '#06b6d4', accentHover: '#0596b0', heroTo: '#22d3ee' }, // cyan
+  { accent: '#c2410c', accentHover: '#9a3308', heroTo: '#f97316' }, // terracotta
+  { accent: '#0f766e', accentHover: '#0c5f58', heroTo: '#14b8a6' }, // teal
 ];
 
 function hashString(s: string): number {
