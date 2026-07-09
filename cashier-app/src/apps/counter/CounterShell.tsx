@@ -9,14 +9,13 @@
 import { useEffect, useRef, useState, type FC, type ReactNode } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import cls from './layout.module.css';
-import { Icon, Text } from '@shared/atoms';
+import { Icon, Text, ThemeToggle } from '@shared/atoms';
 import { ToastStack } from '@shared/feedback';
 import { STRINGS } from '@shared/domain/strings';
 import { monogramFor } from '@shared/domain/format';
 import { useAuth } from '@shared/store/AuthContext';
 import { useStores } from '@shared/store/StoresContext';
 import { useToast } from '@shared/store/ToastContext';
-import { useTheme } from '@shared/lib/theme';
 
 /* -------------------------------------------------------------------------- */
 /* NavItem — react-router NavLink with active class                           */
@@ -33,25 +32,6 @@ const NavItem: FC<NavItemProps> = ({ to, icon, children, label }) => (
     <span className={cls.navLink__label}>{children}</span>
   </NavLink>
 );
-
-/* -------------------------------------------------------------------------- */
-/* ThemeToggle                                                                */
-/* -------------------------------------------------------------------------- */
-const ThemeToggle: FC = () => {
-  const { theme, toggle } = useTheme();
-  const isDark = theme === 'dark';
-  return (
-    <button
-      type="button"
-      onClick={toggle}
-      className={cls.themeToggle}
-      aria-label={isDark ? 'Switch to light theme' : 'Switch to dark theme'}
-      title={isDark ? 'Light mode' : 'Dark mode'}
-    >
-      <Icon name={isDark ? 'sun' : 'moon'} size={18} />
-    </button>
-  );
-};
 
 /* -------------------------------------------------------------------------- */
 /* TenantBadge — shows the current tenant name in the header.                 */

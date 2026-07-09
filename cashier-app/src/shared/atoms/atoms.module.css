@@ -190,3 +190,28 @@ select.inputControl { cursor: pointer; appearance: none; -webkit-appearance: non
 .icon--danger  { color: var(--app-danger); }
 .icon--muted   { color: var(--app-text-muted); }
 .icon--flipX   { transform: scaleX(-1); }
+
+/* --- ThemeToggle -------------------------------------------------------- */
+.themeToggle {
+  display: inline-grid;
+  place-items: center;
+  width: 40px; height: 40px;
+  border-radius: var(--app-radius-pill);
+  background: var(--app-bg-alt);
+  color: var(--app-text);
+  border: 1px solid var(--app-border);
+  cursor: pointer;
+  transition: background var(--app-motion-fast),
+              color var(--app-motion-fast),
+              transform var(--app-motion-fast);
+  flex-shrink: 0;
+}
+.themeToggle:hover {
+  background: var(--app-surface-subtle);
+  color: var(--app-primary);
+  transform: rotate(-12deg);
+}
+.themeToggle:focus-visible {
+  outline: 2px solid var(--app-focus-ring);
+  outline-offset: 2px;
+}

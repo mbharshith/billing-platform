@@ -258,3 +258,4 @@ Textarea.displayName = 'Textarea';
 
 export { Icon } from './Icon';
 export type { IconName } from './Icon';
+export { ThemeToggle } from './ThemeToggle';

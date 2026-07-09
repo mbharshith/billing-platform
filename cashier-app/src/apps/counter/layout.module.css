@@ -162,28 +162,6 @@
 .navLink:hover { background: var(--app-gray-10); color: var(--app-text); }
 .navLink--active { background: var(--app-blue-5); color: var(--app-primary); }
 
-/* -------- Theme toggle -------- */
-.themeToggle {
-  display: inline-grid;
-  place-items: center;
-  width: 44px; height: 44px;
-  border-radius: var(--app-radius-pill);
-  background: var(--app-gray-10);
-  color: var(--app-text);
-  border: 1px solid var(--app-border);
-  cursor: pointer;
-  transition: background var(--app-motion-fast), color var(--app-motion-fast), transform var(--app-motion-fast);
-  flex-shrink: 0;
-}
-.themeToggle:hover {
-  background: var(--app-gray-30);
-  color: var(--app-primary);
-  transform: rotate(-12deg);
-}
-.themeToggle:focus-visible {
-  outline: 2px solid var(--app-focus-ring);
-  outline-offset: 2px;
-}
 
 /* -------- User menu -------- */
 .userMenu { position: relative; flex-shrink: 0; }

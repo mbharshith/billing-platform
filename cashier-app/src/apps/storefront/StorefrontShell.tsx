@@ -5,7 +5,7 @@
 //   accent (buttons, chips, hero) matches the store's brand color
 import { useState, type FC, type FormEvent, type ReactNode } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Icon } from '@shared/atoms';
+import { Icon, ThemeToggle } from '@shared/atoms';
 import { useStorefrontTenant } from './state/StorefrontTenantContext';
 import { useCart } from './state/CartContext';
 import { getTenantTheme, themeVars } from './lib/tenantTheme';
@@ -71,6 +71,7 @@ export const StorefrontShell: FC<{ children: ReactNode }> = ({ children }) => {
           ) : <div />}
 
           <nav className={cls.headerNav} aria-label="Storefront">
+            <ThemeToggle />
             <Link to={`${home}/track`} className={cls.headerNav__btn} aria-label="Track your order">
               <Icon name="receipt" size={18} />
               <span className={cls.headerNav__btnLabel}>Track</span>

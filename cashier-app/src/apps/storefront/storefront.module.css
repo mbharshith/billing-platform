@@ -512,14 +512,14 @@
   top: 8px;
   left: 8px;
   z-index: 2;
-  background: #16a34a;
+  background: var(--app-success);
   color: #fff;
   font-size: 10px;
   font-weight: 800;
   padding: 3px 8px;
   border-radius: 4px;
   letter-spacing: 0.03em;
-  box-shadow: 0 2px 6px rgba(22, 163, 74, 0.35);
+  box-shadow: 0 2px 6px rgba(0, 128, 60, 0.35);
 }
 .productCard__addBtn {
   position: absolute;
@@ -631,7 +631,7 @@
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  background: #16a34a;
+  background: var(--app-success);
   color: #fff;
   padding: 2px 6px;
   border-radius: 4px;
@@ -701,7 +701,7 @@
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  background: #16a34a;
+  background: var(--app-success);
   color: #fff;
   padding: 3px 8px;
   border-radius: 5px;
@@ -719,7 +719,7 @@
   font-weight: 500;
 }
 .pdpDiscount {
-  color: #16a34a;
+  color: var(--app-success);
   font-weight: 800;
   font-size: 15px;
 }
@@ -727,10 +727,10 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: #16a34a;
+  color: var(--app-success);
   font-weight: 700;
   font-size: 13px;
-  background: rgba(22, 163, 74, 0.10);
+  background: rgba(0, 128, 60, 0.10);
   padding: 6px 10px;
   border-radius: 6px;
   width: fit-content;
@@ -803,8 +803,8 @@
 .pdpPriceRow { display: flex; align-items: baseline; gap: 8px; margin-top: 4px; }
 .pdpPrice { font-size: 30px; font-weight: 800; color: var(--app-text); letter-spacing: -0.01em; }
 .pdpTax { font-size: 12px; color: var(--app-text-subtle); }
-.pdpStockOk { color: #059669; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 4px; }
-.pdpStockLow { color: #d97706; font-weight: 700; font-size: 13px; }
+.pdpStockOk { color: var(--app-success); font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 4px; }
+.pdpStockLow { color: var(--app-warn); font-weight: 700; font-size: 13px; }
 .pdpStockOut { color: var(--app-danger); font-weight: 700; font-size: 13px; }
 
 .pdpQtyRow { display: flex; align-items: center; gap: 12px; margin-top: 12px; }
@@ -995,7 +995,7 @@
   font-size: 14px;
 }
 .summaryRow--muted { color: var(--app-text-subtle); }
-.summaryRow--free { color: #059669; font-weight: 700; }
+.summaryRow--free { color: var(--app-success); font-weight: 700; }
 .summaryRow--total {
   font-size: 17px;
   font-weight: 800;
@@ -1026,8 +1026,8 @@
 .summaryCta:disabled { opacity: 0.55; cursor: not-allowed; }
 .summarySavings {
   padding: 8px 12px;
-  background: rgba(5, 150, 105, 0.10);
-  color: #059669;
+  background: rgba(0, 128, 60, 0.10);
+  color: var(--app-success);
   border-radius: 8px;
   font-size: 12px;
   font-weight: 700;
