@@ -54,9 +54,9 @@ const seedStore = (
   const day = 24 * 60 * 60 * 1000;
 
   const cashierByStore: Record<string, { id: string; name: string }> = {
-    [SEED_STORE_MAIN_ID]:   { id: 'u-myntra-cashier',   name: 'Rohan Iyer' },
-    [SEED_STORE_BRANCH_ID]: { id: 'u-flipkart-cashier', name: 'Neha Reddy' },
-    [SEED_STORE_THIRD_ID]:  { id: 'u-walmart-cashier',  name: 'Sam Cashier' },
+    [SEED_STORE_MAIN_ID]:   { id: 'u-velvet-cashier',     name: 'Rohan Iyer' },
+    [SEED_STORE_BRANCH_ID]: { id: 'u-spiceroute-cashier', name: 'Neha Reddy' },
+    [SEED_STORE_THIRD_ID]:  { id: 'u-lamaison-cashier',   name: 'James Carter' },
   };
   const cashier = cashierByStore[storeId] ?? { id: 'user-unknown', name: 'Cashier' };
 

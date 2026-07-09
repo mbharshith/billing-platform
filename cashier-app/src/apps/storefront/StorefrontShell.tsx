@@ -39,10 +39,6 @@ export const StorefrontShell: FC<{ children: ReactNode }> = ({ children }) => {
 
   return (
     <div className={cls.shell} style={themeVars(theme)}>
-      <div className={cls.deliveryBar}>
-        Complimentary delivery in <strong>{theme.deliveryEta}</strong> to {tenant.city}
-      </div>
-
       <header className={cls.header}>
         <div className={cls.headerInner}>
           <Link to={home} className={cls.brand} aria-label={`${tenant.name} home`}>

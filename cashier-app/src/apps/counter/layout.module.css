@@ -82,7 +82,7 @@
   /* 3px accent strip identifies the console: tenant = brand blue.
      Vendor console overrides this in its own module. (L-02) */
   border-top: 3px solid var(--app-primary);
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  box-shadow: var(--app-shadow-xs);
   position: sticky;
   top: 0;
   z-index: var(--app-z-sticky);
@@ -112,7 +112,7 @@
   background: linear-gradient(135deg, var(--app-primary) 0%, var(--app-blue-130) 100%);
   color: var(--app-text-inverse);
   display: grid; place-items: center;
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.28);
+  box-shadow: 0 4px 12px var(--app-primary-glow);
 }
 .brand__text { display: flex; flex-direction: column; line-height: 1; gap: 3px; }
 

@@ -38,7 +38,7 @@ const ADDR = {
 };
 
 const ROWS: readonly SeedRow[] = [
-  // ---- Myntra Mumbai ----
+  // ---- Velvet Mumbai ----
   {
     storeId: SEED_STORE_MAIN_ID, hoursAgo: 0.5, status: 'placed',
     customerName: 'Zara Khan', customerMobile: '9876500001',
@@ -67,42 +67,43 @@ const ROWS: readonly SeedRow[] = [
     notes: null, method: 'cod',
     pick: [{ categoryHint: 'apparel', qty: 2 }],
   },
-  // ---- Flipkart Bengaluru ----
+
+  // ---- Spice Route Kitchen ----
   {
     storeId: SEED_STORE_BRANCH_ID, hoursAgo: 1, status: 'placed',
     customerName: 'Karthik Menon', customerMobile: '9012345678',
     address: ADDR.bengaluru('221B Baker St', 'Near Sony World'),
     notes: null, method: 'online',
-    pick: [{ categoryHint: 'electronics', qty: 1 }],
+    pick: [{ categoryHint: 'food', qty: 2 }],
   },
   {
     storeId: SEED_STORE_BRANCH_ID, hoursAgo: 3, status: 'confirmed',
     customerName: 'Deepak Rao', customerMobile: '9012345612',
-    address: ADDR.bengaluru('15 Innovation Ave'),
+    address: ADDR.bengaluru('15 Indiranagar Main Rd'),
     notes: 'Ring the bell twice', method: 'cod',
-    pick: [{ categoryHint: 'electronics', qty: 2 }],
+    pick: [{ categoryHint: 'food', qty: 3 }],
   },
   {
     storeId: SEED_STORE_BRANCH_ID, hoursAgo: 5, status: 'out_for_delivery',
     customerName: 'Sneha Iyer', customerMobile: '9834567890',
     address: ADDR.bengaluru('9 Whitefield Rd'),
     notes: null, method: 'online',
-    pick: [{ categoryHint: 'electronics', qty: 1 }],
+    pick: [{ categoryHint: 'food', qty: 2 }],
   },
-  // ---- Walmart Springfield ----
+  // ---- La Maison Boutique ----
   {
     storeId: SEED_STORE_THIRD_ID, hoursAgo: 0.8, status: 'placed',
-    customerName: 'John Doe', customerMobile: '4175550101',
-    address: ADDR.springfield('1420 W Sunshine St'),
+    customerName: 'Emily Carter', customerMobile: '2125550101',
+    address: ADDR.springfield('157 Spring St'),
     notes: 'Leave with concierge', method: 'cod',
-    pick: [{ categoryHint: 'grocery', qty: 3 }, { categoryHint: 'grocery', qty: 2 }],
+    pick: [{ categoryHint: 'apparel', qty: 2 }],
   },
   {
     storeId: SEED_STORE_THIRD_ID, hoursAgo: 2.5, status: 'packing',
-    customerName: 'Emily Carter', customerMobile: '4175550188',
-    address: ADDR.springfield('3300 E Sunset Blvd', 'Blue mailbox'),
+    customerName: 'James Carter', customerMobile: '2125550188',
+    address: ADDR.springfield('300 W Broadway', 'Apt 4B'),
     notes: null, method: 'online',
-    pick: [{ categoryHint: 'grocery', qty: 4 }],
+    pick: [{ categoryHint: 'apparel', qty: 1 }],
   },
 ];
 
@@ -119,6 +120,7 @@ const pickProducts = (
     const cat = p.category.toLowerCase();
     if (hint === 'apparel')     return cat === 'other' || cat === 'personal';
     if (hint === 'electronics') return cat === 'electronics';
+    if (hint === 'food')        return ['snacks', 'meat', 'beverages', 'other'].includes(cat);
     if (hint === 'grocery')     return ['grocery', 'produce', 'beverages', 'snacks', 'frozen', 'meat'].includes(cat);
     return true;
   });

@@ -36,34 +36,6 @@
   margin-top: 0.25rem;
 }
 
-.details {
-  margin-top: 0.75rem;
-  width: 100%;
-  text-align: left;
-  font-size: var(--fs-xs);
-  color: var(--app-fg-subtle);
-}
-
-.details summary {
-  cursor: pointer;
-  font-weight: 600;
-  padding: 0.25rem 0;
-}
-
-.pre {
-  margin: 0.5rem 0 0;
-  padding: 0.75rem;
-  background: var(--app-bg-alt);
-  border: 1px solid var(--app-border);
-  border-radius: var(--radius-md);
-  font-family: var(--font-mono, ui-monospace, monospace);
-  font-size: 11px;
-  overflow: auto;
-  max-height: 220px;
-  white-space: pre-wrap;
-  word-break: break-word;
-}
-
 /* -- Full-screen splash used at boot + boot-failure ----------------------- */
 .splash {
   position: fixed;
@@ -94,7 +66,7 @@
   height: 44px;
   border-radius: 12px;
   background: var(--app-accent);
-  color: var(--app-accent-fg, #fff);
+  color: var(--app-text-inverse);
   display: inline-flex;
   align-items: center;
   justify-content: center;

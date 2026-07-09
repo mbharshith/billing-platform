@@ -8,7 +8,7 @@ story on first load. **None of it is production data.**
 
 | File | Content | Bytes |
 |---|---|---|
-| `stores.ts`    | 3 seed tenants (Myntra Mumbai / Flipkart Bengaluru / Walmart Springfield) + their well-known IDs |
+| `stores.ts`    | 3 seed tenants (Myntra Mumbai / Flipkart Bengaluru / Main Street Market Springfield) + their well-known IDs |
 | `users.ts`     | 7 demo credentials — one admin + one cashier per tenant, plus the SaaS vendor account |
 | `customers.ts` | 7 demo customers scattered across the 3 tenants |
 | `products.ts`  | 31 demo SKUs, thematic per tenant (apparel / electronics / grocery) |

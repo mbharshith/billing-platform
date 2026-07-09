@@ -13,8 +13,8 @@
   --mk-ink-soft:   rgba(10, 10, 10, 0.72);
   --mk-ink-mute:   rgba(10, 10, 10, 0.52);
   --mk-ink-hair:   rgba(10, 10, 10, 0.12);
-  --mk-gold:       #b8862a;   /* WCAG-AA on cream */
-  --mk-gold-soft:  rgba(184, 134, 42, 0.16);
+  --mk-gold:       var(--app-gold);
+  --mk-gold-soft:  var(--app-gold-soft);
   --mk-elev:       0 1px 0 rgba(10, 10, 10, 0.06);
   --mk-cta-fg:     var(--mk-cream);
   --mk-cta-bg:     var(--mk-ink);
@@ -22,9 +22,9 @@
   --mk-panel-bg:   #fbfaf6;
 
   /* --- type --------------------------------------------------------- */
-  --mk-serif:  'Fraunces', 'Georgia', 'Times New Roman', serif;
-  --mk-sans:   'Montserrat', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --mk-mono:   'JetBrains Mono', ui-monospace, monospace;
+  --mk-serif:  var(--app-font-serif);
+  --mk-sans:   var(--app-font-family);
+  --mk-mono:   var(--app-font-mono);
 
   --mk-eyebrow-size: 11px;
   --mk-eyebrow-track: 0.32em;
@@ -48,11 +48,9 @@
   --mk-ink-soft:  rgba(245, 242, 237, 0.78);
   --mk-ink-mute:  rgba(245, 242, 237, 0.55);
   --mk-ink-hair:  rgba(245, 242, 237, 0.14);
-  --mk-gold:      #d4af37;
-  --mk-gold-soft: rgba(212, 175, 55, 0.18);
   --mk-elev:      0 1px 0 rgba(255, 255, 255, 0.05);
   --mk-cta-fg:    #0a0a0a;
-  --mk-cta-bg:    #d4af37;
+  --mk-cta-bg:    var(--app-gold);
   --mk-page-bg:   #0a0a0a;
   --mk-panel-bg:  #131313;
 }
@@ -82,7 +80,7 @@
 .eyebrow--md { margin-bottom: 1.5rem; }
 
 .inlineCode {
-  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-family: var(--app-font-mono);
   font-size: 0.9em;
 }
 
@@ -129,7 +127,7 @@
 }
 @media (max-width: 720px) {
   .nav__inner { padding: 14px 20px; grid-template-columns: auto 1fr auto; }
-  .nav__links { display: none !important; }
+  .nav__links { display: none; }
 }
 .nav__brand {
   display: inline-flex;
@@ -191,7 +189,7 @@
 .btnPrimary { background: var(--mk-cta-bg); color: var(--mk-cta-fg); border-color: var(--mk-cta-bg); }
 .btnGhost   { background: transparent;      color: var(--mk-ink);    border-color: var(--mk-ink-hair); }
 .btnGhost:hover { border-color: var(--mk-ink); }
-.btnGold    { background: var(--mk-gold);   color: #0a0a0a;          border-color: var(--mk-gold); }
+.btnGold    { background: var(--mk-gold);   color: var(--brand-ink);  border-color: var(--mk-gold); }
 
 /* -------------------------------------------------------------------- */
 /*  Hero                                                                */
@@ -269,7 +267,7 @@
   font-size: 10.5px;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: var(--mk-ink-mute);
+  color: var(--mk-ink);
   font-weight: 500;
 }
 
@@ -796,7 +794,7 @@ a.contactCard__val:hover { color: var(--mk-gold); }
   .vertical:nth-last-child(-n+2)  { border-bottom: none; }
 }
 @media (max-width: 480px) {
-  .vertical                       { border-right: none !important; }
+  .vertical                       { border-right: none; }
   .vertical:nth-last-child(-n+4)  { border-bottom: var(--mk-hair) solid var(--mk-ink-hair); }
   .vertical:last-child            { border-bottom: none; }
 }
@@ -824,5 +822,5 @@ a.contactCard__val:hover { color: var(--mk-gold); }
   .hero__figure img,
   .demoCard__figure img,
   .btn,
-  .demoCard { transition: none !important; }
+  .demoCard { transition: none; }
 }

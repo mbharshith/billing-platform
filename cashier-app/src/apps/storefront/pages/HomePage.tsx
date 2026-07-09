@@ -55,22 +55,6 @@ export const HomePage: FC = () => {
 
   return (
     <>
-      {/* Trust strip - single elegant line */}
-      <div className={cls.trustStrip}>
-        <div className={cls.trustBadge}>
-          <div className={cls.trustBadge__icon}><Icon name="zap" size={14} /></div>
-          <div className={cls.trustBadge__text}>Complimentary delivery</div>
-        </div>
-        <div className={cls.trustBadge}>
-          <div className={cls.trustBadge__icon}><Icon name="shield" size={14} /></div>
-          <div className={cls.trustBadge__text}>Verified authentic</div>
-        </div>
-        <div className={cls.trustBadge}>
-          <div className={cls.trustBadge__icon}><Icon name="receipt" size={14} /></div>
-          <div className={cls.trustBadge__text}>Effortless returns</div>
-        </div>
-      </div>
-
       {/* Hero */}
       <section className={cls.hero}>
         <div className={cls.hero__inner}>

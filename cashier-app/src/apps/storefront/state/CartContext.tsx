@@ -1,7 +1,7 @@
 // CartContext - customer's basket for the storefront, keyed per tenant.
 // Lives in localStorage so a shopper's cart survives page reloads (industry
 // standard - Shopify, Amazon, everyone does this). Per-tenant scoping means
-// Myntra's cart and Walmart's cart don't collide in the same browser.
+// Myntra's cart and a market store's cart don't collide in the same browser.
 import {
   createContext, useCallback, useContext, useEffect, useMemo, useState,
   type FC, type ReactNode,

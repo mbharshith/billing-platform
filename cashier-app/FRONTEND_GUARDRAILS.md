@@ -12,7 +12,7 @@
 
 Stack: React 18 + TypeScript 5 (strict) + Vite 5 + Dexie 4 + react-router 6.
 No backend yet. IndexedDB is the source of truth. WCAG 2.2 AA is mandatory
-(Walmart standard). Bundle target: sub-app chunks stay under 20 KB gzip.
+ standard). Bundle target: sub-app chunks stay under 20 KB gzip.
 
 ---
 
@@ -263,12 +263,12 @@ organisms -> templates -> pages.
 
 ---
 
-## 11. Accessibility (WCAG 2.2 AA — Walmart standard)
+## 11. Accessibility (WCAG 2.2 AA)
 
 - **RULE** Every interactive element is keyboard-reachable and has a
   visible focus indicator. Tab order matches visual order.
 - **RULE** Color contrast: text >= 4.5:1, large text >= 3:1, non-text UI
-  (icons, borders) >= 3:1. Test both light and dark modes. `cp_walmart_colors`
+  (icons, borders) >= 3:1. Test both light and dark modes. `cp_colors`
   skill has the palette + verified pairings.
 - **RULE** Icons that convey meaning have an `aria-label` or a visible
   text label next to them. Decorative icons get `aria-hidden="true"`.

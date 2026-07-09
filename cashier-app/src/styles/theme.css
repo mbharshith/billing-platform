@@ -63,9 +63,38 @@
   --brand-gray-140:    #374151;
   --brand-gray-160:    #111827;
 
+  /* --- Success light (for gradients) + bronze palette ------------------- */
+  --brand-success-light:  #34d399;
+  --brand-bronze-bg:      #efe4d6;
+  --brand-bronze-text:    #78350f;
+
+  /* --- Static anchors (never flipped by dark mode) ----------------------- */
+  --brand-white:         #ffffff;
+  --brand-black:         #000000;
+
+  /* --- Gold accent + neutral anchors ------------------------------------ */
+  --brand-gold:          #b8862a;
+  --brand-gold-soft:     rgba(184, 134, 42, 0.16);
+  --brand-ink:           #0a0a0a;
+  --brand-cream:         #f5f2ed;
+  --brand-cream-surface: #fbfaf6;
+
+  /* --- Vendor console identity ------------------------------------------ */
+  --brand-vendor:        #7c3aed;
+  --brand-vendor-deep:   #4f46e5;
+  --brand-vendor-glow:   rgba(124, 58, 237, 0.35);
+  --brand-vendor-fg:     #ffffff;
+  --brand-vendor-light:  #c4b5fd;
+
+  /* --- Interaction glows + overlays ------------------------------------- */
+  --brand-primary-glow:  rgba(37, 99, 235, 0.28);
+  --brand-success-deep:  #0a7c3e;
+  --brand-overlay:       rgba(15, 23, 42, 0.55);
+
   /* --- Typography --------------------------------------------------------- */
-  --brand-font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
-  --brand-font-mono:   ui-monospace, 'SF Mono', Menlo, monospace;
+  --brand-font-family: 'Montserrat', system-ui, -apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  --brand-font-serif:  'Fraunces', Georgia, 'Times New Roman', serif;
+  --brand-font-mono:   'JetBrains Mono', ui-monospace, monospace;
 }
 
 /* -------------------------------------------------------------------------
@@ -91,4 +120,11 @@
   --brand-primary-110: #60a5fa;
   --brand-primary-130: #93c5fd;
   --brand-primary-160: #dbeafe;
+
+  --brand-gold:          #d4af37;
+  --brand-gold-soft:     rgba(212, 175, 55, 0.18);
+  --brand-vendor-glow:   rgba(124, 58, 237, 0.50);
+  --brand-primary-glow:  rgba(59, 130, 246, 0.25);
+  --brand-bronze-bg:     #2a1f12;
+  --brand-bronze-text:   #d6b48a;
 }

@@ -207,7 +207,7 @@
   flex-wrap: wrap;
 }
 .balanceRibbon--clear {
-  background: linear-gradient(135deg, var(--app-success) 0%, #0a7c3e 100%);
+  background: linear-gradient(135deg, var(--app-success) 0%, var(--app-success-deep) 100%);
 }
 
 /* Stacks two <Text> children vertically inside a table cell (or anywhere
@@ -297,7 +297,7 @@
 .recordPayBtn    { background: var(--app-accent); color: var(--app-primary); }
 .sheetOverlay {
   position: fixed; inset: 0;
-  background: rgba(15, 23, 42, 0.55);
+  background: var(--app-overlay);
   z-index: 200;
   display: flex; align-items: flex-end;
   animation: app-fade-in 200ms ease-out;

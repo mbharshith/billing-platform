@@ -32,7 +32,7 @@
   --app-text-subtle:     var(--brand-gray-100);
   --app-text-muted:      var(--brand-gray-80);
   --app-fg-subtle:       var(--brand-gray-100);  /* legacy alias */
-  --app-text-inverse:    var(--brand-gray-0);
+  --app-text-inverse:    var(--brand-white);
 
   --app-primary:         var(--brand-primary-100);
   --app-primary-hover:   var(--brand-primary-110);
@@ -82,7 +82,37 @@
 
   /* --- Typography (family comes from theme.css) --------------------------- */
   --app-font-family: var(--brand-font-family);
+  --app-font-serif:  var(--brand-font-serif);
   --app-font-mono:   var(--brand-font-mono);
+  --app-gold:          var(--brand-gold);
+  --app-gold-soft:     var(--brand-gold-soft);
+
+  /* Vendor console */
+  --app-vendor:        var(--brand-vendor);
+  --app-vendor-deep:   var(--brand-vendor-deep);
+  --app-vendor-glow:   var(--brand-vendor-glow);
+  --app-vendor-fg:     var(--brand-vendor-fg);
+  --app-vendor-light:  var(--brand-vendor-light);
+
+  /* Interaction utilities */
+  --app-primary-glow:  var(--brand-primary-glow);
+  --app-success-deep:  var(--brand-success-deep);
+  --app-success-light: var(--brand-success-light);
+  --app-overlay:       var(--brand-overlay);
+
+  /* Bronze rank palette */
+  --app-bronze-bg:     var(--brand-bronze-bg);
+  --app-bronze-text:   var(--brand-bronze-text);
+
+  /* Translucent layers for use on colored/dark backgrounds */
+  --app-on-color-subtle:   rgba(255, 255, 255, 0.10);
+  --app-on-color-muted:    rgba(255, 255, 255, 0.15);
+  --app-on-color-hover:    rgba(255, 255, 255, 0.12);
+  --app-on-color-active:   rgba(255, 255, 255, 0.20);
+  --app-on-color-text:     rgba(255, 255, 255, 0.55);
+  --app-backdrop:          rgba(0, 0, 0, 0.45);
+  --app-danger-soft:       rgba(220, 38, 38, 0.08);
+  --app-success-soft:      rgba(0, 128, 60, 0.10);
 
   --app-font-size-xs:   12px;
   --app-font-size-sm:   14px;
@@ -106,6 +136,8 @@
   --app-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
   --app-shadow-md: 0 8px 24px rgba(0, 0, 0, 0.10), 0 2px 4px rgba(0, 0, 0, 0.06);
   --app-shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.16);
+  --app-shadow-float:  0 -6px 24px rgba(15, 23, 42, 0.18);
+  --app-success-glow:  0 8px 24px rgba(16, 185, 129, 0.30);
 
   /* --- Layout ------------------------------------------------------------- */
   --app-container-max: 1280px;

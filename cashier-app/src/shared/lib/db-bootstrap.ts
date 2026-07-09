@@ -15,7 +15,7 @@ import type {
   Customer, CustomerPayment, Product, Sale, Store, User, UserRole,
 } from '@shared/domain/types';
 
-const MIGRATION_FLAG = 'db-bootstrap::v1';
+const MIGRATION_FLAG = 'db-bootstrap::v3';
 
 // Normalise legacy user roles: drop 'super_admin' rows (that surface moved to the
 // dedicated vendor account), rename 'master' -> 'admin' (v1 schema). Idempotent.
@@ -43,12 +43,23 @@ export const bootstrapDb = async (): Promise<void> => {
     return;
   }
 
-  // If tables are already populated (e.g. another tab beat us), just flag + go.
+  // If tables are already populated with data from a previous version, wipe
+  // everything so the new seed (velvet / spiceroute / lamaison) takes effect.
   const storeCount = await db.stores.count();
   if (storeCount > 0) {
-    await ensureVendorUser();
-    storage.save(MIGRATION_FLAG, true);
-    return;
+    await db.transaction(
+      'rw',
+      [db.stores, db.users, db.products, db.customers, db.customerPayments, db.sales],
+      async () => {
+        await db.stores.clear();
+        await db.users.clear();
+        await db.products.clear();
+        await db.customers.clear();
+        await db.customerPayments.clear();
+        await db.sales.clear();
+      },
+    );
+    // Fall through to re-seed below with the fresh SEED_* data.
   }
 
   // Pull any legacy localStorage payloads.

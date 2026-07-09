@@ -7,7 +7,7 @@ import {
 const now = (): string => new Date().toISOString();
 
 export const SEED_CUSTOMERS: readonly Customer[] = [
-  // Myntra Mumbai customers
+  // Velvet Mumbai customers
   { id: 'c-mm-01', name: 'Ravi Kumar',    mobile: '9876543210',
     email: 'ravi@example.com', notes: 'Ethnic wear enthusiast',
     lendingBalance: 1250.50, createdAt: now(), storeId: SEED_STORE_MAIN_ID },
@@ -18,7 +18,7 @@ export const SEED_CUSTOMERS: readonly Customer[] = [
     email: 'anita.d@example.com', notes: 'Prefers COD',
     lendingBalance: 480, createdAt: now(), storeId: SEED_STORE_MAIN_ID },
 
-  // Flipkart Bengaluru customers
+  // Spice Route Kitchen customers
   { id: 'c-fb-01', name: 'Karthik Menon', mobile: '9012345678',
     email: null, notes: 'Weekly electronics buyer',
     lendingBalance: 3200, createdAt: now(), storeId: SEED_STORE_BRANCH_ID },
@@ -26,7 +26,7 @@ export const SEED_CUSTOMERS: readonly Customer[] = [
     email: 'sneha@example.com', notes: null,
     lendingBalance: 0, createdAt: now(), storeId: SEED_STORE_BRANCH_ID },
 
-  // Walmart Springfield customers
+  // Main Street Market customers
   { id: 'c-ws-01', name: 'John Doe',      mobile: '4175550101',
     email: 'jd@example.com', notes: 'Groceries every Sunday',
     lendingBalance: 74.20, createdAt: now(), storeId: SEED_STORE_THIRD_ID },

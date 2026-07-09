@@ -78,7 +78,7 @@
   align-items: center;
   gap: var(--app-space-2);
   padding: var(--app-space-2) var(--app-space-3);
-  background: rgba(220, 38, 38, 0.08);
+  background: var(--app-danger-soft);
   color: var(--app-danger);
   border-radius: var(--app-radius-md);
   font-size: var(--app-font-size-sm);
@@ -96,8 +96,8 @@
 .loginHint--center { text-align: center; }
 .loginHint--note {
   text-align: center;
-  background: var(--app-blue-5, #eff6ff);
-  border: 1px solid var(--app-blue-10, #dbeafe);
+  background: var(--app-blue-5);
+  border: 1px solid var(--app-blue-10);
   padding: 0.5rem 0.75rem;
   border-radius: var(--radius-md);
 }

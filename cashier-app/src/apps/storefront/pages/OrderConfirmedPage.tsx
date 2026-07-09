@@ -43,8 +43,7 @@ export const OrderConfirmedPage: FC = () => {
       <div className={cls.confirmedOrderNo}>{order.invoiceNo}</div>
       <div className={cls.confirmedTotal}>{money(order.total)}</div>
       <div className={cls.confirmedActions}>
-        <Link to={`/${slug}`} className={cls.hero__ctaGhost}
-          style={{ color: 'var(--app-accent)', borderColor: 'var(--app-accent)' }}>
+        <Link to={`/${slug}`} className={`${cls.hero__ctaGhost} ${cls.hero__ctaGhostAccent}`}>
           Back to shop
         </Link>
         <Link to={`/${slug}/browse`} className={cls.hero__cta}>

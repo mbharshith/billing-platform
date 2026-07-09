@@ -90,6 +90,9 @@ export interface Product {
   readonly createdAt: Iso8601;
   // Store that owns this product.
   readonly storeId: string;
+
+  /** Optional photo URL — populated in fixture tenants; future: served by product API. */
+  readonly image?: string;
 }
 
 /* -------------------------------------------------------------------------- */

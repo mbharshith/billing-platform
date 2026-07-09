@@ -51,3 +51,4 @@
   padding: 0;
 }
 .centered__iconWrap { display: flex; justify-content: center; }
+.btnRow { display: flex; justify-content: center; gap: var(--app-space-2); flex-wrap: wrap; }

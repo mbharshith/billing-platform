@@ -14,20 +14,21 @@ import {
 const now = (): string => new Date().toISOString();
 
 export const SEED_USERS: readonly User[] = [
-  // --- Myntra Mumbai ------------------------------------------------------
+
+  // --- Velvet Mumbai ------------------------------------------------------
   {
-    id: 'u-myntra-admin',
-    username: 'myntra',
+    id: 'u-velvet-admin',
+    username: 'velvet',
     name: 'Aditi Rao',
     role: 'admin',
     active: true,
     createdAt: now(),
     storeId: SEED_STORE_MAIN_ID,
-    password: 'myntra123',
+    password: 'velvet123',
   },
   {
-    id: 'u-myntra-cashier',
-    username: 'myntra.cashier',
+    id: 'u-velvet-cashier',
+    username: 'velvet.cashier',
     name: 'Rohan Iyer',
     role: 'cashier',
     active: true,
@@ -36,20 +37,20 @@ export const SEED_USERS: readonly User[] = [
     password: 'cashier123',
   },
 
-  // --- Flipkart Bengaluru -------------------------------------------------
+  // --- Spice Route Kitchen ------------------------------------------------
   {
-    id: 'u-flipkart-admin',
-    username: 'flipkart',
+    id: 'u-spiceroute-admin',
+    username: 'spiceroute',
     name: 'Vikram Shetty',
     role: 'admin',
     active: true,
     createdAt: now(),
     storeId: SEED_STORE_BRANCH_ID,
-    password: 'flipkart123',
+    password: 'spiceroute123',
   },
   {
-    id: 'u-flipkart-cashier',
-    username: 'flipkart.cashier',
+    id: 'u-spiceroute-cashier',
+    username: 'spiceroute.cashier',
     name: 'Neha Reddy',
     role: 'cashier',
     active: true,
@@ -58,21 +59,21 @@ export const SEED_USERS: readonly User[] = [
     password: 'cashier123',
   },
 
-  // --- Walmart Springfield ------------------------------------------------
+  // --- La Maison Boutique -------------------------------------------------
   {
-    id: 'u-walmart-admin',
-    username: 'walmart',
-    name: 'Marcus Bennett',
+    id: 'u-lamaison-admin',
+    username: 'lamaison',
+    name: 'Claire Dupont',
     role: 'admin',
     active: true,
     createdAt: now(),
     storeId: SEED_STORE_THIRD_ID,
-    password: 'walmart123',
+    password: 'lamaison123',
   },
   {
-    id: 'u-walmart-cashier',
-    username: 'walmart.cashier',
-    name: 'Sam Cashier',
+    id: 'u-lamaison-cashier',
+    username: 'lamaison.cashier',
+    name: 'James Carter',
     role: 'cashier',
     active: true,
     createdAt: now(),

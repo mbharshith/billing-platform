@@ -206,7 +206,7 @@ export const CheckoutPage: FC = () => {
                   type="radio" name="payment" value={opt.method}
                   checked={method === opt.method}
                   onChange={() => setMethod(opt.method)}
-                  style={{ display: 'none' }}
+                  className={cls.srOnly}
                 />
                 <div className={cls.payChoice__icon}><Icon name={opt.icon} size={18} /></div>
                 <div className={cls.payChoice__body}>

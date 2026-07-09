@@ -28,7 +28,7 @@
   border-bottom: 1px solid var(--app-border);
   /* Purple accent strip signals "you're in the vendor console" so users
      never wonder what scope they're in. (L-02) */
-  border-top: 3px solid #7c3aed;
+  border-top: 3px solid var(--app-vendor);
   backdrop-filter: saturate(180%) blur(6px);
 }
 
@@ -71,11 +71,11 @@
   width: 42px;
   height: 42px;
   border-radius: 12px;
-  background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
-  color: #fff;
+  background: linear-gradient(135deg, var(--app-vendor) 0%, var(--app-vendor-deep) 100%);
+  color: var(--app-vendor-fg);
   display: grid;
   place-items: center;
-  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.35);
+  box-shadow: 0 4px 12px var(--app-vendor-glow);
 }
 
 .brandText {
@@ -92,10 +92,10 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #7c3aed;
+  color: var(--app-vendor);
 }
 
-:global([data-theme="dark"]) .brandBadge { color: #c4b5fd; }
+:global([data-theme="dark"]) .brandBadge { color: var(--app-vendor-light); }
 
 .nav {
   display: flex;
@@ -123,10 +123,11 @@
 }
 .navLink:hover { color: var(--app-text); background: var(--app-surface); }
 .navLinkActive {
-  background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
-  color: #fff !important;
-  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.3);
+  background: linear-gradient(135deg, var(--app-vendor) 0%, var(--app-vendor-deep) 100%);
+  color: var(--app-vendor-fg);
+  box-shadow: 0 2px 8px var(--app-vendor-glow);
 }
+.navLinkActive:hover { color: var(--app-vendor-fg); }
 
 .headerRight {
   display: flex;
@@ -165,8 +166,8 @@
 .userAvatar {
   width: 28px; height: 28px;
   border-radius: 999px;
-  background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
-  color: #fff;
+  background: linear-gradient(135deg, var(--app-vendor) 0%, var(--app-vendor-deep) 100%);
+  color: var(--app-vendor-fg);
   display: grid; place-items: center;
   font-size: 0.75rem;
   font-weight: 700;
@@ -219,7 +220,7 @@
   position: absolute;
   inset: 0 auto 0 0;
   width: 4px;
-  background: var(--kpi-accent, #7c3aed);
+  background: var(--kpi-accent, var(--app-vendor));
 }
 .kpi--indigo  { --kpi-accent: linear-gradient(180deg, #6366f1, #4f46e5); }
 .kpi--emerald { --kpi-accent: linear-gradient(180deg, #10b981, #059669); }
@@ -413,7 +414,7 @@
 .searchInput:focus {
   outline: none;
   border-color: var(--app-focus-ring);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+  box-shadow: 0 0 0 3px var(--app-primary-glow);
 }
 
 .chipRow {
@@ -461,7 +462,7 @@
 /* When the parent chip is active, invert the count badge so the number pops. */
 .chipActive .chipCount {
   background: var(--app-primary);
-  color: var(--app-text-inverse, #fff);
+  color: var(--app-text-inverse);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -497,8 +498,8 @@
 .pageBtn:hover:not(:disabled) { background: var(--app-bg); border-color: var(--app-border-strong); }
 .pageBtn:disabled { opacity: 0.4; cursor: not-allowed; }
 .pageBtnActive {
-  background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
-  color: #fff;
+  background: linear-gradient(135deg, var(--app-vendor) 0%, var(--app-vendor-deep) 100%);
+  color: var(--app-vendor-fg);
   border-color: transparent;
 }
 
@@ -549,8 +550,8 @@
 /* ---------------------------------------------------------------------- */
 /* Dark-mode fine-tuning (tokens do most of the work already)             */
 /* ---------------------------------------------------------------------- */
-:global([data-theme="dark"]) .brandMark { box-shadow: 0 4px 12px rgba(124, 58, 237, 0.5); }
-:global([data-theme="dark"]) .navLinkActive { box-shadow: 0 2px 12px rgba(124, 58, 237, 0.4); }
+:global([data-theme="dark"]) .brandMark { box-shadow: 0 4px 12px var(--app-vendor-glow); }
+:global([data-theme="dark"]) .navLinkActive { box-shadow: 0 2px 12px var(--app-vendor-glow); }
 :global([data-theme="dark"]) .kpi { background: var(--app-surface); }
 
 /* Pagination utility */

@@ -1,6 +1,6 @@
 // Tenant slug helpers - one source of truth for the /<slug>/* URL scheme.
 //
-// A slug is the URL prefix that identifies a tenant (e.g. `myntra`, `flipkart`).
+// A slug is the URL prefix that identifies a tenant (e.g. `velvet`, `spiceroute`).
 // Every tenant page (storefront, cashier, admin) lives under /<slug>/... so the
 // slug is always present in the URL.
 //

@@ -44,11 +44,11 @@ export class ErrorBoundary extends Component<BoundaryProps, BoundaryState> {
 
     if (this.props.fallback) return this.props.fallback(error, this.reset);
 
-    return <BoundaryFallback error={error} onReset={this.reset} />;
+    return <BoundaryFallback onReset={this.reset} />;
   }
 }
 
-const BoundaryFallback: FC<{ error: Error; onReset: () => void }> = ({ error, onReset }) => (
+const BoundaryFallback: FC<{ onReset: () => void }> = ({ onReset }) => (
   <div className={cls.card} role="alert">
     <span className={cls.iconWrap} aria-hidden="true">
       <Icon name="shield" size={40} />
@@ -60,20 +60,13 @@ const BoundaryFallback: FC<{ error: Error; onReset: () => void }> = ({ error, on
       <Button variant="primary" leadingIcon="zap" onClick={onReset}>
         {STRINGS.errors.tryAgain}
       </Button>
-      <Button variant="secondary" leadingIcon="arrow" onClick={() => { window.location.href = '/cashier'; }}>
+      <Button variant="secondary" leadingIcon="arrow" onClick={() => { window.location.href = '/'; }}>
         {STRINGS.errors.goHome}
       </Button>
       <Button variant="ghost" onClick={() => window.location.reload()}>
         {STRINGS.errors.reload}
       </Button>
     </div>
-
-    {import.meta.env.DEV && (
-      <details className={cls.details}>
-        <summary>{STRINGS.errors.technicalDetails}</summary>
-        <pre className={cls.pre}>{error.stack ?? error.message}</pre>
-      </details>
-    )}
   </div>
 );
 

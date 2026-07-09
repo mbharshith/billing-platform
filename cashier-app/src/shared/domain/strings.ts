@@ -31,7 +31,7 @@ export const STRINGS = {
     password:       'Password',
     signIn:         'Sign in',
     signingIn:      'Signing in…',
-    demoHint:       'Demo tenants · myntra/myntra123 · flipkart/flipkart123 · walmart/walmart123 · SaaS owner · vendor/vendor123',
+    demoHint:       'Demo tenants · velvet/velvet123 · spiceroute/spiceroute123 · lamaison/lamaison123 · SaaS owner · vendor/vendor123',
     invalid:        'Invalid username or password.',
     inactive:       'This account is inactive. Contact your admin.',
     suspended:      'This store has been suspended by the vendor. Please reach out to support.',
@@ -377,7 +377,6 @@ export const STRINGS = {
     tryAgain:           'Try again',
     goHome:             'Go home',
     reload:             'Reload app',
-    technicalDetails:   'Technical details',
 
     bootLoading:        'Warming up your store…',
     bootFailedTitle:    "We couldn't open your store's database",
@@ -386,7 +385,7 @@ export const STRINGS = {
 
     notFoundTitle:      'Page not found',
     notFoundHint:       "We couldn't find the page you were looking for.",
-    backToCashier:      'Back to cashier',
+    backToCashier:      'Back to Home',
 
     // Global async failures
     unhandledRejection: 'A background task failed. Please try again.',

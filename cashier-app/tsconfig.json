@@ -16,12 +16,11 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "types": ["vite/client"],
-    "baseUrl": "src",
     "paths": {
-      "@shell/*":  ["shell/*"],
-      "@apps/*":   ["apps/*"],
-      "@shared/*": ["shared/*"],
-      "@styles/*": ["styles/*"]
+      "@shell/*":  ["./src/shell/*"],
+      "@apps/*":   ["./src/apps/*"],
+      "@shared/*": ["./src/shared/*"],
+      "@styles/*": ["./src/styles/*"]
     }
   },
   "include": ["src"]
