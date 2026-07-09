@@ -15,7 +15,14 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
-    "types": ["vite/client"]
+    "types": ["vite/client"],
+    "baseUrl": "src",
+    "paths": {
+      "@shell/*":  ["shell/*"],
+      "@apps/*":   ["apps/*"],
+      "@shared/*": ["shared/*"],
+      "@styles/*": ["styles/*"]
+    }
   },
   "include": ["src"]
 }

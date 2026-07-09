@@ -10,7 +10,7 @@
  * Keep the two files aligned when you rebrand.
  *
  * DO NOT hardcode the product name anywhere else. If you need it in a
- * component, import { BRAND } from '../shared/brand' (or thread it via
+ * component, import { BRAND } from '@shared/brand' (or thread it via
  * STRINGS.brand which re-exports these fields).
  */
 
