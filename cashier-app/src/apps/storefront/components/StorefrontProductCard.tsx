@@ -36,7 +36,7 @@ export const StorefrontProductCard: FC<Props> = ({ product, meta }) => {
         </div>
       </div>
 
-      <Link to={`/shop/${slug}/product/${product.id}`} className={cls.productCard__body}>
+      <Link to={`/${slug}/product/${product.id}`} className={cls.productCard__body}>
         <div className={cls.productCard__ratingRow}>
           <span className={cls.productCard__rating}>
             {'\u2605'} {productMeta.rating.toFixed(1)}

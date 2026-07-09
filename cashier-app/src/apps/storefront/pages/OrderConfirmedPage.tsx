@@ -28,7 +28,7 @@ export const OrderConfirmedPage: FC = () => {
       icon="receipt" iconTone="muted"
       title="Order not found"
       body="This order doesn't exist or the link is broken."
-      footer={<Link to={`/shop/${slug}`} className={cls.hero__cta}>Back to shop</Link>}
+      footer={<Link to={`/${slug}`} className={cls.hero__cta}>Back to shop</Link>}
     />
   );
 
@@ -43,11 +43,11 @@ export const OrderConfirmedPage: FC = () => {
       <div className={cls.confirmedOrderNo}>{order.invoiceNo}</div>
       <div className={cls.confirmedTotal}>{money(order.total)}</div>
       <div className={cls.confirmedActions}>
-        <Link to={`/shop/${slug}`} className={cls.hero__ctaGhost}
+        <Link to={`/${slug}`} className={cls.hero__ctaGhost}
           style={{ color: 'var(--app-accent)', borderColor: 'var(--app-accent)' }}>
           Back to shop
         </Link>
-        <Link to={`/shop/${slug}/browse`} className={cls.hero__cta}>
+        <Link to={`/${slug}/browse`} className={cls.hero__cta}>
           Shop more
         </Link>
       </div>

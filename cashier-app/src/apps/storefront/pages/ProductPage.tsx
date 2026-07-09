@@ -65,7 +65,7 @@ export const ProductPage: FC = () => {
       icon="bag" iconTone="muted"
       title="Product not found"
       body="This item may have been removed from the catalog."
-      footer={<Link to={`/shop/${slug}/browse`} className={cls.hero__cta}>Back to browse</Link>}
+      footer={<Link to={`/${slug}/browse`} className={cls.hero__cta}>Back to browse</Link>}
     />
   );
 
@@ -80,7 +80,7 @@ export const ProductPage: FC = () => {
 
   const handleAdd = () => {
     add(product.id, qty);
-    navigate(`/shop/${slug}/cart`);
+    navigate(`/${slug}/cart`);
   };
 
   const description = makeDescription(product.name, product.category);
@@ -89,7 +89,7 @@ export const ProductPage: FC = () => {
 
   return (
     <>
-      <Link to={`/shop/${slug}/browse`} className={cls.pageBackLink}>
+      <Link to={`/${slug}/browse`} className={cls.pageBackLink}>
         <Icon name="arrow" size={14} flipX /> Back to browse
       </Link>
 
@@ -192,7 +192,7 @@ export const ProductPage: FC = () => {
               <h2 className={cls.sectionHead__title}>You may also like</h2>
               <div className={cls.sectionHead__sub}>More from {product.category}</div>
             </div>
-            <Link to={`/shop/${slug}/browse?category=${encodeURIComponent(product.category)}`}
+            <Link to={`/${slug}/browse?category=${encodeURIComponent(product.category)}`}
               className={cls.sectionHead__link}>
               See all <Icon name="arrow" size={12} />
             </Link>

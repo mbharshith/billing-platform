@@ -7,7 +7,7 @@
 // The TenantBadge is the SaaS "workspace name" (like Jira's site name).
 // It's read-only for cashiers; admins can click to jump to /store.
 import { useEffect, useRef, useState, type FC, type ReactNode } from 'react';
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { NavLink, Outlet, useNavigate, useParams } from 'react-router-dom';
 import cls from './layout.module.css';
 import { Icon, Text, ThemeToggle } from '@shared/atoms';
 import { ToastStack } from '@shared/feedback';
@@ -16,6 +16,7 @@ import { monogramFor } from '@shared/domain/format';
 import { useAuth } from '@shared/store/AuthContext';
 import { useStores } from '@shared/store/StoresContext';
 import { useToast } from '@shared/store/ToastContext';
+import { storeIdToSlug } from '@shared/lib/resolveTenant';
 
 /* -------------------------------------------------------------------------- */
 /* NavItem — react-router NavLink with active class                           */
@@ -71,7 +72,7 @@ const TenantBadge: FC = () => {
     <button
       type="button"
       className={[cls.tenantBadge, cls['tenantBadge--interactive']].join(' ')}
-      onClick={() => navigate('/store')}
+      onClick={() => navigate(`/${storeIdToSlug(store.id)}/admin/store`)}
       title={tooltip}
       aria-label={tooltip}
     >
@@ -174,11 +175,12 @@ const UserMenu: FC = () => {
 /* Header                                                                     */
 /* -------------------------------------------------------------------------- */
 const Header: FC = () => {
+  const { slug = '' } = useParams<{ slug: string }>();
   const { isAdmin, can } = useAuth();
   return (
     <header className={cls.header} role="banner">
       <div className={cls.header__inner}>
-        <NavLink to="/cashier" className={cls.brand}>
+        <NavLink to={`/${slug}/cashier`} className={cls.brand}>
           <span className={cls.brand__mark} aria-hidden="true">
             <Icon name="spark" size={22} />
           </span>
@@ -193,16 +195,16 @@ const Header: FC = () => {
         <TenantBadge />
 
         <nav className={cls.nav} aria-label={STRINGS.ariaLabels.navigate}>
-          <NavItem to="/cashier"   icon="store"   label={STRINGS.nav.cashier}>{STRINGS.nav.cashier}</NavItem>
+          <NavItem to={`/${slug}/cashier`}   icon="store"   label={STRINGS.nav.cashier}>{STRINGS.nav.cashier}</NavItem>
           {isAdmin && (
-            <NavItem to="/dashboard" icon="chart" label={STRINGS.nav.dashboard}>{STRINGS.nav.dashboard}</NavItem>
+            <NavItem to={`/${slug}/admin`} icon="chart" label={STRINGS.nav.dashboard}>{STRINGS.nav.dashboard}</NavItem>
           )}
           {(can('sale:viewAllTime') || can('sale:viewToday')) && (
-            <NavItem to="/sales"     icon="receipt" label={STRINGS.nav.sales}>{STRINGS.nav.sales}</NavItem>
+            <NavItem to={`/${slug}/cashier/sales`}     icon="receipt" label={STRINGS.nav.sales}>{STRINGS.nav.sales}</NavItem>
           )}
-          <NavItem to="/customers" icon="user"    label={STRINGS.nav.customers}>{STRINGS.nav.customers}</NavItem>
+          <NavItem to={`/${slug}/cashier/customers`} icon="user"    label={STRINGS.nav.customers}>{STRINGS.nav.customers}</NavItem>
           {isAdmin && (
-            <NavItem to="/products" icon="bag"    label={STRINGS.nav.products}>{STRINGS.nav.products}</NavItem>
+            <NavItem to={`/${slug}/admin/products`} icon="bag"    label={STRINGS.nav.products}>{STRINGS.nav.products}</NavItem>
           )}
         </nav>
 
@@ -249,19 +251,20 @@ const BottomNavItem: FC<NavItemProps> = ({ to, icon, children, label }) => (
 );
 
 const BottomNav: FC = () => {
+  const { slug = '' } = useParams<{ slug: string }>();
   const { isAdmin, can } = useAuth();
   return (
     <nav className={cls.bottomNav} aria-label={STRINGS.ariaLabels.navigate}>
-      <BottomNavItem to="/cashier"   icon="store"   label={STRINGS.nav.cashier}>{STRINGS.nav.cashier}</BottomNavItem>
+      <BottomNavItem to={`/${slug}/cashier`}   icon="store"   label={STRINGS.nav.cashier}>{STRINGS.nav.cashier}</BottomNavItem>
       {isAdmin && (
-        <BottomNavItem to="/dashboard" icon="chart" label={STRINGS.nav.dashboard}>{STRINGS.nav.dashboard}</BottomNavItem>
+        <BottomNavItem to={`/${slug}/admin`} icon="chart" label={STRINGS.nav.dashboard}>{STRINGS.nav.dashboard}</BottomNavItem>
       )}
       {(can('sale:viewAllTime') || can('sale:viewToday')) && (
-        <BottomNavItem to="/sales"    icon="receipt" label={STRINGS.nav.sales}>{STRINGS.nav.sales}</BottomNavItem>
+        <BottomNavItem to={`/${slug}/cashier/sales`}    icon="receipt" label={STRINGS.nav.sales}>{STRINGS.nav.sales}</BottomNavItem>
       )}
-      <BottomNavItem to="/customers" icon="user"    label={STRINGS.nav.customers}>{STRINGS.nav.customers}</BottomNavItem>
+      <BottomNavItem to={`/${slug}/cashier/customers`} icon="user"    label={STRINGS.nav.customers}>{STRINGS.nav.customers}</BottomNavItem>
       {isAdmin && (
-        <BottomNavItem to="/products" icon="bag"    label={STRINGS.nav.products}>{STRINGS.nav.products}</BottomNavItem>
+        <BottomNavItem to={`/${slug}/admin/products`} icon="bag"    label={STRINGS.nav.products}>{STRINGS.nav.products}</BottomNavItem>
       )}
     </nav>
   );

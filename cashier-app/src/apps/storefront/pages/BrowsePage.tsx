@@ -43,7 +43,7 @@ export const BrowsePage: FC = () => {
 
   return (
     <>
-      <Link to={`/shop/${slug}`} className={cls.pageBackLink}>
+      <Link to={`/${slug}`} className={cls.pageBackLink}>
         <Icon name="arrow" size={14} flipX /> Back to home
       </Link>
 

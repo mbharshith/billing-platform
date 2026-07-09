@@ -62,7 +62,7 @@ export const CheckoutPage: FC = () => {
       icon="cart" iconTone="muted"
       title="Nothing to check out"
       body="Add items to your cart first."
-      footer={<Link to={`/shop/${slug}/browse`} className={cls.hero__cta}>Browse products</Link>}
+      footer={<Link to={`/${slug}/browse`} className={cls.hero__cta}>Browse products</Link>}
     />
   );
 
@@ -115,7 +115,7 @@ export const CheckoutPage: FC = () => {
       await decrementStock(priced.lines.map((l) => ({ productId: l.product.id, qty: l.quantity })));
       clear();
       toast.success(`Order ${order.invoiceNo} placed!`);
-      navigate(`/shop/${slug}/order/${saleId}`, { replace: true });
+      navigate(`/${slug}/order/${saleId}`, { replace: true });
     } catch (err) {
       // eslint-disable-next-line no-console
       console.error('[checkout] place order failed:', err);
@@ -126,7 +126,7 @@ export const CheckoutPage: FC = () => {
 
   return (
     <>
-      <Link to={`/shop/${slug}/cart`} className={cls.pageBackLink}>
+      <Link to={`/${slug}/cart`} className={cls.pageBackLink}>
         <Icon name="arrow" size={14} flipX /> Back to cart
       </Link>
 

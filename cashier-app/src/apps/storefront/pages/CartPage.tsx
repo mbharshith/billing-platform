@@ -34,13 +34,13 @@ export const CartPage: FC = () => {
       icon="cart" iconTone="muted"
       title="Your cart is empty"
       body="Add some products first and they'll show up here."
-      footer={<Link to={`/shop/${slug}/browse`} className={cls.hero__cta}>Start shopping</Link>}
+      footer={<Link to={`/${slug}/browse`} className={cls.hero__cta}>Start shopping</Link>}
     />
   );
 
   return (
     <>
-      <Link to={`/shop/${slug}/browse`} className={cls.pageBackLink}>
+      <Link to={`/${slug}/browse`} className={cls.pageBackLink}>
         <Icon name="arrow" size={14} flipX /> Continue shopping
       </Link>
 
@@ -120,7 +120,7 @@ export const CartPage: FC = () => {
           <div className={cls.summarySavings}>
             <Icon name="spark" size={12} /> You saved delivery charges
           </div>
-          <Link to={`/shop/${slug}/checkout`} className={cls.summaryCta}>
+          <Link to={`/${slug}/checkout`} className={cls.summaryCta}>
             Proceed to checkout <Icon name="arrow" size={16} />
           </Link>
         </aside>

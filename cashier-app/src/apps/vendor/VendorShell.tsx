@@ -60,9 +60,9 @@ export const VendorShell: FC = () => {
           </div>
 
           <nav className={cls.nav} aria-label="Vendor navigation">
-            <VNav to="/vendor/dashboard" icon="chart"  label="Overview" />
-            <VNav to="/vendor/tenants"   icon="store"  label="Tenants" />
-            <VNav to="/vendor/audit"     icon="shield" label="Audit log" />
+            <VNav to="/dashboard"          icon="chart"  label="Overview" />
+            <VNav to="/dashboard/tenants"  icon="store"  label="Tenants" />
+            <VNav to="/dashboard/audit"    icon="shield" label="Audit log" />
           </nav>
 
           <div className={cls.headerRight}>

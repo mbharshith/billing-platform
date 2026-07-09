@@ -1,6 +1,6 @@
 // SalesPage — all sales, filterable by date range / payment / status.
 import { useMemo, useState, type FC } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import cls from './pages.module.css';
 import { Badge, Button, Text } from '@shared/atoms';
 import {
@@ -23,6 +23,7 @@ type PaymentFilter = 'all' | PaymentMethod;
 type StatusFilter  = 'all' | 'active' | 'voided';
 
 export const SalesPage: FC = () => {
+  const { slug = '' } = useParams<{ slug: string }>();
   const { money } = useMoney();
   const { sales } = useSales();
   const { can } = useAuth();
@@ -126,7 +127,7 @@ export const SalesPage: FC = () => {
           flush
           data={filtered}
           getKey={(s) => s.id}
-          onRowClick={(s) => navigate(`/sales/${s.id}`)}
+          onRowClick={(s) => navigate(`/${slug}/cashier/sales/${s.id}`)}
           defaultPageSize={25}
           emptyIcon="receipt"
           emptyTitle={sales.length === 0 ? STRINGS.sales.empty : 'No sales match your filters'}
@@ -199,7 +200,7 @@ export const SalesPage: FC = () => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={(e) => { e.stopPropagation(); navigate(`/sales/${s.id}`); }}
+                  onClick={(e) => { e.stopPropagation(); navigate(`/${slug}/cashier/sales/${s.id}`); }}
                 >
                   {STRINGS.sales.view}
                 </Button>

@@ -17,7 +17,7 @@ import { useToast } from '@shared/store/ToastContext';
 
 export const SaleDetailPage: FC = () => {
   const { money } = useMoney();
-  const { id = '' } = useParams();
+  const { id = '', slug = '' } = useParams<{ id: string; slug: string }>();
   const navigate = useNavigate();
   const { byId, voidSale } = useSales();
   const { byId: customerById, addLending } = useCustomers();
@@ -34,7 +34,7 @@ export const SaleDetailPage: FC = () => {
       <>
         <PageHeader title={STRINGS.sales.notFound} subtitle={STRINGS.sales.notFoundHint} />
         <Button variant="secondary" leadingIcon="arrow"
-                onClick={() => navigate('/sales')}>{STRINGS.sales.backToList}</Button>
+                onClick={() => navigate(`/${slug}/cashier/sales`)}>{STRINGS.sales.backToList}</Button>
       </>
     );
   }
@@ -60,7 +60,7 @@ export const SaleDetailPage: FC = () => {
         actions={
           <>
             <Button variant="ghost" leadingIcon="arrow"
-                    onClick={() => navigate('/sales')}>{STRINGS.sales.backToList}</Button>
+                    onClick={() => navigate(`/${slug}/cashier/sales`)}>{STRINGS.sales.backToList}</Button>
             <Button variant="secondary" leadingIcon="print" onClick={() => window.print()}>
               {STRINGS.receipt.print}
             </Button>

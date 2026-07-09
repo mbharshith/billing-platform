@@ -24,7 +24,7 @@ export const StorefrontShell: FC<{ children: ReactNode }> = ({ children }) => {
   const { pathname } = useLocation();
 
   const slug = storeIdToSlug(tenant.id);
-  const home = `/shop/${slug}`;
+  const home = `/${slug}`;
   const theme = getTenantTheme(tenant.id);
   const monogram = tenant.name.split(/\s+/).slice(0, 2).map((w) => w[0]).join('').toUpperCase();
   const showSearch = !HIDE_SEARCH_ON.some((re) => re.test(pathname));

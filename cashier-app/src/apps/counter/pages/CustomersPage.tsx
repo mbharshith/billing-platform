@@ -1,7 +1,7 @@
 // CustomersPage — list, search, create.
 // Row click navigates to /customers/:id.
 import { useState, type FC, type FormEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import cls from './pages.module.css';
 import { Badge, Button, Field, Input, Text, Textarea } from '@shared/atoms';
 import { Modal } from '@shared/organisms';
@@ -25,6 +25,7 @@ interface FormState {
 const emptyForm = (): FormState => ({ name: '', mobile: '', email: '', notes: '' });
 
 export const CustomersPage: FC = () => {
+  const { slug = '' } = useParams<{ slug: string }>();
   const { money } = useMoney();
   const { customers, create, remove } = useCustomers();
   const { can } = useAuth();
@@ -59,7 +60,7 @@ export const CustomersPage: FC = () => {
     }
     toast.success(STRINGS.customers.added);
     setForm(null);
-    navigate(`/customers/${res.customer.id}`);
+    navigate(`/${slug}/cashier/customers/${res.customer.id}`);
   };
 
   return (
@@ -83,7 +84,7 @@ export const CustomersPage: FC = () => {
         getKey={(c) => c.id}
         searchPlaceholder={STRINGS.customers.searchPlaceholder}
         searchFn={(c, q) => c.name.toLowerCase().includes(q) || c.mobile.includes(q)}
-        onRowClick={(c) => navigate(`/customers/${c.id}`)}
+        onRowClick={(c) => navigate(`/${slug}/cashier/customers/${c.id}`)}
         emptyIcon="user"
         emptyTitle={STRINGS.customers.empty}
         emptyHint={STRINGS.customers.emptyHint}
@@ -136,7 +137,7 @@ export const CustomersPage: FC = () => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={(e) => { e.stopPropagation(); navigate(`/customers/${c.id}`); }}
+                  onClick={(e) => { e.stopPropagation(); navigate(`/${slug}/cashier/customers/${c.id}`); }}
                 >
                   {STRINGS.customers.view}
                 </Button>

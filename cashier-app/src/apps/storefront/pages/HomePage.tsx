@@ -82,10 +82,10 @@ export const HomePage: FC = () => {
             A carefully curated selection, delivered to your door in {theme.deliveryEta.toLowerCase()}.
           </p>
           <div className={cls.hero__ctaRow}>
-            <Link to={`/shop/${slug}/browse`} className={cls.hero__cta}>
+            <Link to={`/${slug}/browse`} className={cls.hero__cta}>
               Shop the collection
             </Link>
-            <Link to={`/shop/${slug}/track`} className={cls.hero__ctaGhost}>
+            <Link to={`/${slug}/track`} className={cls.hero__ctaGhost}>
               Track your order
             </Link>
           </div>
@@ -105,7 +105,7 @@ export const HomePage: FC = () => {
             {stockedCategories.map((cat) => (
               <Link
                 key={cat.id}
-                to={`/shop/${slug}/browse?category=${encodeURIComponent(cat.id)}`}
+                to={`/${slug}/browse?category=${encodeURIComponent(cat.id)}`}
                 className={cls.categoryTile}
               >
                 <div className={cls.categoryTile__icon}><Icon name={cat.icon} size={26} /></div>
@@ -124,7 +124,7 @@ export const HomePage: FC = () => {
               <h2 className={cls.sectionHead__title}>Most coveted</h2>
               <div className={cls.sectionHead__sub}>Pieces our clients can't get enough of</div>
             </div>
-            <Link to={`/shop/${slug}/browse`} className={cls.sectionHead__link}>
+            <Link to={`/${slug}/browse`} className={cls.sectionHead__link}>
               View all
             </Link>
           </div>
@@ -142,7 +142,7 @@ export const HomePage: FC = () => {
               <h2 className={cls.sectionHead__title}>New this week</h2>
               <div className={cls.sectionHead__sub}>Latest additions to the collection</div>
             </div>
-            <Link to={`/shop/${slug}/browse`} className={cls.sectionHead__link}>
+            <Link to={`/${slug}/browse`} className={cls.sectionHead__link}>
               View all
             </Link>
           </div>

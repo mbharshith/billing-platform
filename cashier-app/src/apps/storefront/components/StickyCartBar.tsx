@@ -39,7 +39,7 @@ export const StickyCartBar: FC = () => {
   if (HIDE_ON.some((re) => re.test(pathname))) return null;
 
   return (
-    <Link to={`/shop/${slug}/cart`} className={cls.stickyCartBar}>
+    <Link to={`/${slug}/cart`} className={cls.stickyCartBar}>
       <Icon name="cart" size={22} />
       <div className={cls.stickyCartBar__info}>
         <div className={cls.stickyCartBar__count}>

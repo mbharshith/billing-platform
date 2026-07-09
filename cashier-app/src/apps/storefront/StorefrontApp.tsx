@@ -1,13 +1,16 @@
-// StorefrontApp - customer-facing shop router. Mounted at /shop/* by <Shell />.
-// URL shape: /shop/<tenantSlug>/<page>
-//   /shop/myntra                 -> Home
-//   /shop/myntra/browse          -> Browse (?q=... &category=...)
-//   /shop/myntra/product/<id>    -> PDP
-//   /shop/myntra/cart            -> Cart
-//   /shop/myntra/checkout        -> Checkout
-//   /shop/myntra/order/<id>      -> Confirmation
+// StorefrontApp - customer-facing shop router. Mounted at /:slug/* by <Shell />.
+// URL shape: /<slug>/<page>
+//   /myntra                 -> Home
+//   /myntra/browse          -> Browse (?q=... &category=...)
+//   /myntra/product/<id>    -> PDP
+//   /myntra/cart            -> Cart
+//   /myntra/checkout        -> Checkout
+//   /myntra/order/<id>      -> Confirmation
+//
+// The slug lives in a URL param that everything downstream reads via
+// useParams({ slug }) or the useTenantSlug() shared helper.
 import type { FC } from 'react';
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { Route, Routes } from 'react-router-dom';
 import { NotFoundPage } from '@shared/errors';
 import { StorefrontTenantProvider } from './state/StorefrontTenantContext';
 import { CartProvider } from './state/CartContext';
@@ -19,8 +22,7 @@ import { CartPage } from './pages/CartPage';
 import { CheckoutPage } from './pages/CheckoutPage';
 import { OrderConfirmedPage } from './pages/OrderConfirmedPage';
 
-// TenantShop - everything below here has a resolved tenant + a cart in context.
-const TenantShop: FC = () => (
+export const StorefrontApp: FC = () => (
   <StorefrontTenantProvider>
     <CartProvider>
       <StorefrontShell>
@@ -36,12 +38,4 @@ const TenantShop: FC = () => (
       </StorefrontShell>
     </CartProvider>
   </StorefrontTenantProvider>
-);
-
-export const StorefrontApp: FC = () => (
-  <Routes>
-    <Route index                 element={<Navigate to="myntra" replace />} />
-    <Route path=":tenantSlug/*"  element={<TenantShop />} />
-    <Route path="*"              element={<NotFoundPage />} />
-  </Routes>
 );

@@ -1,8 +1,15 @@
-// CounterApp - sub-app router for the in-store POS surface.
-// Mounted at /* by <Shell />. Auth is handled by <ProtectedRoute>; <AdminRoute> refines further.
+// CounterApp - exports the two tenant staff sub-apps.
+//
+// Shell mounts these at explicit paths so each subtree has clean React Router
+// routing without any URL-sniffing:
+//   /<slug>/cashier/*  ->  <CashierApp />   (any signed-in staff)
+//   /<slug>/admin/*    ->  <AdminApp />     (admin only)
+//
+// Both share <CounterShell /> for chrome (sidebar/topbar) so the visual
+// experience is unified even though auth and features differ.
 import type { FC, JSX } from 'react';
-import { Navigate, Route, Routes } from 'react-router-dom';
-import { AdminRoute } from '@shell/RouteGuards';
+import { Route, Routes } from 'react-router-dom';
+import { AdminRoute, ProtectedRoute } from '@shell/RouteGuards';
 import { ErrorBoundary, NotFoundPage } from '@shared/errors';
 import { CounterShell } from './CounterShell';
 import { CashierPage } from './pages/CashierPage';
@@ -16,33 +23,42 @@ import { SettingsPage } from './pages/SettingsPage';
 import { StorePage } from './pages/StorePage';
 import { UsersPage } from './pages/UsersPage';
 
-// Per-route error boundary so a crash on /products can't take down /cashier.
 const R = (label: string, node: JSX.Element): JSX.Element => (
   <ErrorBoundary label={label}>{node}</ErrorBoundary>
 );
 
-export const CounterApp: FC = () => (
+/** Mounted at /:slug/cashier/*.  POS + views every staff member needs. */
+export const CashierApp: FC = () => (
   <Routes>
-    <Route element={<CounterShell />}>
-      <Route index element={<Navigate to="/cashier" replace />} />
-
-      {/* Any signed-in staff */}
-      <Route path="cashier"        element={R('cashier',         <CashierPage />)} />
-      <Route path="sales"          element={R('sales',           <SalesPage />)} />
-      <Route path="sales/:id"      element={R('sale-detail',     <SaleDetailPage />)} />
-      <Route path="customers"      element={R('customers',       <CustomersPage />)} />
-      <Route path="customers/:id"  element={R('customer-detail', <CustomerDetailPage />)} />
-
-      {/* Admin only — tenant configuration */}
-      <Route element={<AdminRoute />}>
-        <Route path="dashboard" element={R('dashboard', <DashboardPage />)} />
-        <Route path="products"  element={R('products',  <ProductsPage />)} />
-        <Route path="users"     element={R('users',     <UsersPage />)} />
-        <Route path="settings"  element={R('settings',  <SettingsPage />)} />
-        <Route path="store"     element={R('store',     <StorePage />)} />
+    <Route element={<ProtectedRoute />}>
+      <Route element={<CounterShell />}>
+        <Route index                    element={R('cashier',         <CashierPage />)} />
+        <Route path="sales"             element={R('sales',           <SalesPage />)} />
+        <Route path="sales/:id"         element={R('sale-detail',     <SaleDetailPage />)} />
+        <Route path="customers"         element={R('customers',       <CustomersPage />)} />
+        <Route path="customers/:id"     element={R('customer-detail', <CustomerDetailPage />)} />
+        <Route path="*"                 element={<NotFoundPage />} />
       </Route>
-
-      <Route path="*" element={<NotFoundPage />} />
     </Route>
   </Routes>
 );
+
+/** Mounted at /:slug/admin/*.  Admin-only tenant configuration. */
+export const AdminApp: FC = () => (
+  <Routes>
+    <Route element={<AdminRoute />}>
+      <Route element={<CounterShell />}>
+        <Route index               element={R('dashboard', <DashboardPage />)} />
+        <Route path="products"     element={R('products',  <ProductsPage />)} />
+        <Route path="users"        element={R('users',     <UsersPage />)} />
+        <Route path="settings"     element={R('settings',  <SettingsPage />)} />
+        <Route path="store"        element={R('store',     <StorePage />)} />
+        <Route path="*"            element={<NotFoundPage />} />
+      </Route>
+    </Route>
+  </Routes>
+);
+
+// Back-compat re-export so nothing else has to change if it imports CounterApp
+// by name. Defaults to Cashier since that's the primary staff surface.
+export const CounterApp = CashierApp;

@@ -140,7 +140,7 @@ export const NotFoundPage: FC = () => {
       <Text as="h1" size="xl" weight="heavy">{STRINGS.errors.notFoundTitle}</Text>
       <Text tone="subtle" center>{STRINGS.errors.notFoundHint}</Text>
       <div className={cls.actions}>
-        <Button variant="primary" leadingIcon="arrow" onClick={() => navigate('/cashier')}>
+        <Button variant="primary" leadingIcon="arrow" onClick={() => navigate('/')}>
           {STRINGS.errors.backToCashier}
         </Button>
       </div>

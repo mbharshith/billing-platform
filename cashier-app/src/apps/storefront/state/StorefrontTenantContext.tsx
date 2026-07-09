@@ -16,7 +16,7 @@ interface StorefrontTenantContextValue {
 const Ctx = createContext<StorefrontTenantContextValue | null>(null);
 
 export const StorefrontTenantProvider: FC<{ children: ReactNode }> = ({ children }) => {
-  const { tenantSlug } = useParams<{ tenantSlug: string }>();
+  const { slug: tenantSlug } = useParams<{ slug: string }>();
   const [state, setState] = useState<
     | { kind: 'loading' }
     | { kind: 'ready';    tenant: Store }

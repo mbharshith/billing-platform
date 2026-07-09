@@ -1,17 +1,21 @@
-// LoginPage — full-screen sign-in card.
-// Uses AuthContext. Redirects to /cashier (or the intended path) on success.
+// LoginPage - full-screen sign-in card.
+// Uses AuthContext. Redirects to /<slug>/cashier (or the intended path) on
+// success. The <slug> is derived from the signed-in user's currentStoreId.
 import { useState, type FC, type FormEvent } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import cls from './LoginPage.module.css';
 import { Button, Field, Icon, Input, Text } from '@shared/atoms';
 import { STRINGS } from '@shared/domain/strings';
 import { useAuth } from '@shared/store/AuthContext';
+import { useStores } from '@shared/store/StoresContext';
 import { useToast } from '@shared/store/ToastContext';
+import { storeIdToSlug } from '@shared/lib/resolveTenant';
 
 interface LocationState { from?: string }
 
 export const LoginPage: FC = () => {
-  const { currentUser, login } = useAuth();
+  const { currentUser, currentStoreId, login } = useAuth();
+  const { byId } = useStores();
   const toast = useToast();
   const navigate = useNavigate();
   const location = useLocation();
@@ -24,9 +28,13 @@ export const LoginPage: FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  // Already signed in? Bounce vendors to their console, everyone else to cashier.
+  // Already signed in? Vendors -> SaaS owner console; staff -> their tenant.
   if (currentUser) {
-    return <Navigate to={currentUser.role === 'vendor' ? '/vendor/dashboard' : '/cashier'} replace />;
+    if (currentUser.role === 'vendor') {
+      return <Navigate to="/dashboard" replace />;
+    }
+    const store = byId(currentStoreId);
+    return <Navigate to={store ? `/${storeIdToSlug(store.id)}/cashier` : '/'} replace />;
   }
 
   const handleSubmit = (e: FormEvent) => {
@@ -49,8 +57,13 @@ export const LoginPage: FC = () => {
         return;
       }
       toast.success(STRINGS.auth.welcome(username));
-      // Vendor accounts land on the vendor console; everyone else on cashier.
-      const fallback = result.user.role === 'vendor' ? '/vendor/dashboard' : '/cashier';
+      // Vendors -> SaaS owner console; staff -> their tenant's cashier.
+      let fallback = '/';
+      if (result.user.role === 'vendor') {
+        fallback = '/dashboard';
+      } else if (result.user.storeId) {
+        fallback = `/${storeIdToSlug(result.user.storeId)}/cashier`;
+      }
       const dest = (location.state as LocationState | null)?.from ?? fallback;
       navigate(dest, { replace: true });
     }, 350);

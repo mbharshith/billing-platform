@@ -16,7 +16,7 @@ import { useToast } from '@shared/store/ToastContext';
 
 export const CustomerDetailPage: FC = () => {
   const { money } = useMoney();
-  const { id = '' } = useParams();
+  const { id = '', slug = '' } = useParams<{ id: string; slug: string }>();
   const navigate = useNavigate();
   const { byId, paymentsFor, recordPayment, remove } = useCustomers();
   const { forCustomer } = useSales();
@@ -41,7 +41,7 @@ export const CustomerDetailPage: FC = () => {
         <PageHeader title={STRINGS.customers.notFound}
                     subtitle={STRINGS.customers.notFoundHint} />
         <Button variant="secondary" leadingIcon="arrow"
-                onClick={() => navigate('/customers')}>{STRINGS.customers.backToList}</Button>
+                onClick={() => navigate(`/${slug}/cashier/customers`)}>{STRINGS.customers.backToList}</Button>
       </>
     );
   }
@@ -76,7 +76,7 @@ export const CustomerDetailPage: FC = () => {
         actions={
           <>
             <Button variant="ghost" leadingIcon="arrow"
-                    onClick={() => navigate('/customers')}>{STRINGS.customers.backToList}</Button>
+                    onClick={() => navigate(`/${slug}/cashier/customers`)}>{STRINGS.customers.backToList}</Button>
             {canDelete && (
               <Button variant="danger" onClick={() => setConfirmingDelete(true)}>
                 {STRINGS.common.delete}
@@ -187,7 +187,7 @@ export const CustomerDetailPage: FC = () => {
           flush
           data={sales}
           getKey={(s) => s.id}
-          onRowClick={(s) => navigate(`/sales/${s.id}`)}
+          onRowClick={(s) => navigate(`/${slug}/cashier/sales/${s.id}`)}
           hidePagination
           emptyIcon="receipt"
           emptyTitle={STRINGS.customers.saleHistoryEmpty}
@@ -297,7 +297,7 @@ export const CustomerDetailPage: FC = () => {
               return;
             }
             toast.success(STRINGS.customers.deleted(customer.name));
-            navigate('/customers');
+            navigate(`/${slug}/cashier/customers`);
           }}
           onCancel={() => setConfirmingDelete(false)}
         />
