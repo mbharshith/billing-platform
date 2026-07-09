@@ -65,7 +65,7 @@ export const LoginPage: FC = () => {
           <span className={cls.loginBrand__mark}><Icon name="spark" size={26} /></span>
           <div className={cls.loginBrand__text}>
             <Text size="xl" weight="heavy">{STRINGS.brand.name}</Text>
-            <Text size="xs" weight="semibold" tone="primary" upper>Cashier POS</Text>
+            <Text size="xs" weight="semibold" tone="primary" upper>{STRINGS.brand.productLabel}</Text>
           </div>
         </div>
 

@@ -25,6 +25,7 @@
  */
 
 import Dexie, { type Table } from 'dexie';
+import { BRAND } from '../shared/brand';
 import type {
   AuditEntry, Customer, CustomerPayment, Product, Sale, Store, User,
 } from '../domain/types';
@@ -32,7 +33,7 @@ import type {
 /** Schema versions are declared inline via `.version(N).stores({...})`.
  *  Each new version needs its own `.upgrade()` block for legacy data. */
 
-class QuickBillDB extends Dexie {
+class AppDB extends Dexie {
   stores!:            Table<Store, string>;
   users!:             Table<User, string>;
   products!:          Table<Product, string>;
@@ -42,7 +43,9 @@ class QuickBillDB extends Dexie {
   auditLog!:          Table<AuditEntry, string>;
 
   constructor() {
-    super('quickbill');
+    // The IndexedDB name comes from BRAND.dbName. Renaming BRAND.dbName
+    // orphans existing local data — keep it stable OR ship a migration.
+    super(BRAND.dbName);
 
     /* -------------------------------------------------------------------- */
     /* v1 — initial schema                                                  */
@@ -101,7 +104,7 @@ class QuickBillDB extends Dexie {
   }
 }
 
-export const db = new QuickBillDB();
+export const db = new AppDB();
 
 /** Drop the whole DB — used by "Reset demo data". */
 export const resetDb = async (): Promise<void> => {

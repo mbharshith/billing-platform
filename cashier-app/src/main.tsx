@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { App } from './App';
 import { ErrorBoundary } from './components/errors';
 import { RootProvider } from './store/RootProvider';
+import './styles/theme.css';
 import './styles/tokens.css';
 import './styles/globals.css';
 

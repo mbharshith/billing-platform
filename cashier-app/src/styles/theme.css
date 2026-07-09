@@ -1,0 +1,94 @@
+/* =========================================================================
+   THEME — brand primitives (colors + fonts). THE swap point for rebrand.
+
+   Nothing in this file is semantic. It just declares the raw palette and
+   type stack. Semantic aliases (--app-bg, --app-primary, --app-text ...)
+   live in tokens.css and REFERENCE these primitives.
+
+   To rebrand:
+     1. Swap the palette below.
+     2. Swap the font family below (and update the <link rel=preconnect>
+        in index.html if you change the font provider).
+     3. That's it. Rebuild. No component code changes needed.
+
+   Convention: primitives use the `--brand-*` prefix so it's obvious from
+   any consumer's point of view that they are theme-swappable.
+   ========================================================================= */
+
+:root {
+  /* --- Brand palette (currently: neutral SaaS blue) -----------------------
+   * Scale reads:
+   *   -5   very light tint    (backgrounds, subtle surfaces)
+   *   -10  light tint         (hover backgrounds)
+   *   -30  soft outline
+   *   -100 base               (primary buttons, links)
+   *   -110 hover              (button:hover)
+   *   -130 pressed            (button:active)
+   *   -160 deep ink           (large-type on light bg for max contrast)
+   * ---------------------------------------------------------------------- */
+  --brand-primary-5:   #eef4ff;
+  --brand-primary-10:  #dbe7ff;
+  --brand-primary-30:  #a9c1f4;
+  --brand-primary-100: #2563eb;
+  --brand-primary-110: #1d4ed8;
+  --brand-primary-130: #1e40af;
+  --brand-primary-160: #172e6b;
+
+  /* Foreground colour that sits on top of --brand-primary-100 */
+  --brand-primary-fg:  #ffffff;
+
+  /* Accent — used for KPIs, badges, "wow" moments. */
+  --brand-accent-10:   #fef3c7;
+  --brand-accent-100:  #f59e0b;
+  --brand-accent-140:  #92400e;
+
+  /* --- Status palette (traffic-light, brand-agnostic) --------------------- */
+  --brand-success-10:  #dcfce7;
+  --brand-success-100: #16a34a;
+
+  --brand-danger-10:   #fee2e2;
+  --brand-danger-100:  #dc2626;
+
+  --brand-warn-10:     #fef3c7;
+  --brand-warn-100:    #d97706;
+
+  /* --- Neutral ramp (grays) ---------------------------------------------- */
+  --brand-gray-0:      #ffffff;
+  --brand-gray-5:      #fafbfc;
+  --brand-gray-10:     #f3f4f6;
+  --brand-gray-30:     #e5e7eb;
+  --brand-gray-50:     #cbd5e1;
+  --brand-gray-80:     #94a3b8;
+  --brand-gray-100:    #6b7280;
+  --brand-gray-140:    #374151;
+  --brand-gray-160:    #111827;
+
+  /* --- Typography --------------------------------------------------------- */
+  --brand-font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  --brand-font-mono:   ui-monospace, 'SF Mono', Menlo, monospace;
+}
+
+/* -------------------------------------------------------------------------
+   Dark-mode overrides — invert grays, dim the palette a touch.
+   Only PRIMITIVES change here; semantic aliases in tokens.css automatically
+   adapt because they reference these vars.
+   ------------------------------------------------------------------------- */
+[data-theme='dark'] {
+  --brand-gray-0:      #0b1220;
+  --brand-gray-5:      #0f172a;
+  --brand-gray-10:     #1e293b;
+  --brand-gray-30:     #334155;
+  --brand-gray-50:     #475569;
+  --brand-gray-80:     #94a3b8;
+  --brand-gray-100:    #cbd5e1;
+  --brand-gray-140:    #e2e8f0;
+  --brand-gray-160:    #f8fafc;
+
+  --brand-primary-5:   #0d1b3a;
+  --brand-primary-10:  #14265a;
+  --brand-primary-30:  #1e3a8a;
+  --brand-primary-100: #3b82f6;
+  --brand-primary-110: #60a5fa;
+  --brand-primary-130: #93c5fd;
+  --brand-primary-160: #dbeafe;
+}

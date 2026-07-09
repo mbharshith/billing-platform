@@ -34,3 +34,4 @@ cashier-api/coverage/
 
 # Local dev helper scripts (not part of the app)
 full-walkthrough.sh
+tsconfig.tsbuildinfo

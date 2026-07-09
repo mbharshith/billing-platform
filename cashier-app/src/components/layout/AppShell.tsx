@@ -206,7 +206,7 @@ const Header: FC = () => {
           </span>
           <div className={cls.brand__text}>
             <Text as="span" size="lg" weight="heavy">{STRINGS.brand.name}</Text>
-            <Text as="span" size="xs" weight="semibold" tone="primary" upper>Cashier POS</Text>
+            <Text as="span" size="xs" weight="semibold" tone="primary" upper>{STRINGS.brand.productLabel}</Text>
           </div>
         </NavLink>
 
@@ -294,7 +294,7 @@ const BottomNav: FC = () => {
 /* -------------------------------------------------------------------------- */
 export const AppShell: FC = () => {
   useEffect(() => {
-    document.title = `${STRINGS.brand.name} · Cashier POS`;
+    document.title = STRINGS.brand.fullTitle;
   }, []);
   return (
     <div className={cls.appShell}>

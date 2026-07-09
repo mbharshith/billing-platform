@@ -1,65 +1,66 @@
 /* =========================================================================
-   Design Tokens — the single source of truth for colors, spacing, type,
-   radii, motion, and shadows. Zero hex codes should appear in components.
+   TOKENS — semantic aliases + spacing/typography/motion scales.
 
-   Palette: Tailwind-inspired blue + amber. Everything is free/OSS.
+   These are the ONLY variables components should reference. Never reach
+   past --app-* into the raw brand primitives (--brand-*) from a component
+   — the whole point is that a rebrand can swap theme.css without touching
+   this file OR any component.
+
+   Layer hierarchy:
+     theme.css       (--brand-*)  raw primitives, THE swap point
+        ↓
+     tokens.css      (--app-*)    semantic aliases, this file
+        ↓
+     components/**   var(--app-*) consumers
+
+   Anything not colour or font (spacing, radii, shadow depths, motion,
+   z-index) is intentionally brand-agnostic and stays here.
    ========================================================================= */
 
 :root {
-  /* --- Brand primitives ---------------------------------------------------
-     Blues based on Tailwind blue-* scale (MIT). Amber matches amber-500. */
-  --app-blue-5:    #eff6ff;   /* blue-50   */
-  --app-blue-10:   #dbeafe;   /* blue-100  */
-  --app-blue-100:  #2563eb;   /* blue-600  primary                        */
-  --app-blue-110:  #1d4ed8;   /* blue-700  hover                          */
-  --app-blue-130:  #1e40af;   /* blue-800  pressed                        */
-  --app-blue-160:  #172554;   /* blue-950  deep ink                       */
+  /* --- Semantic colour aliases (prefer these in components) --------------- */
+  --app-bg:              var(--brand-gray-5);
+  --app-bg-alt:          var(--brand-gray-10);
+  --app-surface:         var(--brand-gray-0);
+  --app-surface-subtle:  var(--brand-primary-5);
+  --app-surface-ink:     var(--brand-gray-160);
 
-  --app-spark-5:   #fffbeb;   /* amber-50  */
-  --app-spark-10:  #fef3c7;   /* amber-100 */
-  --app-spark-100: #f59e0b;   /* amber-500 accent                         */
-  --app-spark-140: #92400e;   /* amber-800 warning text                   */
+  --app-border:          var(--brand-gray-30);
+  --app-border-strong:   var(--brand-gray-50);
 
-  --app-red-100:   #ea1100;   /* error */
-  --app-red-10:    #fee2e2;
+  --app-text:            var(--brand-gray-160);
+  --app-text-subtle:     var(--brand-gray-100);
+  --app-text-muted:      var(--brand-gray-80);
+  --app-fg-subtle:       var(--brand-gray-100);  /* legacy alias */
+  --app-text-inverse:    var(--brand-gray-0);
 
-  --app-green-100: #2a8703;   /* success */
-  --app-green-10:  #dcf5cc;
+  --app-primary:         var(--brand-primary-100);
+  --app-primary-hover:   var(--brand-primary-110);
+  --app-primary-press:   var(--brand-primary-130);
+  --app-primary-fg:      var(--brand-primary-fg);
 
-  --app-gray-0:    #ffffff;
-  --app-gray-5:    #fafbfc;
-  --app-gray-10:   #f2f4f7;
-  --app-gray-30:   #e5e7eb;
-  --app-gray-50:   #cbd5e1;
-  --app-gray-80:   #94a3b8;
-  --app-gray-100:  #6b7280;
-  --app-gray-140:  #374151;
-  --app-gray-160:  #1a1a1a;
+  --app-accent:          var(--brand-accent-100);
+  --app-success:         var(--brand-success-100);
+  --app-danger:          var(--brand-danger-100);
+  --app-warn:            var(--brand-warn-100);
+  --app-focus-ring:      var(--brand-primary-100);
 
-  /* --- Semantic aliases (prefer these in components) ---------------------- */
-  --app-bg:              var(--app-gray-5);
-  --app-surface:         var(--app-gray-0);
-  --app-surface-subtle:  var(--app-blue-5);
-  --app-surface-ink:     var(--app-gray-160);
-  --app-border:          var(--app-gray-30);
-  --app-border-strong:   var(--app-gray-50);
-  --app-text:            var(--app-gray-160);
-  --app-text-subtle:     var(--app-gray-100);
-  --app-text-muted:      var(--app-gray-80);
-  --app-text-inverse:    var(--app-gray-0);
-  --app-primary:         var(--app-blue-100);
-  --app-primary-hover:   var(--app-blue-110);
-  --app-primary-press:   var(--app-blue-130);
-  /* Foreground on primary/danger fills: ALWAYS white (both themes)
-     because those fill colors are dark enough to demand it. */
-  --app-primary-fg:      #ffffff;
-  --app-danger-fg:       #ffffff;
-  --app-accent:          var(--app-spark-100);
-  --app-success:         var(--app-green-100);
-  --app-danger:          var(--app-red-100);
-  --app-focus-ring:      var(--app-blue-100);
+  /* Palette pass-throughs used by badges/tone chips (kept for chart tints) */
+  --app-blue-5:          var(--brand-primary-5);
+  --app-blue-10:         var(--brand-primary-10);
+  --app-blue-30:         var(--brand-primary-30);
+  --app-blue-130:        var(--brand-primary-130);
+  --app-blue-160:        var(--brand-primary-160);
+  --app-gray-5:          var(--brand-gray-5);
+  --app-gray-10:         var(--brand-gray-10);
+  --app-gray-30:         var(--brand-gray-30);
+  --app-gray-140:        var(--brand-gray-140);
+  --app-green-10:        var(--brand-success-10);
+  --app-red-10:          var(--brand-danger-10);
+  --app-spark-10:        var(--brand-accent-10);
+  --app-spark-140:       var(--brand-accent-140);
 
-  /* --- Spacing (4pt grid) ------------------------------------------------- */
+  /* --- Spacing (4pt grid, brand-agnostic) --------------------------------- */
   --app-space-0:    0;
   --app-space-1:    4px;
   --app-space-2:    8px;
@@ -79,10 +80,10 @@
   --app-radius-xl:  24px;
   --app-radius-pill: 999px;
 
-  /* --- Typography --------------------------------------------------------- */
-  --app-font-family:       'Montserrat', 'Proxima Nova', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --app-font-family-mono:  'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
-  --app-font-mono:   ui-monospace, 'SF Mono', Menlo, monospace;
+  /* --- Typography (family comes from theme.css) --------------------------- */
+  --app-font-family: var(--brand-font-family);
+  --app-font-mono:   var(--brand-font-mono);
+
   --app-font-size-xs:   12px;
   --app-font-size-sm:   14px;
   --app-font-size-md:   16px;
@@ -90,19 +91,21 @@
   --app-font-size-xl:   22px;
   --app-font-size-2xl:  28px;
   --app-font-size-3xl:  36px;
+
   --app-font-weight-regular:  400;
   --app-font-weight-medium:   500;
   --app-font-weight-semibold: 600;
   --app-font-weight-bold:     700;
   --app-font-weight-heavy:    800;
-  --app-line-tight:    1.2;
-  --app-line-normal:   1.5;
+
+  --app-line-tight:   1.2;
+  --app-line-normal:  1.5;
 
   /* --- Shadows ------------------------------------------------------------ */
   --app-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
-  --app-shadow-sm: 0 2px 8px rgba(0, 83, 226, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
-  --app-shadow-md: 0 8px 24px rgba(0, 83, 226, 0.10), 0 2px 4px rgba(0, 0, 0, 0.06);
-  --app-shadow-lg: 0 20px 60px rgba(0, 83, 226, 0.16);
+  --app-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --app-shadow-md: 0 8px 24px rgba(0, 0, 0, 0.10), 0 2px 4px rgba(0, 0, 0, 0.06);
+  --app-shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.16);
 
   /* --- Layout ------------------------------------------------------------- */
   --app-container-max: 1280px;
@@ -119,9 +122,27 @@
   --app-z-overlay: 900;
   --app-z-modal:   1000;
   --app-z-toast:   1100;
+
+  /* -----------------------------------------------------------------------
+   * Legacy short-name shims. Some older files still reference --radius-*,
+   * --shadow-*, --fs-*. Kept as aliases so we don't break existing markup.
+   * New code should always use the fully-qualified --app-* names above.
+   * ----------------------------------------------------------------------- */
+  --radius-sm:  var(--app-radius-sm);
+  --radius-md:  var(--app-radius-md);
+  --radius-lg:  var(--app-radius-lg);
+  --radius-xl:  var(--app-radius-xl);
+  --shadow-xs:  var(--app-shadow-xs);
+  --shadow-sm:  var(--app-shadow-sm);
+  --shadow-md:  var(--app-shadow-md);
+  --shadow-lg:  var(--app-shadow-lg);
+  --fs-xs:      var(--app-font-size-xs);
+  --fs-sm:      var(--app-font-size-sm);
+  --fs-md:      var(--app-font-size-md);
+  --fs-lg:      var(--app-font-size-lg);
 }
 
-/* Respect user's reduced-motion preference (§10) */
+/* Respect user's reduced-motion preference (WCAG 2.2 §10) */
 @media (prefers-reduced-motion: reduce) {
   :root {
     --app-motion-fast:   0ms linear;
@@ -129,69 +150,3 @@
     --app-motion-slow:   0ms linear;
   }
 }
-
-/* =========================================================================
-   Dark theme — activated by [data-theme="dark"] on <html>.
-   Brand blue + amber stay; only surfaces/text/borders flip.
-   ========================================================================= */
-[data-theme="dark"] {
-  /* Cooler, richer palette for dark surfaces (slate-inspired) */
-  --app-bg:              #0b1220;   /* app background */
-  --app-surface:         #131a2b;   /* cards / header / modal */
-  --app-surface-subtle:  #1a2338;   /* subtle raised */
-  --app-surface-ink:     #05070d;
-  --app-border:          #263148;
-  --app-border-strong:   #384766;
-  --app-text:            #e6edf7;
-  --app-text-subtle:     #a3adc2;
-  --app-text-muted:      #7c8699;
-  /* keep --app-text-inverse white in dark mode too: nearly every use is
-     "text on top of --app-primary / --app-danger / colored ribbon", all
-     of which are dark fills that need light text. */
-
-  /* Nudge blue-5 (used for active nav pill + focus tints) to something
-     visible on dark surfaces. Keep --app-primary (blue-600) as-is. */
-  --app-blue-5:          #1a2b52;
-  --app-blue-10:         #1e3a75;
-
-  /* --app-blue-130 is the *paired text color* on top of --app-blue-10
-     tint (e.g. badge--primary). In light mode both live in the deep-navy
-     end of the palette — in dark mode --app-blue-10 IS deep navy, so the
-     text has to flip to a light blue to stay legible (~7.5:1 on the new bg,
-     WCAG AAA). Also used by the brand gradient stop which reads fine as a
-     brighter accent on the logo mark. */
-  --app-blue-130:        #93c5fd;
-
-  /* Neutral grays remapped so gray-based hovers keep working on dark */
-  --app-gray-5:          #131a2b;
-  --app-gray-10:         #1a2338;
-  --app-gray-30:         #263148;
-  --app-gray-50:         #384766;
-  --app-gray-80:         #64708a;
-  --app-gray-100:        #8b95ac;
-  --app-gray-140:        #c9d1e3;
-  --app-gray-160:        #e6edf7;
-
-  /* Badge tint surfaces — light-mode pastels (#dcf5cc, #fee2e2, #fef3c7)
-     have near-zero contrast on dark fills. Each value is a dark-tinted
-     counterpart that keeps the hue but works on --app-surface (#131a2b). */
-  --app-green-10:        #132d18;
-  --app-red-10:          #2d1517;
-  --app-spark-10:        #2c1d09;
-
-  /* Semantic success/danger/accent text — boosted for WCAG AA on dark
-     surfaces (luminance ~0.01). Current #2a8703 and #ea1100 both fail
-     the 4.5:1 threshold against --app-surface in dark mode. */
-  --app-success:         #4ade80;
-  --app-danger:          #f87171;
-  --app-spark-140:       #fcd34d;
-
-  /* Shadows: swap tinted-blue drops for pure-black at higher opacity */
-  --app-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
-  --app-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.35), 0 1px 2px rgba(0, 0, 0, 0.3);
-  --app-shadow-md: 0 8px 24px rgba(0, 0, 0, 0.45), 0 2px 4px rgba(0, 0, 0, 0.35);
-  --app-shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.55);
-}
-
-/* Smooth theme transition on the shell (not on inputs/buttons — feels laggy) */
-html { transition: background-color 200ms ease, color 200ms ease; }

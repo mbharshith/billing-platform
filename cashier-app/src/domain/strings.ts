@@ -2,12 +2,20 @@
  * All user-facing copy lives here (§1, §11).
  * Sentence case for actions, Title Case for headings.
  * Error messages start with what happened, not user blame.
+ *
+ * Brand text (name, tagline, product label) is imported from
+ * `src/shared/brand.ts` — the single swap point for a rebrand.
+ * DO NOT duplicate brand strings here; extend BRAND instead.
  */
+
+import { BRAND } from '../shared/brand';
 
 export const STRINGS = {
   brand: {
-    name:    'QuickBill',
-    tagline: 'Fast, friendly checkout.',
+    name:         BRAND.name,
+    tagline:      BRAND.tagline,
+    productLabel: BRAND.productLabel,
+    fullTitle:    BRAND.fullTitle,
   },
 
   nav: {

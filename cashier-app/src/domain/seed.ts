@@ -1,5 +1,6 @@
 import type { Customer, Store, StoreSettings, User } from './types';
 import { VENDOR_SCOPE } from './types';
+import { BRAND } from '../shared/brand';
 
 /**
  * Seed data — first-run defaults, loaded when localStorage is empty.
@@ -132,7 +133,7 @@ export const SEED_USERS: readonly User[] = [
   {
     id: 'u-vendor-root',
     username: 'vendor',
-    name: 'QuickBill Vendor Ops',
+    name: `${BRAND.name} Vendor Ops`,
     role: 'vendor',
     active: true,
     createdAt: now(),
@@ -171,7 +172,7 @@ export const SEED_CUSTOMERS: readonly Customer[] = [
 ];
 
 export const DEFAULT_SETTINGS: StoreSettings = {
-  storeName: 'QuickBill Corner Store',
+  storeName: `${BRAND.name} Corner Store`,
   address: '123 Market Street, Springfield, IL 62701',
   phone: '+1 (555) 123-4567',
   gstin: '',

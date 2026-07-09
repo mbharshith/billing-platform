@@ -13,6 +13,7 @@
 import { useMemo, type FC } from 'react';
 import cls from './pages.module.css';
 import { Badge, Icon, Text } from '../components/atoms';
+import { BRAND } from '../shared/brand';
 import { PageHeader } from '../components/layout/AppShell';
 import { fmtDate, formatNumberCompact, num } from '../domain/format';
 import { useMoney } from '../hooks/useMoney';
@@ -109,7 +110,7 @@ export const StorePage: FC = () => {
         <div>
           <Text weight="semibold">Tenant-level isolation</Text>
           <Text size="sm" tone="subtle">
-            Every product, customer, sale and staff record you see in QuickBill is
+            Every product, customer, sale and staff record you see in {BRAND.name} is
             scoped to <Badge variant="primary">{store.name}</Badge>. No other tenant
             can read or modify your data — enforced end-to-end.
           </Text>

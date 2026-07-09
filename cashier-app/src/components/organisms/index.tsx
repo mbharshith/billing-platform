@@ -37,7 +37,7 @@ export const AppHeader: FC<AppHeaderProps> = ({ route, onNavigate }) => (
         </span>
         <div className={cls.brand__text}>
           <Text as="span" size="lg" weight="heavy" tone="inverse">{STRINGS.brand.name}</Text>
-          <Text as="span" size="xs" weight="semibold" tone="inverse" upper>Cashier POS</Text>
+          <Text as="span" size="xs" weight="semibold" tone="inverse" upper>{STRINGS.brand.productLabel}</Text>
         </div>
       </div>
 
