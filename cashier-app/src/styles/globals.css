@@ -5,10 +5,17 @@
 
 *, *::before, *::after { box-sizing: border-box; }
 
+/* html + body: min-height (not height) so they grow with content.
+   Previously used `height: 100%`, which combined with `overflow-x: hidden`
+   made Chrome compute `overflow: hidden auto` on BOTH elements - producing
+   two nested scroll containers. Content past the initial viewport got
+   clipped because the outer container refused to expand. Setting
+   `min-height: 100%` keeps the full-height baseline for empty-state pages
+   while letting long pages (checkout, browse) grow naturally. */
 html, body {
   margin: 0;
   padding: 0;
-  height: 100%;
+  min-height: 100%;
   overflow-x: hidden;
 }
 

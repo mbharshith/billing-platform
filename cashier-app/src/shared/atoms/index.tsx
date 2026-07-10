@@ -96,14 +96,12 @@ interface FieldProps {
 
 export const Field: FC<FieldProps> = ({ label, required, hint, error, children, htmlFor }) => (
   <div className={cls.field}>
-    <div className={cls.fieldLabelRow}>
-      <label className={cls.fieldLabel} htmlFor={htmlFor}>
-        {label}
-        {required && <span className={cls.fieldRequired} aria-hidden="true">*</span>}
-      </label>
-      {hint && <span className={cls.fieldHint}>{hint}</span>}
-    </div>
+    <label className={cls.fieldLabel} htmlFor={htmlFor}>
+      {label}
+      {required && <span className={cls.fieldRequired} aria-hidden="true">*</span>}
+    </label>
     {children}
+    {hint && !error && <span className={cls.fieldHint}>{hint}</span>}
     {error && (
       <div className={cls.fieldError} role="alert" aria-live="polite">{error}</div>
     )}
