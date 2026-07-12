@@ -90,6 +90,24 @@
   gap: 18px;
 }
 
+/* CheckoutModal - each labeled section (order type / table / delivery /   */
+/* aggregator / payment / customer) shares this layout: a small caps label  */
+/* on top, then stacked child fields with consistent gap.                   */
+.checkoutSection {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.tableSectionGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 0;
+}
+.tableSectionGroup + .tableSectionGroup {
+  border-top: 1px dashed var(--app-border, #e5e7eb);
+}
+
 .modalFooter {
   display: flex;
   justify-content: flex-end;

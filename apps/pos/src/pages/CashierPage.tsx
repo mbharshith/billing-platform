@@ -21,12 +21,11 @@ import { useMemo, useState, type FC } from 'react';
 import pages from './pages.module.css';
 import {
   CartPanel, MobileCartBar, ProductGrid, ProductToolbar, ReceiptModal, buildSale,
-  OrderTypeToggle, TablePickerModal, CustomerPickerModal,
-  BillDiscountModal, CouponInput, ChargesPickerModal, SplitPaymentModal,
-  ModifierPickerModal, HeldOrdersDrawer, KotPreviewModal,
+  BillDiscountModal, CouponInput, ChargesPickerModal, CheckoutModal,
+  ModifierPickerModal, KotPreviewModal,
 } from '@billing/ui/organisms';
+import type { CheckoutPayload } from '@billing/ui/organisms';
 import contextCls from '@billing/ui/organisms/cashier.module.css';
-import { useMoney } from '@billing/shared/hooks/useMoney';
 import { Icon, Text } from '@billing/ui/atoms';
 import { PageHeader } from '../CounterShell';
 import { STRINGS } from '@billing/shared/domain/strings';
@@ -39,11 +38,10 @@ import { useToast } from '@billing/shared/store/ToastContext';
 import { useTable } from '@billing/shared/hooks/useTable';
 import {
   computeCartTotals, snapshotBillDiscount, snapshotCoupon, snapshotCharge,
-  orderTypeNeedsTable,
 } from '@billing/shared/domain/computeSaleTotals';
 import type {
   Product, Sale, SaleLine, SaleLineModifier,
-  SalePayment, SaleCharge, SaleBillDiscount, SaleCoupon, PaymentMethod, Customer,
+  SaleCharge, SaleBillDiscount, SaleCoupon, PaymentMethod,
 } from '@billing/shared/domain/types';
 import type {
   OrderType, DiningTable, FloorSection, MenuCategory,
@@ -53,8 +51,8 @@ import type {
 /* -------------------------------------------------------------------------- */
 export const CashierPage: FC = () => {
   const { activeProducts, decrementStock } = useProducts();
-  const { customers, ensureFromMobile, addLending, create: createCustomer } = useCustomers();
-  const { recordSale, heldSales, resumeHeldSale, discardHeldSale } = useSales();
+  const { customers, addLending, create: createCustomer } = useCustomers();
+  const { recordSale, sales } = useSales();
   const { currentUser, currentStoreId } = useAuth();
   const { settings } = useSettings();
   const toast = useToast();
@@ -77,11 +75,9 @@ export const CashierPage: FC = () => {
   const [flashId, setFlashId] = useState<string | null>(null);
   const [mobileCartOpen, setMobileCartOpen] = useState(false);
 
-  /* -- Sale context (top bar) -------------------------------------------- */
-  const [orderTypeCode, setOrderTypeCode] = useState<string | null>(null);
-  const [selectedTable, setSelectedTable] = useState<DiningTable | null>(null);
-  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
-  const { money } = useMoney();
+  /* -- Sale context ------------------------------------------------------ *
+   * NOTE: order type, table and customer are now collected inside the      *
+   * CheckoutModal itself. This page no longer keeps any of that state.    */
 
   /* -- Money ------------------------------------------------------------- */
   const [billDiscount, setBillDiscount] = useState<SaleBillDiscount | undefined>();
@@ -89,19 +85,16 @@ export const CashierPage: FC = () => {
   const [charges, setCharges] = useState<SaleCharge[]>([]);
 
   /* -- Modal state ------------------------------------------------------- */
-  const [showTablePicker, setShowTablePicker] = useState(false);
-  const [showCustomerPicker, setShowCustomerPicker] = useState(false);
   const [showBillDiscount, setShowBillDiscount] = useState(false);
   const [showCharges, setShowCharges] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
-  const [showHeld, setShowHeld] = useState(false);
   const [modifyingProduct, setModifyingProduct] = useState<Product | null>(null);
   const [lastSale, setLastSale] = useState<Sale | null>(null);
   const [showKot, setShowKot] = useState<Sale | null>(null);
 
   /* -- Derived ----------------------------------------------------------- */
-  const currentOrderType = orderTypesApi.rows.find((o) => o.code === orderTypeCode) ?? null;
-  const needsTable = orderTypeNeedsTable(currentOrderType);
+  // Charges filter needs an order type - the checkout modal decides that,
+  // so during cart building we just show all charges not scoped to a type.
 
   const menuCategoryLabels = useMemo(
     () => ['All', ...menuCatsApi.rows.filter((c) => c.active).map((c) => c.name)],
@@ -190,8 +183,6 @@ export const CashierPage: FC = () => {
     setBillDiscount(undefined);
     setCoupon(undefined);
     setCharges([]);
-    setSelectedTable(null);
-    setSelectedCustomer(null);
   };
 
   /* -- Money mutations --------------------------------------------------- */
@@ -204,65 +195,48 @@ export const CashierPage: FC = () => {
   };
 
 
-  const recall = async (s: Sale) => {
-    const restored = await resumeHeldSale(s.id);
-    if (!restored) { toast.error('Held sale no longer available.'); return; }
-    setDraftLines([...restored.lines]);
-    setOrderTypeCode(restored.orderTypeCode ?? null);
-    setBillDiscount(restored.billDiscount);
-    setCoupon(restored.coupon);
-    setCharges(restored.charges ? [...restored.charges] : []);
-    if (restored.tableId) {
-      const t = tablesApi.rows.find((x) => x.id === restored.tableId);
-      if (t) setSelectedTable(t);
-    }
-    if (restored.customerId) {
-      const c = customers.find((x) => x.id === restored.customerId);
-      if (c) setSelectedCustomer(c);
-    }
-    toast.success('Sale restored.');
-  };
 
   /* -- Payment / commit -------------------------------------------------- */
   const openPayment = () => {
     if (draftLines.length === 0) { toast.error(STRINGS.errors.emptyCart); return; }
-    if (needsTable && !selectedTable) { toast.error('Pick a table first.'); return; }
     setShowPayment(true);
   };
 
-  const completeSale = async (payments: readonly SalePayment[], enteredMobile: string | null) => {
+  /**
+   * completeSale runs when CheckoutModal fires onConfirm. The modal has
+   * already validated that lending/COD tenders have a customer attached,
+   * dine-in has a table, delivery has an address, etc.
+   */
+  const completeSale = async (payload: CheckoutPayload) => {
     if (!currentUser || !currentStoreId) return;
-    let customerId = selectedCustomer?.id ?? null;
-    let customerMobile = selectedCustomer?.mobile ?? enteredMobile;
-    if (payments.some((p) => p.method === 'lending' || p.method === 'cod')) {
-      // Belt-and-suspenders: the SplitPaymentModal now disables Confirm until
-      // a customer is attached or a mobile is entered, so this branch should
-      // rarely fire. Keep it as a defensive guard for programmatic callers.
-      if (!customerMobile) {
-        toast.error('Customer mobile required for lending / COD.');
-        return;
-      }
-      if (!customerId) {
-        const c = await ensureFromMobile(customerMobile);
-        if (!c) { toast.error('Could not attach customer.'); return; }
-        customerId = c.id;
-      }
+    const {
+      payments, orderTypeCode, tableId, tableCode,
+      customerId, customerMobile, customerName,
+    } = payload;
+
+    if (customerId) {
       const lendingTender = payments.find((p) => p.method === 'lending');
-      if (lendingTender && customerId) await addLending(customerId, lendingTender.amount);
+      if (lendingTender) await addLending(customerId, lendingTender.amount);
     }
+
     const primary = (payments[0]?.method ?? 'cash') as PaymentMethod;
+    const currentOrderType = orderTypesApi.rows.find((o) => o.code === orderTypeCode) ?? null;
     const sale = buildSale({
       lines: draftLines,
       subtotal: totals.grossSubtotal, tax: totals.tax, total: totals.total,
       paymentMethod: primary,
-      customerMobile, customerId,
-      customerName: selectedCustomer?.name ?? null,
+      customerMobile: customerMobile ?? null,
+      customerId:     customerId ?? null,
+      customerName:   customerName ?? null,
       cashierId: currentUser.id, cashierName: currentUser.name, storeId: currentStoreId,
       orderTypeCode: orderTypeCode ?? undefined,
-      tableId: selectedTable?.id, tableCode: selectedTable?.code,
+      ...(tableId ? { tableId } : {}),
+      ...(tableCode ? { tableCode } : {}),
       billDiscount, coupon,
       lineDiscountTotal: totals.lineDiscountTotal,
       charges, payments,
+      ...(payload.note ? { note: payload.note } : {}),
+      ...(payload.deliveryAddress ? { deliveryAddress: payload.deliveryAddress } : {}),
     });
     await recordSale(sale);
     await decrementStock(draftLines.map((l) => ({ productId: l.productId, qty: l.quantity })));
@@ -327,61 +301,10 @@ export const CashierPage: FC = () => {
     </>
   );
 
-  /* -- Render ------------------------------------------------------------ */
-  const tableChipLabel = selectedTable
-    ? `Table ${selectedTable.code}`
-    : (needsTable ? 'Pick table' : 'No table');
-
   return (
     <>
       <PageHeader title={STRINGS.cashier.pageTitle} subtitle={STRINGS.cashier.pageSubtitle} />
 
-      {/* Context bar - order type / table / customer / hold-recall */}
-      <div className={contextCls.contextBar}>
-        <OrderTypeToggle
-          types={orderTypesApi.rows}
-          selectedCode={orderTypeCode}
-          onSelect={(c) => {
-            setOrderTypeCode(c);
-            const ot = orderTypesApi.rows.find((x) => x.code === c);
-            if (!orderTypeNeedsTable(ot ?? null)) setSelectedTable(null);
-          }}
-        />
-
-        {needsTable && (
-          <button
-            className={`${contextCls.contextChip} ${selectedTable ? contextCls['contextChip--filled'] : ''}`}
-            onClick={() => setShowTablePicker(true)}
-          >
-            <Icon name="group" size={14} />
-            <span>{tableChipLabel}</span>
-          </button>
-        )}
-
-        <button
-          className={`${contextCls.contextChip} ${selectedCustomer ? contextCls['contextChip--filled'] : ''}`}
-          onClick={() => setShowCustomerPicker(true)}
-          title={
-            selectedCustomer && selectedCustomer.lendingBalance > 0
-              ? `${selectedCustomer.name} owes ${money(selectedCustomer.lendingBalance)}`
-              : undefined
-          }
-          // Only render the customer chip when someone is actually attached.
-          // Walk-in is the default and we no longer clutter the toolbar with
-          // a placeholder; if the cashier needs to attach a customer, the pay
-          // modal now handles that flow inline for lending / COD.
-          style={selectedCustomer ? undefined : { display: 'none' }}
-        >
-          <Icon name="user" size={14} />
-          <span>{selectedCustomer ? selectedCustomer.name : STRINGS.cashier.walkInCustomer}</span>
-          {selectedCustomer && selectedCustomer.lendingBalance > 0 && (
-            <span className={contextCls.contextChipBadge} aria-label="outstanding lending">
-              <Icon name="coins" size={11} />
-              {money(selectedCustomer.lendingBalance)}
-            </span>
-          )}
-        </button>
-      </div>
 
       <div className={pages.cashierLayout}>
         <section aria-label="Product catalog">
@@ -449,28 +372,6 @@ export const CashierPage: FC = () => {
       )}
 
       {/* ---- Modals ---- */}
-      {showTablePicker && (
-        <TablePickerModal
-          sections={sectionsApi.rows} tables={tablesApi.rows}
-          selectedTableId={selectedTable?.id ?? null}
-          onSelect={(t) => setSelectedTable(t)}
-          onClose={() => setShowTablePicker(false)}
-        />
-      )}
-
-      {showCustomerPicker && (
-        <CustomerPickerModal
-          customers={customers}
-          onSelect={(c) => setSelectedCustomer(c)}
-          onCreate={async (name, mobile) => {
-            const r = await createCustomer({ name, mobile, email: null, notes: null });
-            if (!r.ok) { toast.error(`Could not create: ${r.error}`); throw new Error(r.error); }
-            return r.customer;
-          }}
-          onClose={() => setShowCustomerPicker(false)}
-        />
-      )}
-
       {showBillDiscount && (
         <BillDiscountModal
           discounts={discountsApi.rows}
@@ -484,7 +385,7 @@ export const CashierPage: FC = () => {
       {showCharges && (
         <ChargesPickerModal
           charges={chargesApi.rows}
-          orderTypeCode={orderTypeCode}
+          orderTypeCode={null}
           appliedChargeIds={charges.map((c) => c.chargeId)}
           subtotalAfterCoupon={totals.taxableBase}
           onToggle={toggleCharge}
@@ -493,23 +394,20 @@ export const CashierPage: FC = () => {
       )}
 
       {showPayment && (
-        <SplitPaymentModal
+        <CheckoutModal
           total={totals.total}
           onClose={() => setShowPayment(false)}
           onConfirm={completeSale}
-          attachedCustomer={selectedCustomer
-            ? { name: selectedCustomer.name, mobile: selectedCustomer.mobile }
-            : null}
-          onAttachCustomer={() => setShowCustomerPicker(true)}
-        />
-      )}
-
-      {showHeld && (
-        <HeldOrdersDrawer
-          held={heldSales}
-          onRecall={recall}
-          onDiscard={async (s) => { await discardHeldSale(s.id); toast.success('Held sale discarded.'); }}
-          onClose={() => setShowHeld(false)}
+          orderTypes={orderTypesApi.rows}
+          tables={tablesApi.rows}
+          sections={sectionsApi.rows}
+          customers={customers}
+          recentSales={sales}
+          onCreateCustomer={async (name, mobile) => {
+            const r = await createCustomer({ name, mobile, email: null, notes: null });
+            if (!r.ok) { toast.error(`Could not create: ${r.error}`); return null; }
+            return r.customer;
+          }}
         />
       )}
 

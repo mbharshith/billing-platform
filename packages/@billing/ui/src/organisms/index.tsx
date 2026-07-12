@@ -876,3 +876,6 @@ export {
 export type {
   ModifierPickerModalProps, HeldOrdersDrawerProps, KotPreviewModalProps,
 } from './cashier-depth';
+
+export { CheckoutModal } from './cashier-checkout';
+export type { CheckoutModalProps, CheckoutPayload } from './cashier-checkout';
