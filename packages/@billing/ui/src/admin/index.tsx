@@ -43,7 +43,7 @@ export const SIDEBAR_GROUPS: readonly SidebarGroup[] = [
   {
     id: 'menu',
     label: 'Menu Management',
-    icon: 'menu',
+    icon: 'list',
     defaultOpen: true,
     links: [
       { path: 'menu-categories', label: 'Categories',   icon: 'list' },

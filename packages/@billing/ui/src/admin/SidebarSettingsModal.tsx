@@ -62,9 +62,9 @@ export const SidebarSettingsModal: FC<Props> = ({ open, onClose, groups }) => {
     }}>
       <div className={cls.modalPanel} role="dialog" aria-modal="true" aria-label="Customize sidebar">
         <header className={cls.modalHeader}>
-          <div>
-            <Text size="lg" weight="heavy">Customize sidebar</Text>
-            <Text size="sm" tone="subtle">
+          <div className={cls.modalHeaderText}>
+            <Text as="h2" size="lg" weight="heavy">Customize sidebar</Text>
+            <Text as="p" size="sm" tone="subtle">
               Show only what you use. Hidden pages remain reachable by URL.
             </Text>
           </div>
@@ -139,13 +139,13 @@ export const SidebarSettingsModal: FC<Props> = ({ open, onClose, groups }) => {
             {confirmReset ? (
               <>
                 <Text size="sm">Reset?</Text>
-                <Button variant="ghost" onClick={() => setConfirmReset(false)}>Cancel</Button>
+                <Button variant="secondary" onClick={() => setConfirmReset(false)}>Cancel</Button>
                 <Button variant="danger" onClick={() => { v.reset(); setConfirmReset(false); }}>Reset</Button>
               </>
             ) : (
               <>
                 <Button
-                  variant="ghost"
+                  variant="secondary"
                   onClick={() => setConfirmReset(true)}
                   disabled={hiddenCount === 0}
                 >
