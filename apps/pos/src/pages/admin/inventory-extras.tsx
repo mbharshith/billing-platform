@@ -335,6 +335,6 @@ export const ProductionBatchesPage: FC = () => {
 /* Placeholder stubs for pages that need deeper UX than CrudPage              */
 /* -------------------------------------------------------------------------- */
 export const OperationsPage: FC = () => (
-  <StubPage title="Kitchen Operations" subtitle="Prep schedules, station load, real-time consumption."
-            breadcrumb={['Inventory', 'Operations']} />
+  <StubPage title="Kitchen Operations" phase="Phase 12"
+            hint="Prep schedules, station load, real-time consumption." />
 );

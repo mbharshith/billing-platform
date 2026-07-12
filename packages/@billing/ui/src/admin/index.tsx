@@ -4,7 +4,7 @@
 import { useEffect, useState, type FC, type ReactNode } from 'react';
 import { Link, Outlet, useLocation, useNavigate, useParams } from 'react-router-dom';
 import cls from './admin.module.css';
-import { Icon, Text, ThemeToggle, type IconName } from '@billing/ui/atoms';
+import { Icon, Text, ThemeToggle } from '@billing/ui/atoms';
 import { ToastStack } from '@billing/ui/feedback';
 import { AdminSidebar, type SidebarGroup, type SidebarLink } from './Sidebar';
 

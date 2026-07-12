@@ -15,7 +15,6 @@ const CustomersPage      = lazy(() => import('./pages/CustomersPage').then(m => 
 const CustomerDetailPage = lazy(() => import('./pages/CustomerDetailPage').then(m => ({ default: m.CustomerDetailPage })));
 
 // Admin pages - legacy (retained)
-const DashboardPage      = lazy(() => import('./pages/DashboardPage').then(m => ({ default: m.DashboardPage })));
 const ProductsPage       = lazy(() => import('./pages/ProductsPage').then(m => ({ default: m.ProductsPage })));
 const UsersPage          = lazy(() => import('./pages/UsersPage').then(m => ({ default: m.UsersPage })));
 const SettingsPage       = lazy(() => import('./pages/SettingsPage').then(m => ({ default: m.SettingsPage })));
@@ -68,13 +67,6 @@ const CustomerGroupsPage     = named('CustomerGroupsPage');
 const LoyaltyPage            = named('LoyaltyPage');
 const CouponsPage            = named('CouponsPage');
 const FeedbackPage           = named('FeedbackPage');
-const SalesReportPage        = named('SalesReportPage');
-const ProductMixReportPage   = named('ProductMixReportPage');
-const HourlyReportPage       = named('HourlyReportPage');
-const DiscountReportPage     = named('DiscountReportPage');
-const TaxReportPage          = named('TaxReportPage');
-const WastageReportPage      = named('WastageReportPage');
-const CashierReportPage      = named('CashierReportPage');
 
 // Phase 8+ pages — V2 dashboard, charts, inventory extras, accounting, marketing, logs. Each loader is its own lazy chunk.
 const RevenueDashboardPage   = namedFrom(() => import('./pages/admin/dashboard'),         'RevenueDashboardPage');

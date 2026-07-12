@@ -70,7 +70,6 @@ const useChartTheme = (): ChartTheme => {
     const surface     = readVar('--app-surface',        '#ffffff');
     const surfaceInk  = readVar('--app-surface-ink',    '#0b1220');
     const border      = readVar('--app-border',         '#e5e7eb');
-    const borderStrong= readVar('--app-border-strong',  '#cbd5e1');
     const textPrimary = readVar('--app-text',           readVar('--app-surface-ink', '#0b1220'));
     const textSubtle  = readVar('--app-text-subtle',    '#64748b');
     return {

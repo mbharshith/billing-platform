@@ -114,13 +114,15 @@ export const AdminSidebar: FC<AdminSidebarProps> = ({ slug, collapsed, groups })
       data-collapsed={collapsed}
       aria-label="Admin navigation"
     >
-      {/* Brand */}
+      {/* Brand - single-line to keep header height exactly 60px (matches topbar) */}
       <div className={cls.sidebar__brand}>
-        <Icon name="spark" size={22} />
+        <span className={cls['sidebar__brand-mark']}>
+          <Icon name="spark" size={18} />
+        </span>
         {!collapsed && (
           <div className={cls['sidebar__brand-text']}>
             <Text as="span" size="sm" weight="heavy">{BRAND.name}</Text>
-            <Text as="span" size="xs" tone="subtle">Admin Console</Text>
+            <Text as="span" size="xs" tone="subtle">Admin</Text>
           </div>
         )}
       </div>

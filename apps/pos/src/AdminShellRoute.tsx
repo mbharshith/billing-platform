@@ -16,7 +16,8 @@ export const AdminShellRoute: FC = () => {
   const outlet = byId(currentStoreId);
 
   // Cheap location chip: grab city from outlet address if present, else 'LIVE'.
-  const rawCity = outlet?.address?.split(',').at(-2)?.trim();
+  const parts = outlet?.address?.split(',') ?? [];
+  const rawCity = parts.length >= 2 ? parts[parts.length - 2]?.trim() : undefined;
   const tag = rawCity ? rawCity.toUpperCase() : 'LIVE';
 
   return (
