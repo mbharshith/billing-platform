@@ -82,9 +82,9 @@ const TenantBadge: FC = () => {
 };
 
 /* -------------------------------------------------------------------------- */
-/* UserMenu                                                                   */
+/* UserMenu - exported so AdminShellRoute can reuse it in the sidebar topbar. */
 /* -------------------------------------------------------------------------- */
-const UserMenu: FC = () => {
+export const UserMenu: FC = () => {
   const { currentUser, isAdmin, logout } = useAuth();
   const { byId: storeById } = useStores();
   const toast = useToast();

@@ -1,13 +1,28 @@
-// Dexie/IndexedDB - persisted domain data. Tenant rows carry storeId; compound indexes enforce per-tenant uniqueness.
+// Dexie/IndexedDB - persisted domain data. Tenant rows carry storeId;
+// compound indexes enforce per-tenant uniqueness.
+//
+// Schema versions:
+//   v1  initial (stores/users/products/customers/sales/customerPayments)
+//   v2  UserRole 'master' -> 'admin' upgrade
+//   v3  vendor console: store.status + auditLog table
+//   v4  online orders: sale.channel + orderStatus + address + history
+//   v5  TMBill parity: 22 new restaurant tables (Phase 1-7)
+
 import Dexie, { type Table } from 'dexie';
 import { BRAND } from '@billing/shared/brand';
 import type {
   AuditEntry, Customer, CustomerPayment, Product, Sale, Store, User,
 } from '@billing/shared/domain/types';
+import type {
+  Market, Brand, Outlet, PaymentMode, OrderType, TaxSlab, Discount,
+  AdditionalCharge, Reason, OutletSettings, MenuCategory, Modifier, Combo,
+  Variant, FloorSection, DiningTable, KotStation, AggregatorConfig,
+  DeliveryZone, Ingredient, Recipe, Supplier, PurchaseOrder, WastageEntry,
+  CustomerGroup, LoyaltyTier, Coupon, FeedbackEntry,
+} from '@billing/shared/domain/restaurant';
 
-// Schema versions are declared inline via `.version(N).stores({...})`; each
-// migration ships its own `.upgrade()` callback for legacy rows.
 class AppDB extends Dexie {
+  // v1-v4 tables
   stores!:            Table<Store, string>;
   users!:             Table<User, string>;
   products!:          Table<Product, string>;
@@ -16,12 +31,42 @@ class AppDB extends Dexie {
   customerPayments!:  Table<CustomerPayment, string>;
   auditLog!:          Table<AuditEntry, string>;
 
+  // v5 tables - TMBill parity
+  markets!:           Table<Market, string>;
+  brands!:            Table<Brand, string>;
+  outlets!:           Table<Outlet, string>;
+  paymentModes!:      Table<PaymentMode, string>;
+  orderTypes!:        Table<OrderType, string>;
+  taxSlabs!:          Table<TaxSlab, string>;
+  discounts!:         Table<Discount, string>;
+  addlCharges!:       Table<AdditionalCharge, string>;
+  reasons!:           Table<Reason, string>;
+  outletSettings!:    Table<OutletSettings, string>;
+  menuCategories!:    Table<MenuCategory, string>;
+  modifiers!:         Table<Modifier, string>;
+  combos!:            Table<Combo, string>;
+  variants!:          Table<Variant, string>;
+  sections!:          Table<FloorSection, string>;
+  diningTables!:      Table<DiningTable, string>;
+  kotStations!:       Table<KotStation, string>;
+  aggregators!:       Table<AggregatorConfig, string>;
+  deliveryZones!:     Table<DeliveryZone, string>;
+  ingredients!:       Table<Ingredient, string>;
+  recipes!:           Table<Recipe, string>;
+  suppliers!:         Table<Supplier, string>;
+  purchaseOrders!:    Table<PurchaseOrder, string>;
+  wastage!:           Table<WastageEntry, string>;
+  customerGroups!:    Table<CustomerGroup, string>;
+  loyaltyTiers!:      Table<LoyaltyTier, string>;
+  coupons!:           Table<Coupon, string>;
+  feedback!:          Table<FeedbackEntry, string>;
+
   constructor() {
     // Renaming BRAND.dbName orphans existing local data - keep it stable OR ship a migration.
     super(BRAND.dbName);
 
-    // v1 - initial schema. Uniqueness is enforced at the app layer (typed errors)
-    // rather than via & unique indexes (raw Dexie throws).
+    // v1 - initial schema. Uniqueness is enforced at the app layer (typed
+    // errors) rather than via & unique indexes (raw Dexie throws).
     this.version(1).stores({
       stores:            'id, name',
       users:             'id, username, storeId',
@@ -46,7 +91,7 @@ class AppDB extends Dexie {
       });
     });
 
-    // v3 - vendor console: add store.status + auditLog table. Existing rows default to 'active'.
+    // v3 - vendor console: add store.status + auditLog table.
     this.version(3).stores({
       stores:            'id, name, status',
       users:             'id, username, storeId, role',
@@ -62,7 +107,7 @@ class AppDB extends Dexie {
       });
     });
 
-    // v4 - online orders: add channel + orderStatus indexes on sales. Backfill legacy rows as counter/null.
+    // v4 - online orders: add channel + orderStatus + address on sales.
     this.version(4).stores({
       stores:            'id, name, status',
       users:             'id, username, storeId, role',
@@ -75,13 +120,61 @@ class AppDB extends Dexie {
       await tx.table('sales').toCollection().modify((s) => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const row = s as any;
-        if (!row.channel)          row.channel = 'counter';
-        if (row.orderStatus       === undefined) row.orderStatus       = null;
-        if (row.customerName      === undefined) row.customerName      = null;
-        if (row.deliveryAddress   === undefined) row.deliveryAddress   = null;
-        if (row.customerNotes     === undefined) row.customerNotes     = null;
-        if (row.statusHistory     === undefined) row.statusHistory     = null;
+        if (!row.channel)                        row.channel = 'counter';
+        if (row.orderStatus     === undefined)   row.orderStatus     = null;
+        if (row.customerName    === undefined)   row.customerName    = null;
+        if (row.deliveryAddress === undefined)   row.deliveryAddress = null;
+        if (row.customerNotes   === undefined)   row.customerNotes   = null;
+        if (row.statusHistory   === undefined)   row.statusHistory   = null;
       });
+    });
+
+    // v5 - TMBill parity: 22 new tables for Phase 1-7 entities. Every new
+    // table is per-tenant via storeId (except markets/brands which are
+    // cross-tenant / vendor-owned). No upgrade fn needed - new tables start
+    // empty; bootstrap seeds them from fixtures.
+    this.version(5).stores({
+      stores:            'id, name, status',
+      users:             'id, username, storeId, role',
+      products:          'id, storeId, [storeId+sku], category, active',
+      customers:         'id, storeId, [storeId+mobile]',
+      sales:             'id, storeId, completedAt, customerId, cashierId, voided, channel, orderStatus, [storeId+channel], [storeId+orderStatus]',
+      customerPayments:  'id, customerId, receivedAt',
+      auditLog:          'id, at, actorUsername, targetStoreId, action',
+      // POS Config
+      markets:           'id, code, active',
+      brands:            'id, marketId, active',
+      outlets:           'id, brandId, marketId, active',
+      paymentModes:      'id, storeId, code, active',
+      orderTypes:        'id, storeId, code, active',
+      taxSlabs:          'id, storeId, appliesTo, active',
+      discounts:         'id, storeId, type, active',
+      addlCharges:       'id, storeId, active',
+      reasons:           'id, storeId, category, active',
+      outletSettings:    'outletId',
+      // Menu
+      menuCategories:    'id, storeId, sortOrder, active',
+      modifiers:         'id, storeId, active',
+      combos:            'id, storeId, active',
+      variants:          'id, storeId, menuItemId, active',
+      // Tables/KDS
+      sections:          'id, storeId, sortOrder, active',
+      diningTables:      'id, storeId, sectionId, status, active',
+      kotStations:       'id, storeId, active',
+      // Online
+      aggregators:       'id, storeId, provider, enabled',
+      deliveryZones:     'id, storeId, active',
+      // Inventory
+      ingredients:       'id, storeId, active',
+      recipes:           'id, storeId, menuItemId',
+      suppliers:         'id, storeId, active',
+      purchaseOrders:    'id, storeId, status, orderedAt',
+      wastage:           'id, storeId, reportedAt',
+      // CRM
+      customerGroups:    'id, storeId, active',
+      loyaltyTiers:      'id, storeId, active',
+      coupons:           'id, storeId, code, active',
+      feedback:          'id, storeId, at, resolved',
     });
   }
 }

@@ -1,0 +1,220 @@
+/* AdminSidebar - vertical navigation for the tenant admin surface.
+ * Replaces the old horizontal top-nav on /:slug/admin/* routes.
+ * Groups 60+ TMBill screens under 7 phase-scoped sections.
+ * Collapsible on narrow viewports; each group can expand/collapse.
+ */
+
+.sidebar {
+  --sb-width: 260px;
+  --sb-width-collapsed: 60px;
+  width: var(--sb-width);
+  min-width: var(--sb-width);
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
+  height: 100%;
+  transition: width 180ms ease, min-width 180ms ease;
+  scrollbar-width: thin;
+}
+
+.sidebar[data-collapsed='true'] {
+  width: var(--sb-width-collapsed);
+  min-width: var(--sb-width-collapsed);
+}
+
+.sidebar__brand {
+  padding: 16px 18px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid var(--border);
+  min-height: 60px;
+}
+
+.sidebar__brand-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+  min-width: 0;
+}
+
+.sidebar[data-collapsed='true'] .sidebar__brand-text { display: none; }
+
+.sidebar__group {
+  padding: 6px 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+}
+
+.sidebar__group-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 18px 4px;
+  width: 100%;
+  background: none;
+  border: none;
+  color: var(--text-subtle);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  text-align: left;
+}
+
+.sidebar__group-header:hover { color: var(--text-primary); }
+
+.sidebar[data-collapsed='true'] .sidebar__group-header { display: none; }
+
+.sidebar__link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 18px;
+  color: var(--text);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 500;
+  border-left: 3px solid transparent;
+  transition: background 120ms, color 120ms, border-color 120ms;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.sidebar__link:hover {
+  background: color-mix(in srgb, var(--brand-primary) 6%, transparent);
+  color: var(--text-primary);
+}
+
+.sidebar__link--active {
+  background: color-mix(in srgb, var(--brand-primary) 12%, transparent);
+  border-left-color: var(--brand-primary);
+  color: var(--brand-primary);
+  font-weight: 600;
+}
+
+.sidebar[data-collapsed='true'] .sidebar__link { justify-content: center; padding: 12px 0; }
+.sidebar[data-collapsed='true'] .sidebar__link-label { display: none; }
+
+.sidebar__collapse {
+  margin-top: auto;
+  padding: 12px 18px;
+  border-top: 1px solid var(--border);
+  background: none;
+  border-left: none;
+  border-right: none;
+  border-bottom: none;
+  color: var(--text-subtle);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.sidebar__collapse:hover { color: var(--text-primary); }
+
+/* -------------------------------------------------------------------------- */
+/* AdminShellLayout - shell that hosts sidebar + main content                 */
+/* -------------------------------------------------------------------------- */
+
+.adminShell {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+.adminShell__main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.adminShell__topbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 24px;
+  min-height: 56px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.adminShell__topbar-spacer { flex: 1; }
+
+.adminShell__content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px 28px;
+  background: var(--bg);
+}
+
+/* Hide sidebar entirely on narrow screens - use a hamburger later. */
+@media (max-width: 900px) {
+  .sidebar { display: none; }
+}
+
+/* -------------------------------------------------------------------------- */
+/* AdminPage template                                                         */
+/* -------------------------------------------------------------------------- */
+
+.adminPage__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.adminPage__intro {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.adminPage__breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-subtle);
+  margin-bottom: 2px;
+}
+
+.adminPage__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.adminPage__stub {
+  padding: 40px 32px;
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--brand-primary) 4%, transparent);
+  text-align: center;
+}
+
+.adminPage__stub-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--brand-primary) 12%, transparent);
+  color: var(--brand-primary);
+  margin: 0 auto 12px;
+}

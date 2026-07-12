@@ -10,12 +10,19 @@ import { db } from './db';
 import { storage } from './storage';
 import {
   SEED_STORES, SEED_USERS, SEED_CUSTOMERS, SEED_PRODUCTS,
+  SEED_MARKETS, SEED_BRANDS, SEED_OUTLETS, SEED_PAYMENT_MODES, SEED_ORDER_TYPES,
+  SEED_TAX_SLABS, SEED_DISCOUNTS, SEED_ADDL_CHARGES, SEED_REASONS,
+  SEED_OUTLET_SETTINGS, SEED_MENU_CATEGORIES, SEED_MODIFIERS, SEED_COMBOS,
+  SEED_VARIANTS, SEED_SECTIONS, SEED_TABLES, SEED_KOT_STATIONS,
+  SEED_AGGREGATORS, SEED_DELIVERY_ZONES, SEED_INGREDIENTS, SEED_RECIPES,
+  SEED_SUPPLIERS, SEED_PURCHASE_ORDERS, SEED_WASTAGE, SEED_CUSTOMER_GROUPS,
+  SEED_LOYALTY_TIERS, SEED_COUPONS, SEED_FEEDBACK,
 } from '@billing/shared/fixtures';
 import type {
   Customer, CustomerPayment, Product, Sale, Store, User, UserRole,
 } from '@billing/shared/domain/types';
 
-const MIGRATION_FLAG = 'db-bootstrap::v3';
+const MIGRATION_FLAG = 'db-bootstrap::v5';
 
 // Normalise legacy user roles: drop 'super_admin' rows (that surface moved to the
 // dedicated vendor account), rename 'master' -> 'admin' (v1 schema). Idempotent.
@@ -35,11 +42,13 @@ const backfillStoreId = <T extends { storeId?: string }>(
   list.map((row) => (row.storeId ? row : { ...row, storeId: fallbackId }));
 
 export const bootstrapDb = async (): Promise<void> => {
-  // Fast path: already migrated on this browser — but still make sure the
-  // vendor account exists (v3 upgrade path for pre-existing installations).
+  // Fast path: already migrated on this browser - but still make sure the
+  // vendor account exists AND top up any restaurant tables that were added
+  // in later schema bumps.
   const already = storage.load<boolean>(MIGRATION_FLAG, false);
   if (already) {
     await ensureVendorUser();
+    await seedRestaurantTables();
     return;
   }
 
@@ -97,9 +106,49 @@ export const bootstrapDb = async (): Promise<void> => {
 
   storage.save(MIGRATION_FLAG, true);
   await ensureVendorUser();
+  await seedRestaurantTables();
 };
 
-  // Idempotent: create the vendor account if missing (runs every boot so pre-v3 installs get vendor too).
+// Seeds the 22 TMBill parity tables (Phase 1-7). Idempotent - checks each
+// table individually so re-runs after schema bumps don't wipe user edits.
+const seedRestaurantTables = async (): Promise<void> => {
+  const seedIfEmpty = async <T>(
+    table: { count: () => Promise<number>; bulkPut: (rows: T[]) => Promise<unknown> },
+    rows: readonly T[],
+  ): Promise<void> => {
+    if ((await table.count()) === 0) await table.bulkPut([...rows]);
+  };
+  await seedIfEmpty(db.markets,         SEED_MARKETS);
+  await seedIfEmpty(db.brands,          SEED_BRANDS);
+  await seedIfEmpty(db.outlets,         SEED_OUTLETS);
+  await seedIfEmpty(db.paymentModes,    SEED_PAYMENT_MODES);
+  await seedIfEmpty(db.orderTypes,      SEED_ORDER_TYPES);
+  await seedIfEmpty(db.taxSlabs,        SEED_TAX_SLABS);
+  await seedIfEmpty(db.discounts,       SEED_DISCOUNTS);
+  await seedIfEmpty(db.addlCharges,     SEED_ADDL_CHARGES);
+  await seedIfEmpty(db.reasons,         SEED_REASONS);
+  await seedIfEmpty(db.outletSettings,  SEED_OUTLET_SETTINGS);
+  await seedIfEmpty(db.menuCategories,  SEED_MENU_CATEGORIES);
+  await seedIfEmpty(db.modifiers,       SEED_MODIFIERS);
+  await seedIfEmpty(db.combos,          SEED_COMBOS);
+  await seedIfEmpty(db.variants,        SEED_VARIANTS);
+  await seedIfEmpty(db.sections,        SEED_SECTIONS);
+  await seedIfEmpty(db.diningTables,    SEED_TABLES);
+  await seedIfEmpty(db.kotStations,     SEED_KOT_STATIONS);
+  await seedIfEmpty(db.aggregators,     SEED_AGGREGATORS);
+  await seedIfEmpty(db.deliveryZones,   SEED_DELIVERY_ZONES);
+  await seedIfEmpty(db.ingredients,     SEED_INGREDIENTS);
+  await seedIfEmpty(db.recipes,         SEED_RECIPES);
+  await seedIfEmpty(db.suppliers,       SEED_SUPPLIERS);
+  await seedIfEmpty(db.purchaseOrders,  SEED_PURCHASE_ORDERS);
+  await seedIfEmpty(db.wastage,         SEED_WASTAGE);
+  await seedIfEmpty(db.customerGroups,  SEED_CUSTOMER_GROUPS);
+  await seedIfEmpty(db.loyaltyTiers,    SEED_LOYALTY_TIERS);
+  await seedIfEmpty(db.coupons,         SEED_COUPONS);
+  await seedIfEmpty(db.feedback,        SEED_FEEDBACK);
+};
+
+// Idempotent: create the vendor account if missing (runs every boot so pre-v3 installs get vendor too).
 const ensureVendorUser = async (): Promise<void> => {
   const vendor = SEED_USERS.find((u) => u.role === 'vendor');
   if (!vendor) return;
