@@ -5,7 +5,7 @@ import pages from './pages.module.css';
 import {
   CartPanel, MobileCartBar, PaymentModal, ProductGrid, ProductToolbar, ReceiptModal, buildSale,
 } from '@billing/ui/organisms';
-import { PageHeader } from '@/CounterShell';
+import { PageHeader } from '../CounterShell';
 import { CATEGORY_FILTERS } from '@billing/shared/domain/catalog';
 import { STRINGS } from '@billing/shared/domain/strings';
 import { useAuth } from '@billing/shared/store/AuthContext';

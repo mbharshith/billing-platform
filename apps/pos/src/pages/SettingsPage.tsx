@@ -9,7 +9,7 @@
 import { useState, type ChangeEvent, type FC, type FormEvent } from 'react';
 import cls from './pages.module.css';
 import { Button, Field, Icon, Text, Textarea } from '@billing/ui/atoms';
-import { PageHeader } from '@/CounterShell';
+import { PageHeader } from '../CounterShell';
 import { STRINGS } from '@billing/shared/domain/strings';
 import { useSettings } from '@billing/shared/store/SettingsContext';
 import { useStores } from '@billing/shared/store/StoresContext';

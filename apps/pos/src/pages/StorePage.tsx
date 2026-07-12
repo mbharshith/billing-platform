@@ -9,7 +9,7 @@ import { useMemo, type FC } from 'react';
 import cls from './pages.module.css';
 import { Badge, Icon, Text } from '@billing/ui/atoms';
 import { BRAND } from '@billing/shared/brand';
-import { PageHeader } from '@/CounterShell';
+import { PageHeader } from '../CounterShell';
 import { fmtDate, formatNumberCompact, num } from '@billing/shared/domain/format';
 import { useMoney } from '@billing/shared/hooks/useMoney';
 import { useAuth } from '@billing/shared/store/AuthContext';

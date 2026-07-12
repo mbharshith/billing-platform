@@ -7,7 +7,7 @@ import { Badge, Button, Field, Input, Text, Textarea } from '@billing/ui/atoms';
 import { Modal } from '@billing/ui/organisms';
 import { ConfirmDialog } from '@billing/ui/feedback';
 import { DataTable, MobileNumberField } from '@billing/ui/molecules';
-import { PageHeader } from '@/CounterShell';
+import { PageHeader } from '../CounterShell';
 import { STRINGS } from '@billing/shared/domain/strings';
 import { digitsOnly, fmtDate, formatPhone } from '@billing/shared/domain/format';
 import { useMoney } from '@billing/shared/hooks/useMoney';

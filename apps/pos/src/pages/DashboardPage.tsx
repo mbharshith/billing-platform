@@ -6,7 +6,7 @@ import {
   DashboardKpis, InventoryTable, RecentSalesTable, TopProductsTable,
   type ProductAggregate,
 } from '@billing/ui/organisms';
-import { PageHeader } from '@/CounterShell';
+import { PageHeader } from '../CounterShell';
 import { STRINGS } from '@billing/shared/domain/strings';
 import { useProducts } from '@billing/shared/store/ProductsContext';
 import { useSales } from '@billing/shared/store/SalesContext';
