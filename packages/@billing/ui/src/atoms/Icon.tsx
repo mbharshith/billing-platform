@@ -7,7 +7,8 @@ export type IconName =
   | 'bag' | 'cart' | 'receipt' | 'print' | 'phone' | 'user'
   | 'shield' | 'zap' | 'chart' | 'arrow' | 'lock' | 'cash'
   | 'card' | 'coins' | 'spark' | 'store' | 'sun' | 'moon' | 'edit'
-  | 'menu' | 'bell';
+  | 'menu' | 'bell' | 'chevron' | 'list' | 'flame' | 'truck'
+  | 'history' | 'star' | 'tag' | 'globe' | 'group' | 'layers';
 
 export type IconTone = 'primary' | 'accent' | 'success' | 'danger' | 'muted';
 
@@ -55,6 +56,16 @@ const PATHS: Record<IconName, JSX.Element> = {
   edit:    <path d="M14.06 4.94l3.75 3.75L7.62 18.87 3 20l1.12-4.62 9.94-9.94zm4.62-.94a2.12 2.12 0 013 3l-1.5 1.5-3-3 1.5-1.5z"/>,
   menu:    <path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z"/>,
   bell:    <path d="M12 2a6 6 0 016 6v4l2 3v1H4v-1l2-3V8a6 6 0 016-6zm-2 18a2 2 0 004 0h-4z"/>,
+  chevron: <path d="M7 10l5 5 5-5z"/>,
+  list:    <path d="M4 6h16v2H4V6zm0 5h16v2H4v-2zm0 5h16v2H4v-2z"/>,
+  flame:   <path d="M12 2s5 5 5 10a5 5 0 01-10 0c0-2 1-3 1-3s0 3 2 3 3-2 3-4-1-6-1-6zm0 15a3 3 0 01-3-3c0-1 1-2 1-2s1 2 3 2 3-1 3-1a3 3 0 01-4 4z"/>,
+  truck:   <path d="M2 6h11v9H2V6zm12 3h4l3 4v3h-2a2 2 0 11-4 0h-1V9zM5 17a2 2 0 100 4 2 2 0 000-4zm12 0a2 2 0 100 4 2 2 0 000-4z"/>,
+  history: <path d="M13 3a9 9 0 100 18 9 9 0 000-18zm-1 5h2v5.4l4 2.4-1 1.7-5-3V8z"/>,
+  star:    <path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4.5L6 21l1.5-7.5L2 9h7z"/>,
+  tag:     <path d="M12 2H4v8l10 10 8-8L12 2zm-5 5a1.5 1.5 0 110-3 1.5 1.5 0 010 3z"/>,
+  globe:   <path d="M12 2a10 10 0 100 20 10 10 0 000-20zm-1 2.1v3.9H8a8 8 0 013-3.9zM6.3 10h2.7v4H6.3a8 8 0 010-4zM13 4.1a8 8 0 013 3.9h-3V4.1zM11 10h2v4h-2v-4zm4 0h2.7a8 8 0 010 4H15v-4zm-4 6h2v3.9a8 8 0 01-2 0V16zm4 0h3a8 8 0 01-3 3.9V16z"/>,
+  group:   <path d="M8 11a4 4 0 100-8 4 4 0 000 8zm8 0a3 3 0 100-6 3 3 0 000 6zm-8 2c-4.4 0-8 2.2-8 5v2h16v-2c0-2.8-3.6-5-8-5zm8 1a7 7 0 016 3v2h-4v-2c0-1.4-.7-2.6-1.7-3.5.5-.3 1.1-.5 1.7-.5z"/>,
+  layers:  <path d="M12 2l10 6-10 6L2 8l10-6zm0 8l10 6-10 6L2 16l10-6z"/>,
 };
 
 export const Icon: FC<IconProps> = ({

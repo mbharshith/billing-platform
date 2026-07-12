@@ -1,48 +1,37 @@
-// AdminSidebar + AdminShell + AdminPage template — TMBill-style vertical sidebar with phase groups, collapsible state via localStorage.
+// AdminSidebar + AdminShell + AdminPage + TopBar - admin routes chrome.
+// Sidebar itself lives in ./Sidebar.tsx (kept < 600-line convention).
 
 import { useEffect, useState, type FC, type ReactNode } from 'react';
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { Link, Outlet, useLocation, useNavigate, useParams } from 'react-router-dom';
 import cls from './admin.module.css';
-import { Icon, Text, ThemeToggle } from '@billing/ui/atoms';
-import { BRAND } from '@billing/shared/brand';
+import { Icon, Text, ThemeToggle, type IconName } from '@billing/ui/atoms';
 import { ToastStack } from '@billing/ui/feedback';
+import { AdminSidebar, type SidebarGroup, type SidebarLink } from './Sidebar';
 
-/* -------------------------------------------------------------------------- */
-/* Sidebar config - 16 top-level TMBill sections grouped by phase.            */
-/* Icon names are Icon-atom keys; paths are relative to /:slug/admin/         */
-/* -------------------------------------------------------------------------- */
-
-export interface SidebarLink {
-  readonly path: string;             // relative to /:slug/admin
-  readonly label: string;
-  readonly icon: string;             // Icon atom name
-}
-
-export interface SidebarGroup {
-  readonly id: string;
-  readonly label: string;
-  readonly links: readonly SidebarLink[];
-}
+export type { SidebarLink, SidebarGroup };
+export { AdminSidebar };
 
 export const SIDEBAR_GROUPS: readonly SidebarGroup[] = [
   {
     id: 'overview',
     label: 'Overview',
+    defaultOpen: true,
     links: [
       { path: '',              label: 'Dashboard',       icon: 'chart' },
-      { path: 'live-orders',   label: 'Live Orders',     icon: 'receipt' },
+      { path: 'live-orders',   label: 'Live Orders',     icon: 'zap' },
     ],
   },
   {
     id: 'pos',
     label: 'POS Configuration',
+    defaultOpen: true,
     links: [
-      { path: 'markets',           label: 'Markets',            icon: 'store' },
-      { path: 'brands',            label: 'Brands',             icon: 'spark' },
+      { path: 'markets',           label: 'Markets',            icon: 'globe' },
+      { path: 'brands',            label: 'Brands',             icon: 'star' },
       { path: 'outlets',           label: 'Outlets',            icon: 'store' },
       { path: 'payment-modes',     label: 'Payment Modes',      icon: 'card' },
       { path: 'order-types',       label: 'Order Types',        icon: 'bag' },
-      { path: 'tax-slabs',         label: 'Tax Slabs',          icon: 'chart' },
+      { path: 'tax-slabs',         label: 'Tax Slabs',          icon: 'tag' },
       { path: 'discounts',         label: 'Discounts',          icon: 'coins' },
       { path: 'charges',           label: 'Additional Charges', icon: 'plus' },
       { path: 'reasons',           label: 'Reason Master',      icon: 'shield' },
@@ -52,71 +41,77 @@ export const SIDEBAR_GROUPS: readonly SidebarGroup[] = [
   {
     id: 'menu',
     label: 'Menu Management',
+    defaultOpen: true,
     links: [
-      { path: 'menu-categories', label: 'Categories',   icon: 'bag' },
+      { path: 'menu-categories', label: 'Categories',   icon: 'list' },
       { path: 'products',        label: 'Menu Items',   icon: 'bag' },
       { path: 'modifiers',       label: 'Modifiers',    icon: 'plus' },
-      { path: 'combos',          label: 'Combos',       icon: 'spark' },
+      { path: 'combos',          label: 'Combos',       icon: 'layers' },
       { path: 'variants',        label: 'Variants',     icon: 'edit' },
     ],
   },
   {
     id: 'tables',
     label: 'Tables & KDS',
+    defaultOpen: false,
     links: [
-      { path: 'sections',     label: 'Floor Sections', icon: 'store' },
-      { path: 'tables',       label: 'Tables',         icon: 'store' },
+      { path: 'sections',     label: 'Floor Sections', icon: 'group' },
+      { path: 'tables',       label: 'Tables',         icon: 'group' },
       { path: 'kot-stations', label: 'KOT Stations',   icon: 'print' },
-      { path: 'kds',          label: 'Kitchen Display',icon: 'zap' },
+      { path: 'kds',          label: 'Kitchen Display',icon: 'flame' },
     ],
   },
   {
     id: 'online',
     label: 'Online & Delivery',
+    defaultOpen: false,
     links: [
-      { path: 'aggregators',    label: 'Aggregators',     icon: 'zap' },
-      { path: 'delivery-zones', label: 'Delivery Zones',  icon: 'phone' },
+      { path: 'aggregators',    label: 'Aggregators',     icon: 'globe' },
+      { path: 'delivery-zones', label: 'Delivery Zones',  icon: 'truck' },
       { path: 'online-orders',  label: 'Online Orders',   icon: 'receipt' },
     ],
   },
   {
     id: 'reports',
     label: 'Reports',
+    defaultOpen: false,
     links: [
       { path: 'reports/sales',       label: 'Sales Report',      icon: 'chart' },
       { path: 'reports/products',    label: 'Product Mix',       icon: 'chart' },
       { path: 'reports/hourly',      label: 'Hourly Sales',      icon: 'chart' },
-      { path: 'reports/discounts',   label: 'Discount Usage',    icon: 'chart' },
-      { path: 'reports/tax',         label: 'Tax Summary',       icon: 'chart' },
-      { path: 'reports/wastage',     label: 'Wastage Report',    icon: 'chart' },
-      { path: 'reports/cashier',     label: 'Cashier Report',    icon: 'chart' },
+      { path: 'reports/discounts',   label: 'Discount Usage',    icon: 'coins' },
+      { path: 'reports/tax',         label: 'Tax Summary',       icon: 'tag' },
+      { path: 'reports/wastage',     label: 'Wastage Report',    icon: 'trash' },
+      { path: 'reports/cashier',     label: 'Cashier Report',    icon: 'user' },
     ],
   },
   {
     id: 'inv',
     label: 'Inventory Management',
+    defaultOpen: false,
     links: [
-      { path: 'warehouses',       label: 'Warehouses',       icon: 'store' },
-      { path: 'rm-categories',    label: 'RM Categories',    icon: 'bag' },
-      { path: 'uom',              label: 'Units of Measure', icon: 'chart' },
-      { path: 'ingredients',      label: 'Ingredients',      icon: 'bag' },
-      { path: 'recipes',          label: 'Recipes',          icon: 'edit' },
-      { path: 'suppliers',        label: 'Suppliers',        icon: 'user' },
-      { path: 'purchase-orders',  label: 'Purchase Orders',  icon: 'receipt' },
-      { path: 'grns',             label: 'Goods Receipts',   icon: 'receipt' },
-      { path: 'stock-adjustments',label: 'Stock Adjustments',icon: 'edit' },
-      { path: 'stock-transfers',  label: 'Stock Transfers',  icon: 'zap' },
-      { path: 'indents',          label: 'Indents',          icon: 'plus' },
-      { path: 'production',       label: 'Production Batches',icon: 'spark' },
-      { path: 'wastage',          label: 'Wastage',          icon: 'trash' },
+      { path: 'warehouses',       label: 'Warehouses',        icon: 'store' },
+      { path: 'rm-categories',    label: 'RM Categories',     icon: 'list' },
+      { path: 'uom',              label: 'Units of Measure',  icon: 'tag' },
+      { path: 'ingredients',      label: 'Ingredients',       icon: 'bag' },
+      { path: 'recipes',          label: 'Recipes',           icon: 'edit' },
+      { path: 'suppliers',        label: 'Suppliers',         icon: 'truck' },
+      { path: 'purchase-orders',  label: 'Purchase Orders',   icon: 'receipt' },
+      { path: 'grns',             label: 'Goods Receipts',    icon: 'receipt' },
+      { path: 'stock-adjustments',label: 'Stock Adjustments', icon: 'edit' },
+      { path: 'stock-transfers',  label: 'Stock Transfers',   icon: 'arrow' },
+      { path: 'indents',          label: 'Indents',           icon: 'plus' },
+      { path: 'production',       label: 'Production Batches',icon: 'flame' },
+      { path: 'wastage',          label: 'Wastage',           icon: 'trash' },
     ],
   },
   {
     id: 'acct',
     label: 'Accounting',
+    defaultOpen: false,
     links: [
       { path: 'accounts',           label: 'Chart of Accounts', icon: 'chart' },
-      { path: 'expense-categories', label: 'Expense Categories',icon: 'bag' },
+      { path: 'expense-categories', label: 'Expense Categories',icon: 'list' },
       { path: 'expenses',           label: 'Expenses',          icon: 'coins' },
       { path: 'vendor-bills',       label: 'Vendor Bills',      icon: 'receipt' },
     ],
@@ -124,89 +119,38 @@ export const SIDEBAR_GROUPS: readonly SidebarGroup[] = [
   {
     id: 'crm',
     label: 'CRM & Loyalty',
+    defaultOpen: false,
     links: [
       { path: 'customers',         label: 'Customers',        icon: 'user' },
-      { path: 'customer-groups',   label: 'Customer Groups',  icon: 'user' },
-      { path: 'segments',          label: 'Segments',         icon: 'spark' },
-      { path: 'loyalty',           label: 'Loyalty Tiers',    icon: 'spark' },
-      { path: 'coupons',           label: 'Coupons',          icon: 'coins' },
+      { path: 'customer-groups',   label: 'Customer Groups',  icon: 'group' },
+      { path: 'segments',          label: 'Segments',         icon: 'layers' },
+      { path: 'loyalty',           label: 'Loyalty Tiers',    icon: 'star' },
+      { path: 'coupons',           label: 'Coupons',          icon: 'tag' },
       { path: 'feedback',          label: 'Feedback',         icon: 'phone' },
     ],
   },
   {
     id: 'marketing',
     label: 'Marketing',
+    defaultOpen: false,
     links: [
       { path: 'wa-templates',      label: 'WhatsApp Templates', icon: 'phone' },
-      { path: 'campaigns',         label: 'Campaigns',          icon: 'zap' },
+      { path: 'campaigns',         label: 'Campaigns',          icon: 'bell' },
     ],
   },
   {
     id: 'admin',
     label: 'Administration',
+    defaultOpen: false,
     links: [
       { path: 'users',    label: 'Staff',       icon: 'user' },
       { path: 'sales',    label: 'Bill History', icon: 'receipt' },
-      { path: 'logs',     label: 'Audit Log',   icon: 'shield' },
+      { path: 'logs',     label: 'Audit Log',   icon: 'history' },
       { path: 'settings', label: 'Settings',    icon: 'shield' },
       { path: 'store',    label: 'Outlet Info', icon: 'store' },
     ],
   },
 ];
-
-/* -------------------------------------------------------------------------- */
-/* AdminSidebar - controlled component (collapse state lives in shell)        */
-/* -------------------------------------------------------------------------- */
-
-interface AdminSidebarProps {
-  readonly slug: string;
-  readonly collapsed: boolean;
-}
-
-export const AdminSidebar: FC<AdminSidebarProps> = ({ slug, collapsed }) => (
-  <aside className={cls.sidebar} data-collapsed={collapsed} aria-label="Admin navigation">
-    <div className={cls.sidebar__brand}>
-      <Icon name="spark" size={22} />
-      {!collapsed && (
-        <div className={cls['sidebar__brand-text']}>
-          <Text as="span" size="sm" weight="heavy">{BRAND.name}</Text>
-          <Text as="span" size="xs" tone="subtle">Admin Console</Text>
-        </div>
-      )}
-    </div>
-
-    {SIDEBAR_GROUPS.map((group) => (
-      <div key={group.id} className={cls.sidebar__group} data-group={group.id}>
-        <div className={cls['sidebar__group-header']}>
-          <span className={cls['sidebar__group-dot']} aria-hidden />
-          <span>{group.label}</span>
-        </div>
-        {group.links.map((link) => (
-          <NavLink
-            key={link.path}
-            to={`/${slug}/admin/${link.path}`}
-            end={link.path === ''}
-            data-label={link.label}   /* fed to the collapsed-mode flyout tooltip */
-            className={({ isActive }) => [
-              cls.sidebar__link,
-              isActive && cls['sidebar__link--active'],
-            ].filter(Boolean).join(' ')}
-            title={link.label}
-          >
-            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-            <Icon name={link.icon as any} size={16} />
-            <span className={cls['sidebar__link-label']}>{link.label}</span>
-          </NavLink>
-        ))}
-      </div>
-    ))}
-
-    <div className={cls.sidebar__footer}>
-      <span className={cls['sidebar__footer-hint']}>v11.7  KartWise</span>
-    </div>
-  </aside>
-);
-
 /* -------------------------------------------------------------------------- */
 /* Top bar - hamburger, outlet chip, global search, quick actions, alerts     */
 /* -------------------------------------------------------------------------- */
@@ -311,7 +255,7 @@ export const AdminShell: FC<AdminShellProps> = ({
 
   return (
     <div className={cls.adminShell}>
-      <AdminSidebar slug={slug} collapsed={collapsed} />
+            <AdminSidebar slug={slug} collapsed={collapsed} groups={SIDEBAR_GROUPS} />
       <div className={cls.adminShell__main}>
         <TopBar
           outletName={outletName}
@@ -334,39 +278,91 @@ export const AdminShell: FC<AdminShellProps> = ({
 /* -------------------------------------------------------------------------- */
 /* AdminPage - shared header + intro + actions envelope                       */
 /* -------------------------------------------------------------------------- */
+/* AdminPage - shared header + intro + actions envelope                       */
+/* Breadcrumbs are auto-derived from the current URL:                         */
+/*   [HOME] > [Group (clickable)] > [Current page]                            */
+/* Falls back to the passed `breadcrumb` prop if the URL doesn't match any    */
+/* known SIDEBAR_GROUPS entry.                                                */
+/* -------------------------------------------------------------------------- */
 
 interface AdminPageProps {
   readonly title: string;
   readonly subtitle?: string;
-  readonly breadcrumb?: readonly string[];
+  readonly breadcrumb?: readonly string[];   // fallback only
   readonly actions?: ReactNode;
   readonly children: ReactNode;
 }
 
+interface Crumb {
+  readonly label: string;
+  readonly to?: string;
+}
+
+/** Given the current admin path (after `/admin/`), find the matching group
+ *  and return [group crumb, current-page crumb] with proper links. */
+const deriveCrumbs = (slug: string, adminPath: string): readonly Crumb[] | null => {
+  const cleanPath = adminPath.replace(/^\/+/, '');
+  for (const group of SIDEBAR_GROUPS) {
+    const link = group.links.find((l) => l.path === cleanPath);
+    if (link) {
+      // First link in the group is the group's landing page.
+      const firstLink = group.links[0]!;
+      return [
+        { label: group.label, to: `/${slug}/admin/${firstLink.path}` },
+        { label: link.label },
+      ];
+    }
+  }
+  return null;
+};
+
 export const AdminPage: FC<AdminPageProps> = ({
   title, subtitle, breadcrumb, actions, children,
-}) => (
-  <div>
-    <div className={cls.adminPage__header}>
-      <div className={cls.adminPage__intro}>
-        {breadcrumb && breadcrumb.length > 0 && (
-          <div className={cls.adminPage__breadcrumb}>
-            {breadcrumb.map((crumb, idx) => (
-              <span key={crumb}>
-                {idx > 0 && <span aria-hidden> / </span>}
-                {crumb}
-              </span>
-            ))}
-          </div>
-        )}
-        <Text as="h1" size="2xl" weight="heavy">{title}</Text>
-        {subtitle && <Text tone="subtle">{subtitle}</Text>}
+}) => {
+  const location = useLocation();
+  const { slug = '' } = useParams<{ slug: string }>();
+
+  // Extract the part after `/<slug>/admin/` for auto-crumbs.
+  const adminIdx = location.pathname.indexOf('/admin/');
+  const adminPath = adminIdx >= 0 ? location.pathname.slice(adminIdx + '/admin/'.length) : '';
+  const autoCrumbs = deriveCrumbs(slug, adminPath);
+
+  // Fall back to the string-array API when we can't derive from URL (e.g.
+  // dashboard root, custom sub-routes).
+  const crumbs: readonly Crumb[] =
+    autoCrumbs
+      ?? (breadcrumb ?? []).map((label) => ({ label }));
+
+  return (
+    <div>
+      <div className={cls.adminPage__header}>
+        <div className={cls.adminPage__intro}>
+          {(crumbs.length > 0 || slug) && (
+            <nav className={cls.adminPage__breadcrumb} aria-label="Breadcrumb">
+              <Link to={`/${slug}/admin`} className={cls['adminPage__breadcrumb-home']} aria-label="Admin home">
+                <Icon name="store" size={12} />
+              </Link>
+              {crumbs.map((c, idx) => (
+                <span key={`${c.label}-${idx}`} className={cls['adminPage__breadcrumb-item']}>
+                  <Icon name="chevron" size={10} className={cls['adminPage__breadcrumb-sep']} />
+                  {c.to ? (
+                    <Link to={c.to} className={cls['adminPage__link']}>{c.label}</Link>
+                  ) : (
+                    <span className={cls['adminPage__breadcrumb-current']} aria-current="page">{c.label}</span>
+                  )}
+                </span>
+              ))}
+            </nav>
+          )}
+          <Text as="h1" size="2xl" weight="heavy">{title}</Text>
+          {subtitle && <Text tone="subtle">{subtitle}</Text>}
+        </div>
+        {actions && <div className={cls.adminPage__actions}>{actions}</div>}
       </div>
-      {actions && <div className={cls.adminPage__actions}>{actions}</div>}
+      {children}
     </div>
-    {children}
-  </div>
-);
+  );
+};
 
 /* -------------------------------------------------------------------------- */
 /* StubPage - "coming in Phase X" placeholder                                 */
