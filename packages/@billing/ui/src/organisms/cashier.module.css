@@ -250,23 +250,47 @@
   border-top: 1px dashed var(--app-border, #e5e7eb);
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 .customerCreateRow {
   display: grid;
-  grid-template-columns: 1fr 160px auto;
-  gap: 8px;
+  /* Name flexes, mobile is fixed-width monospace-ish, Add button hugs.
+   * align-items: stretch keeps input + button at the SAME height so the
+   * baselines line up visually. */
+  grid-template-columns: 1fr 170px auto;
+  gap: 10px;
+  align-items: stretch;
+}
+.customerCreateRow input,
+.customerCreateRow .primaryBtn {
+  min-height: 40px;
+  box-sizing: border-box;
 }
 .customerCreateRow input {
-  padding: 8px 12px;
+  padding: 0 12px;
   border-radius: 8px;
   border: 1px solid var(--app-border, #e5e7eb);
   font: inherit;
-  font-size: 13px;
+  font-size: 14px;
+  line-height: 1.4;
   background: var(--app-surface, #ffffff);
   color: var(--app-text, #0b1220);
 }
+.customerCreateRow .primaryBtn {
+  padding: 0 18px;
+  font-size: 14px;
+  line-height: 1;
+  white-space: nowrap;
+}
 .customerCreateRow input:focus { outline: 2px solid color-mix(in srgb, var(--app-primary, #3b82f6) 40%, transparent); outline-offset: 0; border-color: var(--app-primary, #3b82f6); }
+
+/* On narrow screens - or when the modal is squeezed - stack the fields so
+ * they aren't cramped into a broken 3-column grid. */
+@media (max-width: 560px) {
+  .customerCreateRow {
+    grid-template-columns: 1fr;
+  }
+}
 
 .emptyRow { padding: 20px; text-align: center; }
 

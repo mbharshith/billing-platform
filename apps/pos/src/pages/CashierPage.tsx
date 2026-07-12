@@ -54,7 +54,7 @@ import type {
 export const CashierPage: FC = () => {
   const { activeProducts, decrementStock } = useProducts();
   const { customers, ensureFromMobile, addLending, create: createCustomer } = useCustomers();
-  const { recordSale, holdSale, heldSales, resumeHeldSale, discardHeldSale } = useSales();
+  const { recordSale, heldSales, resumeHeldSale, discardHeldSale } = useSales();
   const { currentUser, currentStoreId } = useAuth();
   const { settings } = useSettings();
   const toast = useToast();
@@ -203,27 +203,6 @@ export const CashierPage: FC = () => {
     });
   };
 
-  /* -- Hold / recall ----------------------------------------------------- */
-  const holdCurrent = async () => {
-    if (draftLines.length === 0 || !currentUser || !currentStoreId) return;
-    const sale = buildSale({
-      lines: draftLines,
-      subtotal: totals.grossSubtotal, tax: totals.tax, total: totals.total,
-      paymentMethod: 'cash',
-      customerMobile: selectedCustomer?.mobile ?? null,
-      customerId: selectedCustomer?.id ?? null,
-      customerName: selectedCustomer?.name ?? null,
-      cashierId: currentUser.id, cashierName: currentUser.name, storeId: currentStoreId,
-      orderTypeCode: orderTypeCode ?? undefined,
-      tableId: selectedTable?.id, tableCode: selectedTable?.code,
-      billDiscount, coupon,
-      lineDiscountTotal: totals.lineDiscountTotal,
-      charges,
-    });
-    await holdSale(sale);
-    toast.success(`Sale held (${draftLines.length} items).`);
-    clearAll();
-  };
 
   const recall = async (s: Sale) => {
     const restored = await resumeHeldSale(s.id);
@@ -387,6 +366,11 @@ export const CashierPage: FC = () => {
               ? `${selectedCustomer.name} owes ${money(selectedCustomer.lendingBalance)}`
               : undefined
           }
+          // Only render the customer chip when someone is actually attached.
+          // Walk-in is the default and we no longer clutter the toolbar with
+          // a placeholder; if the cashier needs to attach a customer, the pay
+          // modal now handles that flow inline for lending / COD.
+          style={selectedCustomer ? undefined : { display: 'none' }}
         >
           <Icon name="user" size={14} />
           <span>{selectedCustomer ? selectedCustomer.name : 'Walk-in customer'}</span>
@@ -396,16 +380,6 @@ export const CashierPage: FC = () => {
               {money(selectedCustomer.lendingBalance)}
             </span>
           )}
-        </button>
-
-        <div className={contextCls.contextSpacer} />
-
-        <button className={contextCls.contextChip} onClick={holdCurrent} disabled={draftLines.length === 0}>
-          <Icon name="history" size={14} /><span>Hold</span>
-        </button>
-        <button className={contextCls.contextChip} onClick={() => setShowHeld(true)}>
-          <Icon name="history" size={14} />
-          <span>Held ({heldSales.length})</span>
         </button>
       </div>
 
