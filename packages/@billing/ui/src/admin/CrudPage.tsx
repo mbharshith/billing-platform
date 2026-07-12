@@ -22,6 +22,7 @@ import { ConfirmDialog } from '@billing/ui/feedback';
 import { useToast } from '@billing/shared/store/ToastContext';
 import type { CrudApi, TenantRow } from '@billing/shared/hooks/useTable';
 import { AdminPage } from '@billing/ui/admin';
+import cls from './admin.module.css';
 
 /* -------------------------------------------------------------------------- */
 /* Field descriptor types                                                     */
@@ -201,7 +202,7 @@ export const CrudPage = <Row extends TenantRow>({
             </>
           }
         >
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <form onSubmit={handleSubmit} className={cls.crudForm}>
             {fields.map((f) => renderField(f, form, setForm))}
             <button type="submit" hidden />
           </form>
@@ -249,10 +250,7 @@ function renderField<Row>(
       return (
         <Field key={key} label={field.label} htmlFor={id} hint={field.hint}>
           <textarea id={id} value={value ?? ''} rows={3}
-                    style={{ width: '100%', padding: 8, borderRadius: 6,
-                             border: '1px solid var(--border)',
-                             background: 'var(--input-bg, transparent)',
-                             color: 'inherit', font: 'inherit' }}
+                    className={cls.crudTextarea}
                     onChange={(e) => update(e.target.value)} />
         </Field>
       );
@@ -277,7 +275,7 @@ function renderField<Row>(
     case 'boolean':
       return (
         <Field key={key} label={field.label} htmlFor={id} hint={field.hint}>
-          <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+          <label className={cls.crudBoolLabel}>
             <input id={id} type="checkbox" checked={!!value}
                    onChange={(e) => update(e.target.checked)} />
             <Text size="sm">{value ? 'Yes' : 'No'}</Text>

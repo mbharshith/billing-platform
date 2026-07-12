@@ -147,7 +147,15 @@ export const CustomerPickerModal: FC<CustomerPickerModalProps> = ({
   };
 
   return (
-    <div className={cls.modalOverlay} onClick={(e) => { if (e.target === e.currentTarget) onClose(); }} role="dialog" aria-modal="true" aria-label="Pick customer">
+    <div
+      className={cls.modalOverlay}
+      // CustomerPickerModal can be stacked on top of the SplitPaymentModal
+      // (via the 'Pick or add customer' button on the lending prompt) - bump
+      // its z-index above the shared cashier .modalOverlay (900) so it wins.
+      style={{ zIndex: 950 }}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+      role="dialog" aria-modal="true" aria-label="Pick customer"
+    >
       <div className={cls.modalPanel}>
         <header className={cls.modalHeader}>
           <Text as="h2" size="lg" weight="heavy">Attach customer</Text>

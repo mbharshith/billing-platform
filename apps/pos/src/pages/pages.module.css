@@ -315,3 +315,25 @@
   display: flex; gap: var(--app-space-6); flex-wrap: wrap;
   border-bottom: 1px solid var(--app-border);
 }
+
+/* Lending ledger - two-up KPI strip above the debtors table.
+ * Danger variant uses --app-danger tint so total-outstanding stands out. */
+.ledgerKpiRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.ledgerKpi {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px 16px;
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-lg, 12px);
+  background: var(--app-surface);
+}
+.ledgerKpiDanger {
+  border-color: color-mix(in srgb, var(--app-danger, #dc2626) 35%, transparent);
+  background: color-mix(in srgb, var(--app-danger, #dc2626) 6%, var(--app-surface));
+}

@@ -9,6 +9,7 @@ import {
 } from '@billing/ui/charts';
 import { db } from '@billing/shared/lib/db';
 import type { Sale } from '@billing/shared/domain/types';
+import cls from './admin.module.css';
 
 const money = (n: number): string => `Rs ${Math.round(n).toLocaleString('en-IN')}`;
 
@@ -82,7 +83,7 @@ export const RevenueDashboardPage: FC = () => {
         subtitle="Loading..."
         breadcrumb={['Overview', 'Dashboard']}
       >
-        <p style={{ color: 'var(--text-subtle)' }}>Loading sales data...</p>
+        <p className={cls.emptyHint}>Loading sales data...</p>
       </AdminPage>
     );
   }
@@ -122,7 +123,7 @@ export const RevenueDashboardPage: FC = () => {
               centerText={money(paymentValues.reduce((a, b) => a + b, 0))}
               centerSubtext="COLLECTED" />
           ) : (
-            <p style={{ color: 'var(--app-text-subtle)' }}>No payments recorded yet.</p>
+            <p className={cls.emptyHint}>No payments recorded yet.</p>
           )}
         </ChartFrame>
       </ChartGrid>
@@ -141,7 +142,7 @@ export const RevenueDashboardPage: FC = () => {
             <DoughnutChart size="lg" labels={channelLabels} data={channelValues}
               centerText={String(stats.orderCount)} centerSubtext="ORDERS" />
           ) : (
-            <p style={{ color: 'var(--app-text-subtle)' }}>No channel data.</p>
+            <p className={cls.emptyHint}>No channel data.</p>
           )}
         </ChartFrame>
       </ChartGrid>

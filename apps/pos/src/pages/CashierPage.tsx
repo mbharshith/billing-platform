@@ -256,7 +256,13 @@ export const CashierPage: FC = () => {
     let customerId = selectedCustomer?.id ?? null;
     let customerMobile = selectedCustomer?.mobile ?? enteredMobile;
     if (payments.some((p) => p.method === 'lending' || p.method === 'cod')) {
-      if (!customerMobile) { toast.error('Customer mobile required for lending / COD.'); return; }
+      // Belt-and-suspenders: the SplitPaymentModal now disables Confirm until
+      // a customer is attached or a mobile is entered, so this branch should
+      // rarely fire. Keep it as a defensive guard for programmatic callers.
+      if (!customerMobile) {
+        toast.error('Customer mobile required for lending / COD.');
+        return;
+      }
       if (!customerId) {
         const c = await ensureFromMobile(customerMobile);
         if (!c) { toast.error('Could not attach customer.'); return; }
@@ -517,6 +523,10 @@ export const CashierPage: FC = () => {
           total={totals.total}
           onClose={() => setShowPayment(false)}
           onConfirm={completeSale}
+          attachedCustomer={selectedCustomer
+            ? { name: selectedCustomer.name, mobile: selectedCustomer.mobile }
+            : null}
+          onAttachCustomer={() => setShowCustomerPicker(true)}
         />
       )}
 

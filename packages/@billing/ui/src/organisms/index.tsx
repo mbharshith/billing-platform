@@ -4,8 +4,9 @@ import { useEffect, useMemo, useState, type FC, type ReactNode } from 'react';
 import cls from './organisms.module.css';
 import { Badge, Button, Icon, IconButton, Spinner, Text } from '../atoms';
 import {
-  CartLineItem, CategoryFilter, EmptyState, MobileNumberField,
+  CartLineItem, CategoryFilter, DataTable, EmptyState, MobileNumberField,
   PaymentBadge, PaymentMethodOption, ProductBadge, ProductCard, SearchBar, StatCard,
+  type DataTableColumn,
 } from '../molecules';
 import { STRINGS } from '@billing/shared/domain/strings';
 import { fmtDateTime, fmtTime, num, formatNumberCompact, digitsOnly, nextInvoiceNo } from '@billing/shared/domain/format';
@@ -319,33 +320,67 @@ export const Modal: FC<ModalProps> = ({ title, subtitle, onClose, wide, children
 };
 
 /* -------------------------------------------------------------------------- */
-/* PaymentModal — captures method + (mobile if lending)                       */
+/* PaymentModal - method + optional lending customer                          */
+/*                                                                            */
+/* Lending needs a customer so the balance can be tracked. Two flows:         */
+/*   1) A customer is already attached to the sale (top-of-page chip) -       */
+/*      we skip the mobile input and show a read-only 'Charge to' summary     */
+/*      with a 'Change' button that reopens the picker.                       */
+/*   2) No customer attached - we show ONE big 'Pick or add customer' button  */
+/*      that opens the CustomerPickerModal (which itself supports adding a    */
+/*      new customer inline). No manual mobile entry needed.                  */
 /* -------------------------------------------------------------------------- */
+interface PaymentModalAttachedCustomer {
+  readonly name: string;
+  readonly mobile: string;
+}
 interface PaymentModalProps {
   total: number;
   unitCount: number;
   onCancel: () => void;
   onConfirm: (method: PaymentMethod, mobile: string | null) => void;
+  /** Customer attached to the sale (chip in the cashier header). */
+  attachedCustomer?: PaymentModalAttachedCustomer | null;
+  /** If provided, the modal shows a 'Pick or add customer' button when      *
+   *  lending is selected without a customer, delegating the picker to the   *
+   *  parent. Falls back to a manual mobile input when omitted.              */
+  onAttachCustomer?: () => void;
 }
 
-export const PaymentModal: FC<PaymentModalProps> = ({ total, unitCount, onCancel, onConfirm }) => {
+export const PaymentModal: FC<PaymentModalProps> = ({
+  total, unitCount, onCancel, onConfirm, attachedCustomer, onAttachCustomer,
+}) => {
   const { money } = useMoney();
   const [method, setMethod] = useState<PaymentMethod>('cash');
   const [mobile, setMobile] = useState('');
   const [error, setError] = useState<string | undefined>();
   const [submitting, setSubmitting] = useState(false);
 
-  const needsMobile = method === 'lending';
+  const needsCustomer = method === 'lending';
+  // Only fall back to manual mobile input when the parent didn't wire the
+  // picker delegate (keeps this component usable in unit tests or embed
+  // scenarios where the picker isn't available).
+  const usePickerFlow = needsCustomer && !!onAttachCustomer;
+  const useManualMobile = needsCustomer && !onAttachCustomer;
+
+  const canSubmit = !needsCustomer
+    || !!attachedCustomer
+    || (useManualMobile && digitsOnly(mobile).length === 10);
 
   const handleSubmit = () => {
-    if (needsMobile && digitsOnly(mobile).length !== 10) {
-      setError(STRINGS.payment.mobileError);
-      return;
+    if (needsCustomer && !attachedCustomer && useManualMobile) {
+      if (digitsOnly(mobile).length !== 10) {
+        setError(STRINGS.payment.mobileError);
+        return;
+      }
     }
     setSubmitting(true);
     // Simulate a brief network round-trip so the UX shows the loading state.
     window.setTimeout(() => {
-      onConfirm(method, needsMobile ? digitsOnly(mobile) : null);
+      const resolvedMobile = needsCustomer
+        ? (attachedCustomer?.mobile ?? digitsOnly(mobile))
+        : null;
+      onConfirm(method, resolvedMobile);
     }, 350);
   };
 
@@ -364,6 +399,7 @@ export const PaymentModal: FC<PaymentModalProps> = ({ total, unitCount, onCancel
             variant="primary"
             onClick={handleSubmit}
             loading={submitting}
+            disabled={!canSubmit}
             trailingIcon={submitting ? undefined : 'check'}
           >
             {submitting ? STRINGS.payment.submitting : STRINGS.payment.submit}
@@ -399,7 +435,38 @@ export const PaymentModal: FC<PaymentModalProps> = ({ total, unitCount, onCancel
         />
       </div>
 
-      {needsMobile && (
+      {needsCustomer && attachedCustomer && (
+        <div className={cls.paymentCustomerCard}>
+          <div className={cls.paymentCustomerIcon}><Icon name="user" size={18} /></div>
+          <div className={cls.paymentCustomerBody}>
+            <Text size="xs" tone="subtle" weight="semibold" upper>Charge to</Text>
+            <Text weight="bold">{attachedCustomer.name}</Text>
+            <Text size="sm" tone="subtle">{attachedCustomer.mobile}</Text>
+          </div>
+          {onAttachCustomer && (
+            <Button variant="ghost" size="sm" onClick={onAttachCustomer}>
+              Change
+            </Button>
+          )}
+        </div>
+      )}
+
+      {needsCustomer && !attachedCustomer && usePickerFlow && (
+        <div className={cls.paymentCustomerPrompt}>
+          <Text size="sm" tone="subtle">
+            Lending needs a customer so the balance can be tracked.
+          </Text>
+          <Button
+            variant="primary"
+            leadingIcon="user"
+            onClick={onAttachCustomer}
+          >
+            Pick or add customer
+          </Button>
+        </div>
+      )}
+
+      {needsCustomer && !attachedCustomer && useManualMobile && (
         <div className={cls.paymentMobileWrap}>
           <MobileNumberField
             id="lending-mobile"
@@ -506,60 +573,40 @@ export const ReceiptModal: FC<ReceiptModalProps> = ({ sale, onClose }) => {
   );
 };
 
-/* -------------------------------------------------------------------------- */
-/* Dashboard: RecentSalesTable                                                */
-/* -------------------------------------------------------------------------- */
+// Dashboard: RecentSalesTable
 interface RecentSalesTableProps { sales: readonly Sale[] }
 
 export const RecentSalesTable: FC<RecentSalesTableProps> = ({ sales }) => {
   const { money } = useMoney();
+  const columns: DataTableColumn<Sale>[] = [
+    { key: 'invoiceNo', label: STRINGS.dashboard.columnInvoice, sortValue: (s) => s.invoiceNo, render: (s) => <Text weight="semibold" size="sm">{s.invoiceNo}</Text> },
+    { key: 'completedAt', label: STRINGS.dashboard.columnTime, sortValue: (s) => s.completedAt, render: (s) => <Text size="sm" tone="subtle">{fmtTime(s.completedAt)}</Text> },
+    { key: 'unitCount', label: STRINGS.dashboard.columnItems, numeric: true, sortValue: (s) => s.unitCount, render: (s) => <Text size="sm">{s.unitCount}</Text> },
+    { key: 'paymentMethod', label: STRINGS.dashboard.columnPayment, render: (s) => <PaymentBadge method={s.paymentMethod} /> },
+    { key: 'customerMobile', label: STRINGS.dashboard.columnCustomer, render: (s) => <Text size="sm" tone={s.customerMobile ? 'default' : 'muted'}>{s.customerMobile ?? 'Walk-in'}</Text> },
+    { key: 'total', label: STRINGS.dashboard.columnTotal, numeric: true, sortValue: (s) => s.total, render: (s) => <Text weight="bold" size="sm">{money(s.total)}</Text> },
+  ];
+  const recent = useMemo(() => [...sales].slice(0, 15), [sales]);
   return (
-  <div className={cls.tableCard}>
-    <div className={cls.tableCard__header}>
-      <Text as="h2" size="lg" weight="bold">{STRINGS.dashboard.recentSalesTitle}</Text>
-      <Badge variant="neutral">{sales.length}</Badge>
-    </div>
-    {sales.length === 0 ? (
-      <EmptyState icon="receipt" title={STRINGS.dashboard.recentSalesEmpty} />
-    ) : (
-      <div className={cls.tableWrap}>
-        <table className={cls.dataTable}>
-          <thead>
-            <tr>
-              <th>{STRINGS.dashboard.columnInvoice}</th>
-              <th>{STRINGS.dashboard.columnTime}</th>
-              <th className="numeric">{STRINGS.dashboard.columnItems}</th>
-              <th>{STRINGS.dashboard.columnPayment}</th>
-              <th>{STRINGS.dashboard.columnCustomer}</th>
-              <th className="numeric">{STRINGS.dashboard.columnTotal}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {sales.slice(0, 15).map((s) => (
-              <tr key={s.id}>
-                <td><Text weight="semibold" size="sm">{s.invoiceNo}</Text></td>
-                <td><Text size="sm" tone="subtle">{fmtTime(s.completedAt)}</Text></td>
-                <td className="numeric"><Text size="sm">{s.unitCount}</Text></td>
-                <td><PaymentBadge method={s.paymentMethod} /></td>
-                <td>
-                  <Text size="sm" tone={s.customerMobile ? 'default' : 'muted'}>
-                    {s.customerMobile ?? 'Walk-in'}
-                  </Text>
-                </td>
-                <td className="numeric"><Text weight="bold" size="sm">{money(s.total)}</Text></td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+    <div className={cls.tableCard}>
+      <div className={cls.tableCard__header}>
+        <Text as="h2" size="lg" weight="bold">{STRINGS.dashboard.recentSalesTitle}</Text>
+        <Badge variant="neutral">{sales.length}</Badge>
       </div>
-    )}
-  </div>
+      <DataTable
+        data={recent}
+        columns={columns}
+        getKey={(s) => s.id}
+        flush
+        hidePagination
+        emptyIcon="receipt"
+        emptyTitle={STRINGS.dashboard.recentSalesEmpty}
+      />
+    </div>
   );
 };
 
-/* -------------------------------------------------------------------------- */
-/* Dashboard: TopProductsTable                                                */
-/* -------------------------------------------------------------------------- */
+// Dashboard: TopProductsTable
 export interface ProductAggregate {
   readonly productId: string;
   readonly sku: string;
@@ -580,62 +627,52 @@ const rankClass = (idx: number): string | undefined => {
   return undefined;
 };
 
+type RankedAggregate = ProductAggregate & { rank: number };
+
 export const TopProductsTable: FC<TopProductsTableProps> = ({ aggregates }) => {
   const { money } = useMoney();
-  const top = useMemo(
-    () => [...aggregates].sort((a, b) => b.unitsSold - a.unitsSold).slice(0, 10),
+  const top = useMemo<RankedAggregate[]>(
+    () => [...aggregates]
+      .sort((a, b) => b.unitsSold - a.unitsSold)
+      .slice(0, 10)
+      .map((a, i) => ({ ...a, rank: i + 1 })),
     [aggregates],
   );
+  const columns: DataTableColumn<RankedAggregate>[] = [
+    { key: 'rank', label: STRINGS.dashboard.columnRank, render: (a) => (
+      <span className={[cls.rankBadge, rankClass(a.rank - 1)].filter(Boolean).join(' ')}>{a.rank}</span>
+    )},
+    { key: 'name', label: STRINGS.dashboard.columnProduct, render: (a) => (
+      <div className={cls.productCell}>
+        <ProductBadge name={a.name} tone={a.tone} size="sm" />
+        <div className={cls.productCell__body}>
+          <Text as="div" weight="semibold" size="sm">{a.name}</Text>
+          <Text as="div" size="xs" tone="subtle">{a.sku}</Text>
+        </div>
+      </div>
+    )},
+    { key: 'unitsSold', label: STRINGS.dashboard.columnSold, numeric: true, sortValue: (a) => a.unitsSold, render: (a) => <Text weight="bold" size="sm">{num(a.unitsSold)}</Text> },
+    { key: 'revenue', label: STRINGS.dashboard.columnRevenue, numeric: true, sortValue: (a) => a.revenue, render: (a) => <Text weight="bold" size="sm">{money(a.revenue)}</Text> },
+  ];
   return (
     <div className={cls.tableCard}>
       <div className={cls.tableCard__header}>
         <Text as="h2" size="lg" weight="bold">{STRINGS.dashboard.topProductsTitle}</Text>
       </div>
-      {top.length === 0 || top.every((a) => a.unitsSold === 0) ? (
-        <EmptyState icon="chart" title={STRINGS.dashboard.topProductsEmpty} />
-      ) : (
-        <div className={cls.tableWrap}>
-          <table className={cls.dataTable}>
-            <thead>
-              <tr>
-                <th className={cls.thRankCell}>{STRINGS.dashboard.columnRank}</th>
-                <th>{STRINGS.dashboard.columnProduct}</th>
-                <th className="numeric">{STRINGS.dashboard.columnSold}</th>
-                <th className="numeric">{STRINGS.dashboard.columnRevenue}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {top.map((a, idx) => (
-                <tr key={a.productId}>
-                  <td>
-                    <span className={[cls.rankBadge, rankClass(idx)].filter(Boolean).join(' ')}>
-                      {idx + 1}
-                    </span>
-                  </td>
-                  <td>
-                    <div className={cls.productCell}>
-                      <ProductBadge name={a.name} tone={a.tone} size="sm" />
-                      <div className={cls.productCell__body}>
-                        <Text as="div" weight="semibold" size="sm">{a.name}</Text>
-                        <Text as="div" size="xs" tone="subtle">{a.sku}</Text>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="numeric"><Text weight="bold" size="sm">{num(a.unitsSold)}</Text></td>
-                  <td className="numeric"><Text weight="bold" size="sm">{money(a.revenue)}</Text></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+      <DataTable
+        data={top}
+        columns={columns}
+        getKey={(a) => a.productId}
+        flush
+        hidePagination
+        emptyIcon="chart"
+        emptyTitle={STRINGS.dashboard.topProductsEmpty}
+      />
     </div>
   );
 };
 
-/* -------------------------------------------------------------------------- */
-/* Dashboard: InventoryTable                                                  */
-/* -------------------------------------------------------------------------- */
+// Dashboard: InventoryTable
 interface InventoryTableProps { aggregates: readonly ProductAggregate[] }
 
 const stockClass = (pct: number): string | undefined => {
@@ -644,74 +681,64 @@ const stockClass = (pct: number): string | undefined => {
   return undefined;
 };
 
+type InventoryRow = ProductAggregate & { remaining: number; pct: number };
+
 export const InventoryTable: FC<InventoryTableProps> = ({ aggregates }) => {
-  const withMovement = useMemo(
-    () => [...aggregates].sort((a, b) => b.unitsSold - a.unitsSold),
+  const rows = useMemo<InventoryRow[]>(
+    () => [...aggregates]
+      .sort((a, b) => b.unitsSold - a.unitsSold)
+      .map((a) => {
+        const remaining = Math.max(a.stock - a.unitsSold, 0);
+        const pct = a.stock === 0 ? 0 : Math.round((remaining / a.stock) * 100);
+        return { ...a, remaining, pct };
+      }),
     [aggregates],
   );
+  const columns: DataTableColumn<InventoryRow>[] = [
+    { key: 'sku', label: STRINGS.dashboard.columnSku, sortValue: (a) => a.sku, render: (a) => <Text size="sm" weight="semibold">{a.sku}</Text> },
+    { key: 'name', label: STRINGS.dashboard.columnProduct, sortValue: (a) => a.name, render: (a) => (
+      <div className={cls.productCell}>
+        <ProductBadge name={a.name} tone={a.tone} size="sm" />
+        <Text weight="semibold" size="sm">{a.name}</Text>
+      </div>
+    )},
+    { key: 'category', label: STRINGS.dashboard.columnCategory, sortValue: (a) => a.category, render: (a) => <Text size="sm" tone="subtle">{a.category}</Text> },
+    { key: 'unitsSold', label: STRINGS.dashboard.columnMovement, numeric: true, sortValue: (a) => a.unitsSold, render: (a) => (
+      a.unitsSold > 0 ? <Badge variant="success">−{a.unitsSold}</Badge> : <Text size="sm" tone="muted">—</Text>
+    )},
+    { key: 'stock', label: STRINGS.dashboard.columnStock, render: (a) => (
+      <div className={cls.dashRowInner}>
+        <div
+          className={cls.stockBar}
+          role="progressbar"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={a.pct}
+          aria-label={`Stock remaining ${a.pct}%`}
+        >
+          <span
+            className={[cls.stockBar__fill, stockClass(a.pct)].filter(Boolean).join(' ')}
+            style={{ ['--fill' as string]: `${a.pct}%` }}
+          />
+        </div>
+        <Text size="xs" tone="subtle">{a.remaining}/{a.stock}</Text>
+      </div>
+    )},
+  ];
   return (
     <div className={cls.tableCard}>
       <div className={cls.tableCard__header}>
         <Text as="h2" size="lg" weight="bold">{STRINGS.dashboard.inventoryTitle}</Text>
       </div>
-      {withMovement.length === 0 ? (
-        <EmptyState icon="chart" title={STRINGS.dashboard.inventoryEmpty} />
-      ) : (
-        <div className={cls.tableWrap}>
-          <table className={cls.dataTable}>
-            <thead>
-              <tr>
-                <th>{STRINGS.dashboard.columnSku}</th>
-                <th>{STRINGS.dashboard.columnProduct}</th>
-                <th>{STRINGS.dashboard.columnCategory}</th>
-                <th className="numeric">{STRINGS.dashboard.columnMovement}</th>
-                <th className={cls.thStockCell}>{STRINGS.dashboard.columnStock}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {withMovement.map((a) => {
-                const remaining = Math.max(a.stock - a.unitsSold, 0);
-                const pct = a.stock === 0 ? 0 : Math.round((remaining / a.stock) * 100);
-                return (
-                  <tr key={a.productId}>
-                    <td><Text size="sm" weight="semibold">{a.sku}</Text></td>
-                    <td>
-                      <div className={cls.productCell}>
-                        <ProductBadge name={a.name} tone={a.tone} size="sm" />
-                        <Text weight="semibold" size="sm">{a.name}</Text>
-                      </div>
-                    </td>
-                    <td><Text size="sm" tone="subtle">{a.category}</Text></td>
-                    <td className="numeric">
-                      {a.unitsSold > 0
-                        ? <Badge variant="success">−{a.unitsSold}</Badge>
-                        : <Text size="sm" tone="muted">—</Text>}
-                    </td>
-                    <td>
-                      <div className={cls.dashRowInner}>
-                        <div
-                          className={cls.stockBar}
-                          role="progressbar"
-                          aria-valuemin={0}
-                          aria-valuemax={100}
-                          aria-valuenow={pct}
-                          aria-label={`Stock remaining ${pct}%`}
-                        >
-                          <span
-                            className={[cls.stockBar__fill, stockClass(pct)].filter(Boolean).join(' ')}
-                            style={{ ['--fill' as string]: `${pct}%` }}
-                          />
-                        </div>
-                        <Text size="xs" tone="subtle">{remaining}/{a.stock}</Text>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      )}
+      <DataTable
+        data={rows}
+        columns={columns}
+        getKey={(a) => a.productId}
+        flush
+        hidePagination
+        emptyIcon="chart"
+        emptyTitle={STRINGS.dashboard.inventoryEmpty}
+      />
     </div>
   );
 };

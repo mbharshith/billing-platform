@@ -246,19 +246,34 @@ export interface SplitPaymentModalProps {
   readonly total: number;
   readonly onConfirm: (payments: readonly SalePayment[], customerMobile: string | null) => void;
   readonly onClose: () => void;
+  /** Customer already attached to the sale (chip in the cashier header). *
+   *  When present + a lending/COD tender is picked, the modal skips the   *
+   *  mobile input and shows a read-only 'Charge to' card instead.        */
+  readonly attachedCustomer?: { readonly name: string; readonly mobile: string } | null;
+  /** If provided, the modal shows a 'Pick or add customer' button when   *
+   *  lending/COD is picked without a customer, delegating to the parent. */
+  readonly onAttachCustomer?: () => void;
 }
 
 interface Row { readonly key: string; method: PaymentMethod; amount: string; reference?: string; }
 
-export const SplitPaymentModal: FC<SplitPaymentModalProps> = ({ total, onConfirm, onClose }) => {
+export const SplitPaymentModal: FC<SplitPaymentModalProps> = ({
+  total, onConfirm, onClose, attachedCustomer, onAttachCustomer,
+}) => {
   const [rows, setRows] = useState<Row[]>([{ key: 'p1', method: 'cash', amount: total.toFixed(2) }]);
   const [mobile, setMobile] = useState('');
 
   const totalPaid = useMemo(() => rows.reduce((s, r) => s + Number(r.amount || 0), 0), [rows]);
   const remaining = total - totalPaid;
-  const needsMobile = rows.some((r) => r.method === 'lending' || r.method === 'cod');
-  const mobileOK = !needsMobile || /^\d{10}$/.test(mobile);
-  const canConfirm = Math.abs(remaining) < 0.01 && mobileOK && rows.every((r) => Number(r.amount) >= 0);
+  const needsCustomer = rows.some((r) => r.method === 'lending' || r.method === 'cod');
+  // Only fall back to the raw mobile input when the parent didn't wire in
+  // a picker delegate. Keeps the modal usable in isolation.
+  const usePickerFlow  = needsCustomer && !!onAttachCustomer;
+  const useManualMobile = needsCustomer && !onAttachCustomer;
+  const customerOK = !needsCustomer
+    || !!attachedCustomer
+    || (useManualMobile && /^\d{10}$/.test(mobile));
+  const canConfirm = Math.abs(remaining) < 0.01 && customerOK && rows.every((r) => Number(r.amount) >= 0);
 
   const addRow = () => setRows((prev) => [
     ...prev,
@@ -276,7 +291,7 @@ export const SplitPaymentModal: FC<SplitPaymentModalProps> = ({ total, onConfirm
         amount: Math.round(Number(r.amount) * 100) / 100,
         ...(r.reference ? { reference: r.reference } : {}),
       })),
-      needsMobile ? mobile : null,
+      needsCustomer ? (attachedCustomer?.mobile ?? mobile) : null,
     );
   };
 
@@ -323,7 +338,34 @@ export const SplitPaymentModal: FC<SplitPaymentModalProps> = ({ total, onConfirm
             <Icon name="plus" size={12} /> Add split tender
           </button>
 
-          {needsMobile && (
+          {needsCustomer && attachedCustomer && (
+            <div className={cls.paymentCustomerCard}>
+              <div className={cls.paymentCustomerIcon}><Icon name="user" size={18} /></div>
+              <div className={cls.paymentCustomerBody}>
+                <Text size="xs" tone="subtle" weight="semibold" upper>Charge to</Text>
+                <Text weight="bold">{attachedCustomer.name}</Text>
+                <Text size="sm" tone="subtle">{attachedCustomer.mobile}</Text>
+              </div>
+              {onAttachCustomer && (
+                <button className={cls.ghostBtn} onClick={onAttachCustomer}>
+                  Change
+                </button>
+              )}
+            </div>
+          )}
+
+          {needsCustomer && !attachedCustomer && usePickerFlow && (
+            <div className={cls.paymentCustomerPrompt}>
+              <Text size="sm" tone="subtle">
+                Lending or COD needs a customer so the balance can be tracked.
+              </Text>
+              <button className={cls.primaryBtn} onClick={onAttachCustomer}>
+                <Icon name="user" size={14} /> Pick or add customer
+              </button>
+            </div>
+          )}
+
+          {needsCustomer && !attachedCustomer && useManualMobile && (
             <div>
               <Text size="sm" weight="heavy">Customer mobile (required for lending / COD)</Text>
               <input
@@ -383,7 +425,7 @@ export const LineDiscountModal: FC<LineDiscountModalProps> = ({
 
   return (
     <div className={cls.modalOverlay} onClick={(e) => { if (e.target === e.currentTarget) onClose(); }} role="dialog" aria-modal="true" aria-label="Line discount">
-      <div className={cls.modalPanel} style={{ maxWidth: 460 }}>
+      <div className={[cls.modalPanel, cls['modalPanel--medium']].join(' ')}>
         <header className={cls.modalHeader}>
           <div>
             <Text as="h2" size="lg" weight="heavy">Discount line</Text>

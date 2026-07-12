@@ -675,6 +675,21 @@
   color: var(--app-primary, #3b82f6);
   margin: 0 auto 12px;
 }
+.adminPage__stub-actions { margin-top: 16px; }
+
+/* CrudPage form helpers */
+.crudForm { display: flex; flex-direction: column; gap: 12px; }
+.crudTextarea {
+  width: 100%;
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid var(--app-border, #e5e7eb);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  resize: vertical;
+}
+.crudBoolLabel { display: flex; align-items: center; gap: 8px; cursor: pointer; }
 
 /* -------------------------------------------------------------------------- */
 /* Sidebar footer 'Customize' button                                          */

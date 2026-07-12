@@ -240,7 +240,7 @@ export interface KotPreviewModalProps {
 
 export const KotPreviewModal: FC<KotPreviewModalProps> = ({ sale, onClose, onPrint }) => (
   <div className={cls.modalOverlay} onClick={(e) => { if (e.target === e.currentTarget) onClose(); }} role="dialog" aria-modal="true" aria-label="KOT preview">
-    <div className={cls.modalPanel} style={{ maxWidth: 400 }}>
+    <div className={[cls.modalPanel, cls['modalPanel--narrow']].join(' ')}>
       <header className={cls.modalHeader}>
         <Text as="h2" size="lg" weight="heavy">Kitchen Ticket (KOT)</Text>
         <button className={cls.modalClose} onClick={onClose} aria-label="Close"><Icon name="close" /></button>

@@ -1,9 +1,4 @@
-// Real reports with charts + tables + filters.
-// Uses Chart primitives from @billing/ui/charts and reads from Dexie.
-//
-// All reports share the ReportShell wrapper for consistent chrome
-// (date range picker chip + downloadable table). They differ only in
-// which aggregation they perform and which charts to render.
+// Real reports with charts + tables + filters. All tabular data uses the shared DataTable molecule.
 
 import { useEffect, useMemo, useState, type FC } from 'react';
 import { AdminPage } from '@billing/ui/admin';
@@ -11,8 +6,10 @@ import {
   KPIRow, KPICard, ChartGrid, ChartFrame,
   BarChart, LineChart, DoughnutChart,
 } from '@billing/ui/charts';
+import { DataTable, type DataTableColumn } from '@billing/ui/molecules';
 import { db } from '@billing/shared/lib/db';
 import type { Sale } from '@billing/shared/domain/types';
+import cls from './admin.module.css';
 
 const money = (n: number): string => `Rs ${Math.round(n).toLocaleString('en-IN')}`;
 
@@ -26,16 +23,17 @@ const useSales = (): readonly Sale[] => {
   return rows;
 };
 
-const th: React.CSSProperties = { textAlign: 'left', padding: '10px 12px', fontSize: 11,
-  fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--text-subtle)' };
-const td: React.CSSProperties = { padding: '10px 12px' };
-const tdRight: React.CSSProperties = { ...td, textAlign: 'right' };
-const table: React.CSSProperties = { width: '100%', borderCollapse: 'collapse', fontSize: 13,
-  border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden' };
+// Sales report bill columns
+const SALE_COLUMNS: DataTableColumn<Sale>[] = [
+  { key: 'invoiceNo',   label: 'Bill #',    sortValue: (s) => s.invoiceNo ?? s.id,  render: (s) => s.invoiceNo ?? s.id.slice(0, 8) },
+  { key: 'completedAt', label: 'Date/Time', sortValue: (s) => s.completedAt,        render: (s) => new Date(s.completedAt).toLocaleString() },
+  { key: 'lines',       label: 'Items',     numeric: true,                           render: (s) => s.lines.length },
+  { key: 'subtotal',    label: 'Subtotal',  numeric: true, sortValue: (s) => s.subtotal, render: (s) => money(s.subtotal) },
+  { key: 'tax',         label: 'Tax',       numeric: true,                           render: (s) => money(s.tax) },
+  { key: 'total',       label: 'Total',     numeric: true, sortValue: (s) => s.total,    render: (s) => <strong>{money(s.total)}</strong> },
+];
 
-/* -------------------------------------------------------------------------- */
-/* Sales Report                                                               */
-/* -------------------------------------------------------------------------- */
+// Sales Report
 
 export const SalesReportPageV2: FC = () => {
   const sales = useSales().filter((s) => !s.voided);
@@ -71,38 +69,21 @@ export const SalesReportPageV2: FC = () => {
         />
       </ChartFrame>
 
-      <h3 style={{ marginTop: 24, fontSize: 14 }}>Recent bills (latest 20)</h3>
-      <table style={table}>
-        <thead style={{ background: 'var(--surface-sunken, #f8fafc)' }}>
-          <tr>
-            <th style={th}>Bill #</th><th style={th}>Date/Time</th>
-            <th style={{ ...th, textAlign: 'right' }}>Items</th>
-            <th style={{ ...th, textAlign: 'right' }}>Subtotal</th>
-            <th style={{ ...th, textAlign: 'right' }}>Tax</th>
-            <th style={{ ...th, textAlign: 'right' }}>Total</th>
-          </tr>
-        </thead>
-        <tbody>
-          {[...sales].sort((a, b) => b.completedAt.localeCompare(a.completedAt)).slice(0, 20).map((s) => (
-            <tr key={s.id} style={{ borderTop: '1px solid var(--border)' }}>
-              <td style={td}>{s.invoiceNo ?? s.id.slice(0, 8)}</td>
-              <td style={td}>{new Date(s.completedAt).toLocaleString()}</td>
-              <td style={tdRight}>{s.lines.length}</td>
-              <td style={tdRight}>{money(s.subtotal)}</td>
-              <td style={tdRight}>{money(s.tax)}</td>
-              <td style={tdRight}><strong>{money(s.total)}</strong></td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <h3 className={cls.sectionHeading}>Recent bills (latest 20)</h3>
+      <DataTable
+        data={[...sales].sort((a, b) => b.completedAt.localeCompare(a.completedAt)).slice(0, 20)}
+        columns={SALE_COLUMNS}
+        getKey={(s) => s.id}
+        hidePagination
+        emptyIcon="receipt"
+        emptyTitle="No bills recorded yet"
+        searchFn={(s, q) => (s.invoiceNo ?? s.id).toLowerCase().includes(q)}
+      />
     </AdminPage>
   );
 };
 
-/* -------------------------------------------------------------------------- */
-/* Product Mix                                                                */
-/* -------------------------------------------------------------------------- */
-
+// Product Mix Report
 export const ProductMixReportPageV2: FC = () => {
   const sales = useSales().filter((s) => !s.voided);
 
@@ -140,34 +121,26 @@ export const ProductMixReportPageV2: FC = () => {
         </ChartFrame>
       </ChartGrid>
 
-      <h3 style={{ marginTop: 24, fontSize: 14 }}>Full breakdown ({stats.all.length} items)</h3>
-      <table style={table}>
-        <thead style={{ background: 'var(--surface-sunken, #f8fafc)' }}>
-          <tr>
-            <th style={th}>Rank</th><th style={th}>Item</th>
-            <th style={{ ...th, textAlign: 'right' }}>Units</th>
-            <th style={{ ...th, textAlign: 'right' }}>Revenue</th>
-          </tr>
-        </thead>
-        <tbody>
-          {stats.all.map((p, i) => (
-            <tr key={p.name} style={{ borderTop: '1px solid var(--border)' }}>
-              <td style={td}>#{i + 1}</td>
-              <td style={td}>{p.name}</td>
-              <td style={tdRight}>{p.qty}</td>
-              <td style={tdRight}><strong>{money(p.rev)}</strong></td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <h3 className={cls.sectionHeading}>Full breakdown ({stats.all.length} items)</h3>
+      <DataTable
+        data={stats.all.map((p, i) => ({ ...p, rank: i + 1 }))}
+        columns={[
+          { key: 'rank',    label: 'Rank',    sortValue: (r) => r.rank,    render: (r) => `#${r.rank}` },
+          { key: 'name',    label: 'Item',    sortValue: (r) => r.name,    render: (r) => r.name },
+          { key: 'qty',     label: 'Units',   numeric: true, sortValue: (r) => r.qty, render: (r) => r.qty },
+          { key: 'rev',     label: 'Revenue', numeric: true, sortValue: (r) => r.rev, render: (r) => <strong>{money(r.rev)}</strong> },
+        ]}
+        getKey={(r) => r.name}
+        searchFn={(r, q) => r.name.toLowerCase().includes(q)}
+        searchPlaceholder="Search items…"
+        emptyIcon="bag"
+        emptyTitle="No sales data yet"
+      />
     </AdminPage>
   );
 };
 
-/* -------------------------------------------------------------------------- */
-/* Hourly Sales                                                               */
-/* -------------------------------------------------------------------------- */
-
+// Hourly Sales Report
 export const HourlyReportPageV2: FC = () => {
   const sales = useSales().filter((s) => !s.voided);
 
@@ -207,10 +180,7 @@ export const HourlyReportPageV2: FC = () => {
   );
 };
 
-/* -------------------------------------------------------------------------- */
-/* Payment Modes Report                                                       */
-/* -------------------------------------------------------------------------- */
-
+// Payment Modes Report
 export const PaymentModesReportPage: FC = () => {
   const sales = useSales().filter((s) => !s.voided);
 
@@ -238,7 +208,7 @@ export const PaymentModesReportPage: FC = () => {
           {stats.length > 0 ? (
             <DoughnutChart size="xl" labels={stats.map((s) => s.mode)} data={stats.map((s) => s.amount)} />
           ) : (
-            <p style={{ color: 'var(--text-subtle)' }}>No payment data yet.</p>
+            <p className={cls.emptyHint}>No payment data yet.</p>
           )}
         </ChartFrame>
         <ChartFrame title="Transactions per Mode" meta="COUNT">
@@ -248,38 +218,28 @@ export const PaymentModesReportPage: FC = () => {
               datasets={[{ label: 'Count', data: stats.map((s) => s.count) }]}
             />
           ) : (
-            <p style={{ color: 'var(--text-subtle)' }}>No payment data yet.</p>
+            <p className={cls.emptyHint}>No payment data yet.</p>
           )}
         </ChartFrame>
       </ChartGrid>
-      <table style={table}>
-        <thead style={{ background: 'var(--surface-sunken, #f8fafc)' }}>
-          <tr>
-            <th style={th}>Payment Mode</th>
-            <th style={{ ...th, textAlign: 'right' }}>Transactions</th>
-            <th style={{ ...th, textAlign: 'right' }}>Amount</th>
-            <th style={{ ...th, textAlign: 'right' }}>Share</th>
-          </tr>
-        </thead>
-        <tbody>
-          {stats.map((r) => (
-            <tr key={r.mode} style={{ borderTop: '1px solid var(--border)' }}>
-              <td style={td}>{r.mode}</td>
-              <td style={tdRight}>{r.count}</td>
-              <td style={tdRight}><strong>{money(r.amount)}</strong></td>
-              <td style={tdRight}>{total ? `${((r.amount / total) * 100).toFixed(1)}%` : '-'}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <DataTable
+        data={stats.map((r) => ({ ...r, share: total ? `${((r.amount / total) * 100).toFixed(1)}%` : '—' }))}
+        columns={[
+          { key: 'mode',   label: 'Payment Mode',   sortValue: (r) => r.mode,   render: (r) => r.mode },
+          { key: 'count',  label: 'Transactions',   numeric: true, sortValue: (r) => r.count,  render: (r) => r.count },
+          { key: 'amount', label: 'Amount',         numeric: true, sortValue: (r) => r.amount, render: (r) => <strong>{money(r.amount)}</strong> },
+          { key: 'share',  label: 'Share',          numeric: true,                              render: (r) => r.share },
+        ]}
+        getKey={(r) => r.mode}
+        hidePagination
+        emptyIcon="card"
+        emptyTitle="No payment data yet"
+      />
     </AdminPage>
   );
 };
 
-/* -------------------------------------------------------------------------- */
-/* Cashier Report                                                             */
-/* -------------------------------------------------------------------------- */
-
+// Cashier Report
 export const CashierReportPageV2: FC = () => {
   const sales = useSales().filter((s) => !s.voided);
 
@@ -307,37 +267,27 @@ export const CashierReportPageV2: FC = () => {
             datasets={[{ label: 'Sales', data: stats.map((s) => s.total) }]}
           />
         ) : (
-          <p style={{ color: 'var(--text-subtle)' }}>No cashier data yet.</p>
+          <p className={cls.emptyHint}>No cashier data yet.</p>
         )}
       </ChartFrame>
-      <table style={table}>
-        <thead style={{ background: 'var(--surface-sunken, #f8fafc)' }}>
-          <tr>
-            <th style={th}>Cashier</th>
-            <th style={{ ...th, textAlign: 'right' }}>Bills</th>
-            <th style={{ ...th, textAlign: 'right' }}>Sales</th>
-            <th style={{ ...th, textAlign: 'right' }}>Avg Bill</th>
-          </tr>
-        </thead>
-        <tbody>
-          {stats.map((r) => (
-            <tr key={r.name} style={{ borderTop: '1px solid var(--border)' }}>
-              <td style={td}>{r.name}</td>
-              <td style={tdRight}>{r.count}</td>
-              <td style={tdRight}><strong>{money(r.total)}</strong></td>
-              <td style={tdRight}>{money(r.total / r.count)}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <DataTable
+        data={stats}
+        columns={[
+          { key: 'name',  label: 'Cashier',  sortValue: (r) => r.name,  render: (r) => r.name },
+          { key: 'count', label: 'Bills',    numeric: true, sortValue: (r) => r.count, render: (r) => r.count },
+          { key: 'total', label: 'Sales',    numeric: true, sortValue: (r) => r.total, render: (r) => <strong>{money(r.total)}</strong> },
+          { key: 'avg',   label: 'Avg Bill', numeric: true,                             render: (r) => money(r.total / r.count) },
+        ]}
+        getKey={(r) => r.name}
+        hidePagination
+        emptyIcon="user"
+        emptyTitle="No cashier data yet"
+      />
     </AdminPage>
   );
 };
 
-/* -------------------------------------------------------------------------- */
-/* Tax Summary                                                                */
-/* -------------------------------------------------------------------------- */
-
+// Tax Summary Report
 export const TaxReportPageV2: FC = () => {
   const sales = useSales().filter((s) => !s.voided);
 
@@ -367,10 +317,7 @@ export const TaxReportPageV2: FC = () => {
   );
 };
 
-/* -------------------------------------------------------------------------- */
-/* Discount Report                                                            */
-/* -------------------------------------------------------------------------- */
-
+// Discount Usage Report
 export const DiscountReportPageV2: FC = () => {
   const sales = useSales().filter((s) => !s.voided);
   const stats = useMemo(() => {
@@ -393,10 +340,7 @@ export const DiscountReportPageV2: FC = () => {
   );
 };
 
-/* -------------------------------------------------------------------------- */
-/* Wastage Report                                                             */
-/* -------------------------------------------------------------------------- */
-
+// Wastage Report
 export const WastageReportPageV2: FC = () => {
   const [rows, setRows] = useState<Array<{
     id: string; ingredientName?: string; quantity: number; costImpact: number; reason: string; reportedAt: string;
@@ -424,7 +368,7 @@ export const WastageReportPageV2: FC = () => {
             labels={Array.from(byReason.keys())}
             data={Array.from(byReason.values())} />
         ) : (
-          <p style={{ color: 'var(--text-subtle)' }}>No wastage recorded.</p>
+          <p className={cls.emptyHint}>No wastage recorded.</p>
         )}
       </ChartFrame>
     </AdminPage>

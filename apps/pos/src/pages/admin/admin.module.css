@@ -1,0 +1,43 @@
+/* Shared styles for admin page modules (dashboard, logs, reports, etc.) */
+
+.emptyHint {
+  color: var(--app-text-subtle);
+  margin: 0;
+}
+
+.sectionHeading {
+  margin: 24px 0 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--app-text);
+}
+
+.filterBar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.filterSelect {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--app-border);
+  background: var(--app-surface);
+  color: var(--app-text);
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  transition: border-color var(--app-motion-fast);
+}
+.filterSelect:focus {
+  outline: none;
+  border-color: var(--app-primary);
+  box-shadow: 0 0 0 3px var(--app-primary-glow);
+}
+
+.actionCode {
+  font-family: ui-monospace, 'Cascadia Code', Menlo, monospace;
+  font-size: 12px;
+}

@@ -400,8 +400,8 @@ export const StubPage: FC<StubPageProps> = ({ title, icon = 'spark', phase, hint
         <Text tone="subtle">
           {hint ?? `Table structure and seed data are in place. Detailed CRUD UI will land in ${phase}.`}
         </Text>
-        <div style={{ marginTop: 16 }}>
-          <button type="button" onClick={() => navigate(-1)} className={cls.topbar__iconbtn} style={{ width: 'auto', padding: '8px 14px' }}>
+        <div className={cls['adminPage__stub-actions']}>
+          <button type="button" onClick={() => navigate(-1)} className={cls.topbar__iconbtn}>
             <Icon name="arrow" size={14} flipX /> Back
           </button>
         </div>

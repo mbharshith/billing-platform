@@ -454,3 +454,49 @@
   margin-bottom: 4px;
   border-bottom: 1px dashed var(--app-border, #e5e7eb);
 }
+
+/* PaymentModal - attached customer summary shown when Lending is picked
+ * and a customer is already on the sale. Small card, high signal. */
+.paymentCustomerCard {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 14px;
+  padding: 12px 14px;
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-lg, 12px);
+  background: color-mix(in srgb, var(--app-primary, #3b82f6) 5%, var(--app-surface));
+}
+.paymentCustomerIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--app-radius-pill, 999px);
+  background: color-mix(in srgb, var(--app-primary, #3b82f6) 15%, transparent);
+  color: var(--app-primary, #3b82f6);
+  flex-shrink: 0;
+}
+.paymentCustomerBody {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+/* PaymentModal - one-tap prompt to attach a customer when Lending is
+ * selected and no customer is on the sale yet. Delegates to the parent's
+ * CustomerPickerModal (which handles pick-existing + add-new). */
+.paymentCustomerPrompt {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 14px;
+  padding: 14px;
+  border: 1px dashed color-mix(in srgb, var(--app-primary, #3b82f6) 45%, transparent);
+  border-radius: var(--app-radius-lg, 12px);
+  background: color-mix(in srgb, var(--app-primary, #3b82f6) 4%, var(--app-surface));
+}
+.paymentCustomerPrompt > button { align-self: stretch; }

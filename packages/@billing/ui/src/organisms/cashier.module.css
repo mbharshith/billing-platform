@@ -58,6 +58,8 @@
   overflow: hidden;
   box-shadow: 0 12px 40px rgba(15,23,42,0.25);
 }
+.modalPanel--narrow { max-width: 400px; }
+.modalPanel--medium { max-width: 460px; }
 .modalHeader {
   display: flex;
   align-items: center;
@@ -613,3 +615,42 @@
   line-height: 1;
   white-space: nowrap;
 }
+
+/* SplitPaymentModal - customer attach flow (mirrors PaymentModal). */
+.paymentCustomerCard {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-lg, 12px);
+  background: color-mix(in srgb, var(--app-primary, #3b82f6) 5%, var(--app-surface));
+}
+.paymentCustomerIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--app-radius-pill, 999px);
+  background: color-mix(in srgb, var(--app-primary, #3b82f6) 15%, transparent);
+  color: var(--app-primary, #3b82f6);
+  flex-shrink: 0;
+}
+.paymentCustomerBody {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+.paymentCustomerPrompt {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border: 1px dashed color-mix(in srgb, var(--app-primary, #3b82f6) 45%, transparent);
+  border-radius: var(--app-radius-lg, 12px);
+  background: color-mix(in srgb, var(--app-primary, #3b82f6) 4%, var(--app-surface));
+}
+.paymentCustomerPrompt > button { align-self: stretch; }
