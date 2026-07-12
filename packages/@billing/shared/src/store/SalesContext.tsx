@@ -22,6 +22,11 @@ interface SalesContextValue {
   readonly recordSale: (sale: Sale) => Promise<void>;
   readonly voidSale: (id: string, reason: string) => Promise<void>;
   readonly clearSales: () => Promise<void>;
+  // Held-order helpers.
+  readonly heldSales: readonly Sale[];
+  readonly holdSale: (sale: Sale) => Promise<void>;
+  readonly resumeHeldSale: (id: string) => Promise<Sale | null>;
+  readonly discardHeldSale: (id: string) => Promise<void>;
   // Online-order lifecycle helpers.
   readonly placeOnlineOrder: (sale: Sale) => Promise<void>;
   readonly advanceOrderStatus: (id: string, next: OrderStatus, by: string, note?: string) => Promise<void>;
@@ -92,6 +97,23 @@ export const SalesProvider: FC<{ children: ReactNode }> = ({ children }) => {
     await db.sales.add(sale);
   }, []);
 
+  const holdSale = useCallback(async (sale: Sale) => {
+    // Held sales share the sales table; the heldAt discriminator flags them.
+    // completedAt reflects when they were parked, not sold.
+    await db.sales.add({ ...sale, heldAt: new Date().toISOString() });
+  }, []);
+
+  const resumeHeldSale = useCallback(async (id: string): Promise<Sale | null> => {
+    const sale = await db.sales.get(id);
+    if (!sale || !sale.heldAt) return null;
+    await db.sales.delete(id);
+    return sale;
+  }, []);
+
+  const discardHeldSale = useCallback(async (id: string) => {
+    await db.sales.delete(id);
+  }, []);
+
   const placeOnlineOrder = useCallback(async (sale: Sale) => {
     // Same as recordSale from a persistence standpoint - separate name signals intent.
     await db.sales.add(sale);
@@ -130,11 +152,13 @@ export const SalesProvider: FC<{ children: ReactNode }> = ({ children }) => {
   );
 
   const value = useMemo<SalesContextValue>(() => ({
-    sales: scoped,
+    sales: scoped.filter((s) => s.heldAt == null),      // exclude parked sales from dashboards
     allSales: all,
     byId, forCustomer, recordSale, voidSale, clearSales,
+    heldSales: scoped.filter((s) => s.heldAt != null),
+    holdSale, resumeHeldSale, discardHeldSale,
     placeOnlineOrder, advanceOrderStatus,
-  }), [scoped, all, byId, forCustomer, recordSale, voidSale, clearSales, placeOnlineOrder, advanceOrderStatus]);
+  }), [scoped, all, byId, forCustomer, recordSale, voidSale, clearSales, holdSale, resumeHeldSale, discardHeldSale, placeOnlineOrder, advanceOrderStatus]);
 
   return <SalesContext.Provider value={value}>{children}</SalesContext.Provider>;
 };

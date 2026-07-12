@@ -21,9 +21,9 @@
 // This mirrors how TMBill / Petpooja / Toast compute their bills.
 
 import type {
-  SaleLine, SaleBillDiscount, SaleCoupon, SaleCharge, Discount, Coupon, AdditionalCharge,
+  SaleLine, SaleBillDiscount, SaleCoupon, SaleCharge,
 } from './types';
-import type { OrderType } from './restaurant';
+import type { Discount, Coupon, AdditionalCharge, OrderType } from './restaurant';
 
 export interface CartComputeInput {
   readonly lines: readonly SaleLine[];
@@ -155,6 +155,12 @@ export const snapshotCharge = (
   };
 };
 
-/** Given an order type, tell the cashier whether it needs a table pick. */
-export const orderTypeNeedsTable = (ot: OrderType | null): boolean =>
-  !!ot && ot.code.toLowerCase().includes('dine');
+/** Given an order type, tell the cashier whether it needs a table pick.
+ *  Matches by code prefix `DIN` or the substring `dine` in either code or name
+ *  so both `DIN` / `DINEIN` / `DINE_IN` fixtures work out of the box. */
+export const orderTypeNeedsTable = (ot: OrderType | null): boolean => {
+  if (!ot) return false;
+  const c = ot.code.toLowerCase();
+  const n = ot.name.toLowerCase();
+  return c.startsWith('din') || c.includes('dine') || n.includes('dine');
+};
