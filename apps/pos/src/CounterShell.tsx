@@ -1,11 +1,4 @@
-// CounterShell — top-level layout for the counter sub-app.
-// Header, nav, tenant badge, user menu; all counter pages render via <Outlet />.
-
-// Header composition (left → right):
-//   Brand · TenantBadge · Nav (role-scoped) · ThemeToggle · UserMenu
-
-// The TenantBadge is the SaaS "workspace name" (like Jira's site name).
-// It's read-only for cashiers; admins can click to jump to /store.
+// CounterShell — top-level layout: Header, nav, TenantBadge, and UserMenu. Renders pages via <Outlet />.
 import { useEffect, useRef, useState, type FC, type ReactNode } from 'react';
 import { NavLink, Outlet, useNavigate, useParams } from 'react-router-dom';
 import cls from './layout.module.css';
@@ -18,9 +11,7 @@ import { useStores } from '@billing/shared/store/StoresContext';
 import { useToast } from '@billing/shared/store/ToastContext';
 import { storeIdToSlug } from '@billing/shared/lib/resolveTenant';
 
-/* -------------------------------------------------------------------------- */
-/* NavItem — react-router NavLink with active class                           */
-/* -------------------------------------------------------------------------- */
+// NavItem — react-router NavLink with active class
 interface NavItemProps { to: string; icon: Parameters<typeof Icon>[0]['name']; children: ReactNode; label: string }
 const NavItem: FC<NavItemProps> = ({ to, icon, children, label }) => (
   <NavLink
@@ -34,10 +25,7 @@ const NavItem: FC<NavItemProps> = ({ to, icon, children, label }) => (
   </NavLink>
 );
 
-/* -------------------------------------------------------------------------- */
-/* TenantBadge — shows the current tenant name in the header.                 */
-/* Admins can click to jump straight to /store; cashiers see it read-only.   */
-/* -------------------------------------------------------------------------- */
+// TenantBadge — shows the tenant name; admins can click to jump to /store.
 const TenantBadge: FC = () => {
   const { currentStoreId, isAdmin } = useAuth();
   const { byId } = useStores();
@@ -45,8 +33,7 @@ const TenantBadge: FC = () => {
   const store = byId(currentStoreId);
   if (!store) return null;
 
-  // Full store name goes on `title` so long tenant names still resolve on
-  // hover even when the visible label ellipsises.
+  // Full store name in tooltip for long tenant names.
   const tooltip = isAdmin ? `${store.name} — manage your tenant` : store.name;
 
   const content = (
@@ -81,17 +68,13 @@ const TenantBadge: FC = () => {
   );
 };
 
-/* -------------------------------------------------------------------------- */
-/* UserMenu - exported so AdminShellRoute can reuse it in the sidebar topbar. */
-/* -------------------------------------------------------------------------- */
+// UserMenu - exported so AdminShellRoute can reuse it in the sidebar topbar.
 export const UserMenu: FC = () => {
   const { currentUser, isAdmin, logout } = useAuth();
   const { byId: storeById } = useStores();
   const toast = useToast();
   const navigate = useNavigate();
-  // Tenant slug from the URL (/<slug>/cashier|admin/...) - used to build
-  // absolute nav targets. Without this, go('/store') hits the shell's
-  // legacy catch-all and bounces the user to /login.
+  // Tenant slug for building absolute nav targets.
   const { slug = '' } = useParams<{ slug: string }>();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -175,9 +158,7 @@ export const UserMenu: FC = () => {
   );
 };
 
-/* -------------------------------------------------------------------------- */
-/* Header                                                                     */
-/* -------------------------------------------------------------------------- */
+// Header
 const Header: FC = () => {
   const { slug = '' } = useParams<{ slug: string }>();
   const { isAdmin, can } = useAuth();
@@ -219,17 +200,29 @@ const Header: FC = () => {
   );
 };
 
-/* -------------------------------------------------------------------------- */
-/* PageHeader                                                                 */
-/* -------------------------------------------------------------------------- */
+// PageHeader
+interface BreadcrumbItem { label: string; href?: string }
 interface PageHeaderProps {
   title: string;
   subtitle?: string;
   actions?: ReactNode;
+  breadcrumbs?: readonly BreadcrumbItem[];
 }
-export const PageHeader: FC<PageHeaderProps> = ({ title, subtitle, actions }) => (
+export const PageHeader: FC<PageHeaderProps> = ({ title, subtitle, actions, breadcrumbs }) => (
   <div className={cls.pageHeader}>
     <div className={cls.pageHeader__intro}>
+      {breadcrumbs && breadcrumbs.length > 0 && (
+        <nav className={cls.breadcrumb} aria-label="Breadcrumb">
+          {breadcrumbs.map((crumb, i) => (
+            <span key={crumb.label} className={cls.breadcrumb__item}>
+              {i > 0 && <span className={cls.breadcrumb__sep} aria-hidden="true">/</span>}
+              {crumb.href
+                ? <NavLink to={crumb.href} className={cls.breadcrumb__link}>{crumb.label}</NavLink>
+                : <span className={cls.breadcrumb__current} aria-current="page">{crumb.label}</span>}
+            </span>
+          ))}
+        </nav>
+      )}
       <Text as="h1" size="2xl" weight="heavy">{title}</Text>
       {subtitle && <Text tone="subtle">{subtitle}</Text>}
     </div>
@@ -237,12 +230,7 @@ export const PageHeader: FC<PageHeaderProps> = ({ title, subtitle, actions }) =>
   </div>
 );
 
-/* -------------------------------------------------------------------------- */
-/* BottomNav — mobile-only sticky tab bar (POS-native pattern)                */
-/* Hidden above 768px via CSS. Mirrors the top nav's role-scoped items so     */
-/* thumb-reachable navigation works on phones, which is the ergonomic sweet   */
-/* spot for handheld POS use.                                                 */
-/* -------------------------------------------------------------------------- */
+// BottomNav — mobile-only sticky tab bar; mirrors top nav for handheld POS.
 const BottomNavItem: FC<NavItemProps> = ({ to, icon, children, label }) => (
   <NavLink
     to={to}
@@ -274,9 +262,7 @@ const BottomNav: FC = () => {
   );
 };
 
-/* -------------------------------------------------------------------------- */
-/* CounterShell                                                               */
-/* -------------------------------------------------------------------------- */
+// CounterShell
 export const CounterShell: FC = () => {
   useEffect(() => {
     document.title = STRINGS.brand.fullTitle;

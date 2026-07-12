@@ -1,6 +1,6 @@
-// DashboardPage — KPIs + recent sales + top products + inventory.
-// Reads from SalesContext + ProductsContext; ignores voided sales in KPIs.
+// DashboardPage — KPIs, recent sales, top products, and inventory.
 import { useMemo, type FC } from 'react';
+import { useParams } from 'react-router-dom';
 import pages from './pages.module.css';
 import {
   DashboardKpis, InventoryTable, RecentSalesTable, TopProductsTable,
@@ -14,6 +14,7 @@ import { useSales } from '@billing/shared/store/SalesContext';
 export const DashboardPage: FC = () => {
   const { sales } = useSales();
   const { products } = useProducts();
+  const { slug = '' } = useParams<{ slug: string }>();
 
   // Only non-voided sales contribute to revenue / units / top products.
   const liveSales = useMemo(() => sales.filter((s) => !s.voided), [sales]);
@@ -58,7 +59,14 @@ export const DashboardPage: FC = () => {
 
   return (
     <>
-      <PageHeader title={STRINGS.dashboard.pageTitle} subtitle={STRINGS.dashboard.pageSubtitle} />
+      <PageHeader
+        title={STRINGS.dashboard.pageTitle}
+        subtitle={STRINGS.dashboard.pageSubtitle}
+        breadcrumbs={[
+          { label: STRINGS.nav.cashier, href: `/${slug}/cashier` },
+          { label: STRINGS.dashboard.pageTitle },
+        ]}
+      />
 
       <DashboardKpis {...kpis} />
 

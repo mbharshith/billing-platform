@@ -162,7 +162,6 @@
 .navLink:hover { background: var(--app-gray-10); color: var(--app-text); }
 .navLink--active { background: var(--app-blue-5); color: var(--app-primary); }
 
-
 /* -------- User menu -------- */
 .userMenu { position: relative; flex-shrink: 0; }
 .userTrigger {
@@ -249,6 +248,39 @@
 .userDropdown__item:hover { background: var(--app-gray-5); }
 .userDropdown__item--danger { color: var(--app-danger); }
 .userDropdown__divider { border: 0; border-top: 1px solid var(--app-border); margin: var(--app-space-1) 0; }
+
+/* -------- Breadcrumb -------- */
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.breadcrumb__item {
+  display: inline-flex;
+  align-items: center;
+  font-size: var(--app-font-size-xs);
+  color: var(--app-text-subtle);
+}
+.breadcrumb__sep {
+  margin: 0 var(--app-space-2);
+  color: var(--app-text-subtle);
+  opacity: 0.5;
+}
+.breadcrumb__link {
+  color: var(--app-text-subtle);
+  text-decoration: none;
+  font-weight: var(--app-font-weight-semibold);
+  transition: color var(--app-motion-fast);
+}
+.breadcrumb__link:hover { color: var(--app-primary); }
+.breadcrumb__current {
+  color: var(--app-text);
+  font-weight: var(--app-font-weight-semibold);
+}
 
 /* -------- Page header (in-page title bar) -------- */
 .pageHeader {

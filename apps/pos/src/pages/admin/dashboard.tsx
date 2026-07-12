@@ -99,12 +99,12 @@ export const RevenueDashboardPage: FC = () => {
       breadcrumb={['Overview', 'Dashboard']}
     >
       <KPIRow>
-        <KPICard label="Total Sales"      value={money(stats.total)}         accentColor="#2563eb" delta={8.3} />
-        <KPICard label="Net Sales (excl tax)" value={money(stats.net)}       accentColor="#16a34a" delta={7.9} />
-        <KPICard label="Offline Sales"    value={money(stats.offline)}       accentColor="#f59e0b" delta={-2.1} />
-        <KPICard label="Online Sales"     value={money(stats.online)}        accentColor="#0ea5e9" delta={18.4} />
-        <KPICard label="Order Count"      value={String(stats.orderCount)}   accentColor="#8b5cf6" delta={5.6} />
-        <KPICard label="Avg. Order Value" value={money(stats.aov)}           accentColor="#f43f5e" delta={1.2} />
+        <KPICard label="Total Sales"      value={money(stats.total)}         accentColor="var(--app-primary, #3b82f6)"   delta={8.3} />
+        <KPICard label="Net Sales (excl tax)" value={money(stats.net)}       accentColor="var(--app-success, #10b981)"   delta={7.9} />
+        <KPICard label="Offline Sales"    value={money(stats.offline)}       accentColor="var(--app-warning, #f59e0b)"   delta={-2.1} />
+        <KPICard label="Online Sales"     value={money(stats.online)}        accentColor="var(--app-info, #06b6d4)"      delta={18.4} />
+        <KPICard label="Order Count"      value={String(stats.orderCount)}   accentColor="var(--app-brand-violet, #8b5cf6)" delta={5.6} />
+        <KPICard label="Avg. Order Value" value={money(stats.aov)}           accentColor="var(--app-brand-pink, #ec4899)"   delta={1.2} />
       </KPIRow>
 
       <ChartGrid>
@@ -118,9 +118,11 @@ export const RevenueDashboardPage: FC = () => {
 
         <ChartFrame title="Payment Mode Split" subtitle="Collected amount by method" meta="MIX">
           {paymentValues.length > 0 ? (
-            <DoughnutChart size="lg" labels={paymentLabels} data={paymentValues} />
+            <DoughnutChart size="lg" labels={paymentLabels} data={paymentValues}
+              centerText={money(paymentValues.reduce((a, b) => a + b, 0))}
+              centerSubtext="COLLECTED" />
           ) : (
-            <p style={{ color: 'var(--text-subtle)' }}>No payments recorded yet.</p>
+            <p style={{ color: 'var(--app-text-subtle)' }}>No payments recorded yet.</p>
           )}
         </ChartFrame>
       </ChartGrid>
@@ -134,11 +136,12 @@ export const RevenueDashboardPage: FC = () => {
           />
         </ChartFrame>
 
-        <ChartFrame title="Channel Split" subtitle="Dine-in vs takeaway vs online" meta="MIX">
+        <ChartFrame title="Channel Split" subtitle="Counter vs online" meta="MIX">
           {channelValues.length > 0 ? (
-            <DoughnutChart size="lg" labels={channelLabels} data={channelValues} />
+            <DoughnutChart size="lg" labels={channelLabels} data={channelValues}
+              centerText={String(stats.orderCount)} centerSubtext="ORDERS" />
           ) : (
-            <p style={{ color: 'var(--text-subtle)' }}>No channel data.</p>
+            <p style={{ color: 'var(--app-text-subtle)' }}>No channel data.</p>
           )}
         </ChartFrame>
       </ChartGrid>

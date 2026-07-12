@@ -1,18 +1,10 @@
-// AdminSidebar + AdminShell + AdminPage template.
-//
-// Powers every admin surface: replaces the horizontal top-nav with a
-// TMBill-style vertical sidebar grouped by phase (POS Config, Menu,
-// Tables, Online, Reports, Inventory, CRM). Each group is
-// collapsible and remembers state via localStorage.
-//
-// AdminPage is the shared header+toolbar+content shell every admin
-// list/detail page renders inside. Keeps 60+ pages visually consistent
-// without repeating markup.
+// AdminSidebar + AdminShell + AdminPage template — TMBill-style vertical sidebar with phase groups, collapsible state via localStorage.
 
 import { useEffect, useState, type FC, type ReactNode } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import cls from './admin.module.css';
 import { Icon, Text, ThemeToggle } from '@billing/ui/atoms';
+import { BRAND } from '@billing/shared/brand';
 import { ToastStack } from '@billing/ui/feedback';
 
 /* -------------------------------------------------------------------------- */
@@ -185,7 +177,7 @@ export const AdminSidebar: FC<AdminSidebarProps> = ({ slug }) => {
         <Icon name="spark" size={22} />
         {!collapsed && (
           <div className={cls['sidebar__brand-text']}>
-            <Text as="span" size="sm" weight="heavy">KartWise</Text>
+            <Text as="span" size="sm" weight="heavy">{BRAND.name}</Text>
             <Text as="span" size="xs" tone="subtle">Admin Console</Text>
           </div>
         )}
