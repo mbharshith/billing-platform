@@ -142,11 +142,17 @@ interface CartPanelProps {
   // When set, panel drops sticky positioning + shows a close button (mobile sheet).
   onClose?: () => void;
   variant?: 'inline' | 'sheet';
+  // Optional: chip-row (Discount / Coupon / Charges) rendered ABOVE totals.
+  moneyActions?: ReactNode;
+  // Optional: extra breakdown rows (line-discount / bill-discount / coupon / charges)
+  // rendered inside the totals block, before the divider.
+  extraTotalsRows?: ReactNode;
 }
 
 export const CartPanel: FC<CartPanelProps> = ({
   lines, subtotal, tax, total, unitCount,
   onIncrement, onDecrement, onRemove, onClear, onCharge, onClose, variant = 'inline',
+  moneyActions, extraTotalsRows,
 }) => {
   const { money } = useMoney();
   return (
@@ -200,10 +206,12 @@ export const CartPanel: FC<CartPanelProps> = ({
 
     {lines.length > 0 && (
       <div className={cls.cartPanel__totals}>
+        {moneyActions && <div className={cls.cartPanel__moneyActions}>{moneyActions}</div>}
         <div className={cls.cartPanel__totalsRow}>
           <Text size="sm" tone="subtle">{STRINGS.cashier.subtotal}</Text>
           <Text weight="semibold">{money(subtotal)}</Text>
         </div>
+        {extraTotalsRows}
         <div className={cls.cartPanel__totalsRow}>
           <Text size="sm" tone="subtle">
             {STRINGS.cashier.tax} ({(TAX_RATE * 100).toFixed(2)}%)

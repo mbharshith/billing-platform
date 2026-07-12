@@ -286,6 +286,60 @@ export const CashierPage: FC = () => {
     toast.success(`Sale ${sale.invoiceNo} recorded.`);
   };
 
+  /* -- Cart panel money-slot content (chip row + breakdown rows) --------- */
+  const fmt = (n: number) => `Rs ${n.toFixed(2)}`;
+  const moneyActions = draftLines.length === 0 ? null : (
+    <>
+      <button
+        className={`${contextCls.contextChip} ${billDiscount ? contextCls['contextChip--filled'] : ''}`}
+        onClick={() => setShowBillDiscount(true)}
+      >
+        <Icon name="coins" size={12} />
+        <span>{billDiscount ? `-${fmt(billDiscount.amount)}` : 'Discount'}</span>
+      </button>
+      <CouponInput
+        coupons={couponsApi.rows}
+        subtotalAfterBillDiscount={totals.subtotalAfterLine - totals.billDiscountAmount}
+        currentCouponCode={coupon?.code ?? null}
+        onApply={(c) => setCoupon(snapshotCoupon(c, totals.subtotalAfterLine - totals.billDiscountAmount))}
+        onClear={() => setCoupon(undefined)}
+        onError={(m) => toast.error(m)}
+      />
+      <button
+        className={`${contextCls.contextChip} ${charges.length ? contextCls['contextChip--filled'] : ''}`}
+        onClick={() => setShowCharges(true)}
+      >
+        <Icon name="plus" size={12} />
+        <span>{charges.length ? `${charges.length} charge${charges.length === 1 ? '' : 's'}` : 'Add charge'}</span>
+      </button>
+    </>
+  );
+  // Extra rows appear inside the totals block between Subtotal and Tax. Only
+  // discounts/coupon/charges that were actually applied are shown - no
+  // duplication of gross subtotal (that IS the CartPanel.subtotal prop).
+  const extraTotalsRows = draftLines.length === 0 ? null : (
+    <>
+      {billDiscount && (
+        <div className={contextCls.totalsRow}>
+          <Text size="sm" tone="subtle">{billDiscount.name}</Text>
+          <Text size="sm" weight="heavy" tone="primary">-{fmt(billDiscount.amount)}</Text>
+        </div>
+      )}
+      {coupon && (
+        <div className={contextCls.totalsRow}>
+          <Text size="sm" tone="subtle">Coupon {coupon.code}</Text>
+          <Text size="sm" weight="heavy" tone="primary">-{fmt(coupon.amount)}</Text>
+        </div>
+      )}
+      {charges.map((c) => (
+        <div key={c.chargeId} className={contextCls.totalsRow}>
+          <Text size="sm" tone="subtle">{c.name}</Text>
+          <Text size="sm" weight="heavy">+{fmt(c.amount)}</Text>
+        </div>
+      ))}
+    </>
+  );
+
   /* -- Render ------------------------------------------------------------ */
   const tableChipLabel = selectedTable
     ? `Table ${selectedTable.code}`
@@ -363,45 +417,12 @@ export const CashierPage: FC = () => {
           onRemove={removeLine}
           onClear={clearAll}
           onCharge={openPayment}
+          moneyActions={moneyActions}
+          extraTotalsRows={extraTotalsRows}
         />
       </div>
 
-      {/* Money row - discount / coupon / charges / live totals */}
-      {draftLines.length > 0 && (
-        <div className={contextCls.contextBar} style={{ marginTop: 12 }}>
-          <button
-            className={`${contextCls.contextChip} ${billDiscount ? contextCls['contextChip--filled'] : ''}`}
-            onClick={() => setShowBillDiscount(true)}
-          >
-            <Icon name="coins" size={14} />
-            <span>{billDiscount ? `${billDiscount.name} -Rs ${billDiscount.amount.toFixed(2)}` : 'Discount'}</span>
-          </button>
-
-          <CouponInput
-            coupons={couponsApi.rows}
-            subtotalAfterBillDiscount={totals.subtotalAfterLine - totals.billDiscountAmount}
-            currentCouponCode={coupon?.code ?? null}
-            onApply={(c) => setCoupon(snapshotCoupon(c, totals.subtotalAfterLine - totals.billDiscountAmount))}
-            onClear={() => setCoupon(undefined)}
-            onError={(m) => toast.error(m)}
-          />
-
-          <button
-            className={`${contextCls.contextChip} ${charges.length ? contextCls['contextChip--filled'] : ''}`}
-            onClick={() => setShowCharges(true)}
-          >
-            <Icon name="plus" size={14} />
-            <span>{charges.length ? `${charges.length} charge${charges.length === 1 ? '' : 's'}` : 'Add charge'}</span>
-          </button>
-
-          <div className={contextCls.contextSpacer} />
-
-          <Text tone="subtle" size="sm">
-            Gross Rs {totals.grossSubtotal.toFixed(2)} - Disc Rs {(totals.lineDiscountTotal + totals.billDiscountAmount + totals.couponAmount).toFixed(2)} + Chg Rs {totals.chargesTotal.toFixed(2)} + Tax Rs {totals.tax.toFixed(2)}
-          </Text>
-          <Text weight="heavy" size="lg">= Rs {totals.total.toFixed(2)}</Text>
-        </div>
-      )}
+      {/* Money row moved INTO CartPanel via moneyActions + extraTotalsRows slots. */}
 
       {/* Mobile: sticky bottom bar + bottom-sheet cart */}
       <MobileCartBar
@@ -427,6 +448,8 @@ export const CashierPage: FC = () => {
               onRemove={removeLine}
               onClear={clearAll}
               onCharge={() => { setMobileCartOpen(false); openPayment(); }}
+              moneyActions={moneyActions}
+              extraTotalsRows={extraTotalsRows}
             />
           </div>
         </div>

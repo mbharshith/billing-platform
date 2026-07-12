@@ -444,3 +444,13 @@
   display: flex; align-items: center; gap: var(--app-space-3);
 }
 .tableWrap--flush { border: none; }
+
+/* Cart panel: slim chip row rendered above totals (Discount/Coupon/Charges). */
+.cartPanel__moneyActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding-bottom: 10px;
+  margin-bottom: 4px;
+  border-bottom: 1px dashed var(--app-border, #e5e7eb);
+}

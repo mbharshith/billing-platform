@@ -587,3 +587,11 @@
   min-width: 32px;
 }
 .kotDetails { flex: 1; display: flex; flex-direction: column; gap: 1px; }
+
+/* Compact row used inside CartPanel.extraTotalsRows slot */
+.totalsRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2px 0;
+}
