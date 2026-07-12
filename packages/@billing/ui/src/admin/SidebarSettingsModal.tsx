@@ -11,7 +11,7 @@
 
 import { useState, type FC } from 'react';
 import cls from './admin.module.css';
-import { Button, Icon, Text } from '../atoms';
+import { Button, Icon } from '../atoms';
 import type { SidebarGroup } from './Sidebar';
 import {
   useSidebarVisibility, isPinnedGroup, isPinnedLink, linkKey,
@@ -63,10 +63,10 @@ export const SidebarSettingsModal: FC<Props> = ({ open, onClose, groups }) => {
       <div className={cls.modalPanel} role="dialog" aria-modal="true" aria-label="Customize sidebar">
         <header className={cls.modalHeader}>
           <div className={cls.modalHeaderText}>
-            <Text as="h2" size="lg" weight="heavy">Customize sidebar</Text>
-            <Text as="p" size="sm" tone="subtle">
+            <h2 className={cls.modalTitle}>Customize sidebar</h2>
+            <p  className={cls.modalSubtitle}>
               Show only what you use. Hidden pages remain reachable by URL.
-            </Text>
+            </p>
           </div>
           <button type="button" className={cls.modalClose} onClick={onClose} aria-label="Close">
             <Icon name="close" size={16} />
@@ -130,15 +130,15 @@ export const SidebarSettingsModal: FC<Props> = ({ open, onClose, groups }) => {
         </div>
 
         <footer className={cls.modalFooter}>
-          <Text size="sm" tone="subtle">
+          <span className={cls.modalFooterStatus}>
             {hiddenCount === 0
               ? 'All groups and pages visible.'
               : `${hiddenCount} item${hiddenCount === 1 ? '' : 's'} hidden.`}
-          </Text>
+          </span>
           <div className={cls.modalFooterActions}>
             {confirmReset ? (
               <>
-                <Text size="sm">Reset?</Text>
+                <span className={cls.modalFooterStatus}>Reset?</span>
                 <Button variant="secondary" onClick={() => setConfirmReset(false)}>Cancel</Button>
                 <Button variant="danger" onClick={() => { v.reset(); setConfirmReset(false); }}>Reset</Button>
               </>

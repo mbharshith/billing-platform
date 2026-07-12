@@ -893,3 +893,24 @@
   background: #ffffff;
   border-radius: 1px;
 }
+
+.modalTitle {
+  margin: 0;
+  font-family: var(--app-font-family);
+  font-size: var(--app-font-size-lg);
+  font-weight: var(--app-font-weight-heavy);
+  color: var(--app-text);
+  line-height: var(--app-line-tight);
+}
+.modalSubtitle {
+  margin: 0;
+  font-family: var(--app-font-family);
+  font-size: var(--app-font-size-sm);
+  color: var(--app-text-subtle);
+  line-height: var(--app-line-normal);
+}
+.modalFooterStatus {
+  font-family: var(--app-font-family);
+  font-size: var(--app-font-size-sm);
+  color: var(--app-text-subtle);
+}

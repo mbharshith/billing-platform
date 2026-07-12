@@ -47,6 +47,25 @@ const read = (): VisibilityPrefs => {
   } catch { return EMPTY; }
 };
 
+/* useSyncExternalStore requires a stable snapshot reference between calls
+ * when the underlying data hasn't changed. Returning a fresh object each
+ * time here triggers React error #185 (Maximum update depth). We cache the
+ * last snapshot + the raw JSON string it was built from and only invalidate
+ * when the string actually changes. */
+let cachedRaw: string | null | undefined = undefined;
+let cachedSnapshot: VisibilityPrefs = EMPTY;
+
+const getSnapshot = (): VisibilityPrefs => {
+  let raw: string | null = null;
+  try { raw = localStorage.getItem(STORAGE_KEY); } catch { raw = null; }
+  if (raw === cachedRaw) return cachedSnapshot;
+  cachedRaw = raw;
+  cachedSnapshot = read();
+  return cachedSnapshot;
+};
+
+const invalidate = () => { cachedRaw = undefined; };
+
 const listeners = new Set<() => void>();
 const subscribe = (cb: () => void): (() => void) => {
   listeners.add(cb);
@@ -57,13 +76,14 @@ const emit = () => listeners.forEach((cb) => cb());
 const write = (next: VisibilityPrefs) => {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); }
   catch { /* quota */ }
+  invalidate();
   emit();
 };
 
 // Cross-tab sync (rare on POS but essentially free to wire up).
 if (typeof window !== 'undefined') {
   window.addEventListener('storage', (e) => {
-    if (e.key === STORAGE_KEY) emit();
+    if (e.key === STORAGE_KEY) { invalidate(); emit(); }
   });
 }
 
@@ -84,7 +104,7 @@ export interface UseSidebarVisibility {
 }
 
 export const useSidebarVisibility = (): UseSidebarVisibility => {
-  const prefs = useSyncExternalStore(subscribe, read, () => EMPTY);
+  const prefs = useSyncExternalStore(subscribe, getSnapshot, () => EMPTY);
 
   const isGroupHidden = useCallback(
     (id: string) => id !== PINNED_GROUP_ID && prefs.hiddenGroups.includes(id),
