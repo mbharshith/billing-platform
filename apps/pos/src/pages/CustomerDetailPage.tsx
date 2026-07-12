@@ -1,5 +1,6 @@
+// CustomerDetailPage — customer profile, lending balance, sales history, and payment recording.
 import { useMemo, useState, type FC, type FormEvent } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import cls from './pages.module.css';
 import { Badge, Button, Field, Input, Select, Text, Textarea } from '@billing/ui/atoms';
 import { Modal } from '@billing/ui/organisms';
@@ -18,6 +19,8 @@ export const CustomerDetailPage: FC = () => {
   const { money } = useMoney();
   const { id = '', slug = '' } = useParams<{ id: string; slug: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
+  const isAdmin = location.pathname.includes('/admin/');
   const { byId, paymentsFor, recordPayment, remove } = useCustomers();
   const { forCustomer } = useSales();
   const { currentUser, can } = useAuth();
@@ -73,6 +76,11 @@ export const CustomerDetailPage: FC = () => {
       <PageHeader
         title={customer.name}
         subtitle={STRINGS.customers.detailTitle}
+        breadcrumbs={[
+          { label: isAdmin ? STRINGS.nav.dashboard : STRINGS.nav.cashier, href: isAdmin ? `/${slug}/admin` : `/${slug}/cashier` },
+          { label: STRINGS.customers.pageTitle, href: isAdmin ? `/${slug}/admin/customers` : `/${slug}/cashier/customers` },
+          { label: customer.name },
+        ]}
         actions={
           <>
             <Button variant="ghost" leadingIcon="arrow"

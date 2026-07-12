@@ -1,5 +1,6 @@
 // ProductsPage — catalog CRUD (admin only).
 import { useState, type FC, type FormEvent } from 'react';
+import { useParams } from 'react-router-dom';
 import cls from './pages.module.css';
 import { Badge, Button, Field, Input, Select, Text } from '@billing/ui/atoms';
 import { Modal } from '@billing/ui/organisms';
@@ -24,6 +25,7 @@ const fromProduct = (p: Product): FormState => ({
 
 export const ProductsPage: FC = () => {
   const { money } = useMoney();
+  const { slug = '' } = useParams<{ slug: string }>();
   const { products, create, update, setActive } = useProducts();
   const toast = useToast();
   const [form, setForm] = useState<FormState | null>(null);
@@ -63,6 +65,10 @@ export const ProductsPage: FC = () => {
       <PageHeader
         title={STRINGS.products.pageTitle}
         subtitle={STRINGS.products.pageSubtitle}
+        breadcrumbs={[
+          { label: STRINGS.nav.dashboard, href: `/${slug}/admin` },
+          { label: STRINGS.products.pageTitle },
+        ]}
         actions={
           <Button variant="primary" leadingIcon="plus" onClick={() => setForm(emptyForm())}>
             {STRINGS.products.addNew}

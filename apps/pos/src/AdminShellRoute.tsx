@@ -1,12 +1,8 @@
-// AdminShellRoute - wraps AdminShell with the tenant slug + outlet name
-// pulled from URL params + AuthContext.
-//
-// This is the top-level layout element for /:slug/admin/*.  Handles the
-// tenant lookup so the sidebar links generate correctly and the top-bar
-// shows the outlet name.
-
+// AdminShellRoute - wraps AdminShell with the tenant slug + outlet name from URL params + AuthContext.
+// Also computes a location tag (city / channel) for the top-bar outlet chip and
+// wires the Quick-Add button to navigate to the cashier.
 import { type FC } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { AdminShell } from '@billing/ui/admin';
 import { useAuth } from '@billing/shared/store/AuthContext';
 import { useStores } from '@billing/shared/store/StoresContext';
@@ -14,13 +10,22 @@ import { UserMenu } from './CounterShell';
 
 export const AdminShellRoute: FC = () => {
   const { slug = '' } = useParams<{ slug: string }>();
+  const navigate = useNavigate();
   const { currentStoreId } = useAuth();
   const { byId } = useStores();
   const outlet = byId(currentStoreId);
+
+  // Cheap location chip: grab city from outlet address if present, else 'LIVE'.
+  const rawCity = outlet?.address?.split(',').at(-2)?.trim();
+  const tag = rawCity ? rawCity.toUpperCase() : 'LIVE';
+
   return (
     <AdminShell
       slug={slug}
       outletName={outlet?.name ?? 'Admin console'}
+      outletTag={tag}
+      onQuickAdd={() => navigate(`/${slug}/cashier`)}
+      notificationCount={3}
       topbar={<UserMenu />}
     />
   );

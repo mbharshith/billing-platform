@@ -1,6 +1,6 @@
 // SaleDetailPage — full receipt view, print, and void.
 import { useState, type FC } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import cls from './pages.module.css';
 import { Badge, Button, Field, Text, Textarea } from '@billing/ui/atoms';
 import { DataTable, PaymentBadge, ProductBadge } from '@billing/ui/molecules';
@@ -19,6 +19,8 @@ export const SaleDetailPage: FC = () => {
   const { money } = useMoney();
   const { id = '', slug = '' } = useParams<{ id: string; slug: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
+  const isAdminRoute = location.pathname.includes('/admin/');
   const { byId, voidSale } = useSales();
   const { byId: customerById, addLending } = useCustomers();
   const { incrementStock } = useProducts();
@@ -57,6 +59,11 @@ export const SaleDetailPage: FC = () => {
       <PageHeader
         title={STRINGS.sales.detailTitle}
         subtitle={sale.invoiceNo}
+        breadcrumbs={[
+          { label: isAdminRoute ? STRINGS.nav.dashboard : STRINGS.nav.cashier, href: isAdminRoute ? `/${slug}/admin` : `/${slug}/cashier` },
+          { label: STRINGS.sales.pageTitle, href: isAdminRoute ? `/${slug}/admin/sales` : `/${slug}/cashier/sales` },
+          { label: sale.invoiceNo },
+        ]}
         actions={
           <>
             <Button variant="ghost" leadingIcon="arrow"

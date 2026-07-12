@@ -1,7 +1,6 @@
-// CustomersPage — list, search, create.
-// Row click navigates to /customers/:id.
+// CustomersPage — list, search, and create customers. Row click navigates to /customers/:id.
 import { useState, type FC, type FormEvent } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import cls from './pages.module.css';
 import { Badge, Button, Field, Input, Text, Textarea } from '@billing/ui/atoms';
 import { Modal } from '@billing/ui/organisms';
@@ -31,6 +30,8 @@ export const CustomersPage: FC = () => {
   const { can } = useAuth();
   const canDelete = can('customer:delete');
   const navigate = useNavigate();
+  const location = useLocation();
+  const isAdmin = location.pathname.includes('/admin/');
   const toast = useToast();
   const [form, setForm] = useState<FormState | null>(null);
   const [mobileError, setMobileError] = useState<string | undefined>();
@@ -68,6 +69,10 @@ export const CustomersPage: FC = () => {
       <PageHeader
         title={STRINGS.customers.pageTitle}
         subtitle={STRINGS.customers.pageSubtitle}
+        breadcrumbs={[
+          { label: isAdmin ? STRINGS.nav.dashboard : STRINGS.nav.cashier, href: isAdmin ? `/${slug}/admin` : `/${slug}/cashier` },
+          { label: STRINGS.customers.pageTitle },
+        ]}
         actions={
           <Button
             variant="primary"

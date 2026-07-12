@@ -1,15 +1,11 @@
-// StorePage — the Admin's "my store" READ-ONLY view.
-
-// Store metadata is edited ONLY by the vendor (fields ripple through every past invoice).
-// Tenants see their identity + stats + a "how to change" note.
-
-// SoD: only admins can access this route (guarded by <AdminRoute>).
-// Cashiers don't need this page at all.
+// StorePage — admin's read-only outlet info view. Store metadata is vendor-managed only.
 import { useMemo, type FC } from 'react';
+import { useParams } from 'react-router-dom';
 import cls from './pages.module.css';
 import { Badge, Icon, Text } from '@billing/ui/atoms';
 import { BRAND } from '@billing/shared/brand';
 import { PageHeader } from '../CounterShell';
+import { STRINGS } from '@billing/shared/domain/strings';
 import { fmtDate, formatNumberCompact, num } from '@billing/shared/domain/format';
 import { useMoney } from '@billing/shared/hooks/useMoney';
 import { useAuth } from '@billing/shared/store/AuthContext';
@@ -23,6 +19,7 @@ export const StorePage: FC = () => {
   const { money, moneyCompact } = useMoney();
   const { currentStoreId } = useAuth();
   const { byId } = useStores();
+  const { slug = '' } = useParams<{ slug: string }>();
   const { users } = useUsers();
   const { products } = useProducts();
   const { customers } = useCustomers();
@@ -52,6 +49,10 @@ export const StorePage: FC = () => {
       <PageHeader
         title="My store"
         subtitle="Read-only view. Contact your SaaS provider to change store details."
+        breadcrumbs={[
+          { label: STRINGS.nav.dashboard, href: `/${slug}/admin` },
+          { label: 'My store' },
+        ]}
       />
 
       {/* --- Identity card --------------------------------------------------- */}

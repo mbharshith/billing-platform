@@ -1,4 +1,2 @@
-// Federation entry: the shell imports this via `posApp/AdminApp`.
-// Same file (CounterApp.tsx) drives both surfaces; two exposes keep the
-// shell's lazy() imports clean and each remote module small.
+// Federation entry: the shell imports AdminApp via `posApp/AdminApp`. Both apps share CounterApp.
 export { AdminApp as default, AdminApp } from './CounterApp';

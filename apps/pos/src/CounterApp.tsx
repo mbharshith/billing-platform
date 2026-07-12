@@ -1,9 +1,4 @@
-// CounterApp - exports the two tenant staff sub-apps.
-//
-// /:slug/cashier/*   -> <CashierApp />  cashier-facing terminal (top-nav)
-// /:slug/admin/*     -> <AdminApp />    admin console with vertical sidebar
-//
-// Every page is React.lazy'd for tiny per-route chunks.
+// CounterApp — exports CashierApp (/:slug/cashier/*) and AdminApp (/:slug/admin/*). All pages are React.lazy'd.
 
 import { lazy, Suspense, type FC, type JSX, type ReactNode } from 'react';
 import { Route, Routes } from 'react-router-dom';
@@ -12,28 +7,21 @@ import { AppSplash, ErrorBoundary, NotFoundPage } from '@billing/ui/errors';
 import { CounterShell } from './CounterShell';
 import { AdminShellRoute } from './AdminShellRoute';
 
-/* -------------------------------------------------------------------------- */
-/* Cashier-facing pages (top-nav shell)                                       */
-/* -------------------------------------------------------------------------- */
+// Cashier-facing pages (top-nav shell)
 const CashierPage        = lazy(() => import('./pages/CashierPage').then(m => ({ default: m.CashierPage })));
 const SalesPage          = lazy(() => import('./pages/SalesPage').then(m => ({ default: m.SalesPage })));
 const SaleDetailPage     = lazy(() => import('./pages/SaleDetailPage').then(m => ({ default: m.SaleDetailPage })));
 const CustomersPage      = lazy(() => import('./pages/CustomersPage').then(m => ({ default: m.CustomersPage })));
 const CustomerDetailPage = lazy(() => import('./pages/CustomerDetailPage').then(m => ({ default: m.CustomerDetailPage })));
 
-/* -------------------------------------------------------------------------- */
-/* Admin pages - legacy (retained)                                            */
-/* -------------------------------------------------------------------------- */
+// Admin pages - legacy (retained)
 const DashboardPage      = lazy(() => import('./pages/DashboardPage').then(m => ({ default: m.DashboardPage })));
 const ProductsPage       = lazy(() => import('./pages/ProductsPage').then(m => ({ default: m.ProductsPage })));
 const UsersPage          = lazy(() => import('./pages/UsersPage').then(m => ({ default: m.UsersPage })));
 const SettingsPage       = lazy(() => import('./pages/SettingsPage').then(m => ({ default: m.SettingsPage })));
 const StorePage          = lazy(() => import('./pages/StorePage').then(m => ({ default: m.StorePage })));
 
-/* -------------------------------------------------------------------------- */
-/* Admin pages - Phase 1-7 TMBill parity (single lazy chunk since they all    */
-/* share the CrudPage helper; splitting hurts more than it helps here).       */
-/* -------------------------------------------------------------------------- */
+// Admin pages - Phase 1-7 TMBill parity (single lazy chunk via shared CrudPage helper)
 // Named-export unwrap helper: React.lazy needs a `default` export.
 const named = <K extends string>(key: K) =>
   lazy(async () => {
@@ -48,9 +36,7 @@ const namedFrom = <K extends string>(loader: () => Promise<Record<string, unknow
     return { default: m[key] as FC };
   });
 
-// TMBill admin routes - one lazy import per named export.
-// Chunk-per-route not worth it: the underlying pages/admin/index module
-// resolves to one file, so all these share the same admin chunk anyway.
+// TMBill admin routes — one lazy import per named export (share the admin chunk).
 const MarketsPage            = named('MarketsPage');
 const BrandsPage             = named('BrandsPage');
 const OutletsPage            = named('OutletsPage');
@@ -90,8 +76,7 @@ const TaxReportPage          = named('TaxReportPage');
 const WastageReportPage      = named('WastageReportPage');
 const CashierReportPage      = named('CashierReportPage');
 
-// --- Phase 8+ pages (V2 dashboard, V2 reports with charts, inventory extras,
-// accounting, marketing, logs). Each loader is its own lazy chunk.
+// Phase 8+ pages — V2 dashboard, charts, inventory extras, accounting, marketing, logs. Each loader is its own lazy chunk.
 const RevenueDashboardPage   = namedFrom(() => import('./pages/admin/dashboard'),         'RevenueDashboardPage');
 
 const SalesReportV2          = namedFrom(() => import('./pages/admin/reports'),           'SalesReportPageV2');

@@ -6,7 +6,8 @@ export type IconName =
   | 'search' | 'close' | 'plus' | 'minus' | 'trash' | 'check'
   | 'bag' | 'cart' | 'receipt' | 'print' | 'phone' | 'user'
   | 'shield' | 'zap' | 'chart' | 'arrow' | 'lock' | 'cash'
-  | 'card' | 'coins' | 'spark' | 'store' | 'sun' | 'moon' | 'edit';
+  | 'card' | 'coins' | 'spark' | 'store' | 'sun' | 'moon' | 'edit'
+  | 'menu' | 'bell';
 
 export type IconTone = 'primary' | 'accent' | 'success' | 'danger' | 'muted';
 
@@ -52,6 +53,8 @@ const PATHS: Record<IconName, JSX.Element> = {
   sun:     <path d="M12 7a5 5 0 100 10 5 5 0 000-10zm0-5a1 1 0 011 1v2a1 1 0 11-2 0V3a1 1 0 011-1zm0 17a1 1 0 011 1v2a1 1 0 11-2 0v-2a1 1 0 011-1zM4.22 4.22a1 1 0 011.42 0l1.4 1.4a1 1 0 11-1.41 1.42l-1.41-1.41a1 1 0 010-1.41zm12.72 12.72a1 1 0 011.42 0l1.41 1.41a1 1 0 11-1.41 1.42l-1.42-1.42a1 1 0 010-1.41zM2 12a1 1 0 011-1h2a1 1 0 110 2H3a1 1 0 01-1-1zm17 0a1 1 0 011-1h2a1 1 0 110 2h-2a1 1 0 01-1-1zM4.22 19.78a1 1 0 010-1.42l1.41-1.4a1 1 0 011.42 1.41l-1.41 1.41a1 1 0 01-1.42 0zm12.72-12.72a1 1 0 010-1.42l1.41-1.41a1 1 0 111.42 1.42l-1.42 1.41a1 1 0 01-1.41 0z"/>,
   moon:    <path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/>,
   edit:    <path d="M14.06 4.94l3.75 3.75L7.62 18.87 3 20l1.12-4.62 9.94-9.94zm4.62-.94a2.12 2.12 0 013 3l-1.5 1.5-3-3 1.5-1.5z"/>,
+  menu:    <path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z"/>,
+  bell:    <path d="M12 2a6 6 0 016 6v4l2 3v1H4v-1l2-3V8a6 6 0 016-6zm-2 18a2 2 0 004 0h-4z"/>,
 };
 
 export const Icon: FC<IconProps> = ({

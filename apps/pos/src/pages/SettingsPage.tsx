@@ -1,12 +1,6 @@
-// SettingsPage — tenant admin's local preferences + read-only store profile.
-
-// Store profile is READ-ONLY here - fields ripple through every past invoice.
-// Only the vendor can edit them, via /vendor/tenants -> Edit dialog.
-
-// Tenants can still self-serve the receipt footer message and a local browser-scoped data wipe.
-
-// Admin-only (enforced by <AdminRoute> at the router level).
+// SettingsPage — receipt footer preferences + read-only store profile. Admin-only.
 import { useState, type ChangeEvent, type FC, type FormEvent } from 'react';
+import { useParams } from 'react-router-dom';
 import cls from './pages.module.css';
 import { Button, Field, Icon, Text, Textarea } from '@billing/ui/atoms';
 import { PageHeader } from '../CounterShell';
@@ -25,6 +19,7 @@ export const SettingsPage: FC = () => {
   const currentStoreId = useCurrentStoreId();
   const currentStore = byId(currentStoreId);
   const toast = useToast();
+  const { slug = '' } = useParams<{ slug: string }>();
   const [footer, setFooter] = useState(settings.receiptFooter);
   const [saving, setSaving] = useState(false);
 
@@ -52,7 +47,14 @@ export const SettingsPage: FC = () => {
 
   return (
     <>
-      <PageHeader title={STRINGS.settings.pageTitle} subtitle={STRINGS.settings.pageSubtitle} />
+      <PageHeader
+        title={STRINGS.settings.pageTitle}
+        subtitle={STRINGS.settings.pageSubtitle}
+        breadcrumbs={[
+          { label: STRINGS.nav.dashboard, href: `/${slug}/admin` },
+          { label: STRINGS.settings.pageTitle },
+        ]}
+      />
 
       {/* Read-only store profile — mirror of /store, kept in sync via StoreContext. */}
       <div className={cls.card}>

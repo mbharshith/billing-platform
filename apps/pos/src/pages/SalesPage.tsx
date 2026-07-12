@@ -1,6 +1,6 @@
-// SalesPage — all sales, filterable by date range / payment / status.
+// SalesPage — all sales, filterable by date range, payment, and status.
 import { useMemo, useState, type FC } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import cls from './pages.module.css';
 import { Badge, Button, Text } from '@billing/ui/atoms';
 import {
@@ -29,6 +29,8 @@ export const SalesPage: FC = () => {
   const { can } = useAuth();
   const canSeeAllTime = can('sale:viewAllTime');
   const navigate = useNavigate();
+  const location = useLocation();
+  const isAdmin = location.pathname.includes('/admin/');
 
   const [query,   setQuery]   = useState('');
   const [payment, setPayment] = useState<PaymentFilter>('all');
@@ -81,6 +83,10 @@ export const SalesPage: FC = () => {
       <PageHeader
         title={STRINGS.sales.pageTitle}
         subtitle={canSeeAllTime ? STRINGS.sales.pageSubtitle : "Today's sales rung up at your terminal."}
+        breadcrumbs={[
+          { label: isAdmin ? STRINGS.nav.dashboard : STRINGS.nav.cashier, href: isAdmin ? `/${slug}/admin` : `/${slug}/cashier` },
+          { label: STRINGS.sales.pageTitle },
+        ]}
       />
 
       <div className={cls.card}>

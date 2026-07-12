@@ -1,9 +1,6 @@
-// UsersPage — staff management for the Admin of a single tenant.
-
-// Tenant admin manages their own store's users: invite/edit/deactivate (never self).
-// Cross-tenant users are never visible - scoped to currentStoreId at read+write.
-
+// UsersPage — staff management for the admin of a single tenant. Scoped to currentStoreId.
 import { useMemo, useState, type FC, type FormEvent } from 'react';
+import { useParams } from 'react-router-dom';
 import cls from './pages.module.css';
 import { Badge, Button, Field, Input, Select, Text } from '@billing/ui/atoms';
 import { Modal } from '@billing/ui/organisms';
@@ -28,6 +25,7 @@ interface UserFormState {
 export const UsersPage: FC = () => {
   const { users, create, update, setActive } = useUsers();
   const { currentUser, currentStoreId } = useAuth();
+  const { slug = '' } = useParams<{ slug: string }>();
   const toast = useToast();
 
   const [form, setForm] = useState<UserFormState | null>(null);
@@ -113,6 +111,10 @@ export const UsersPage: FC = () => {
       <PageHeader
         title={STRINGS.users.pageTitle}
         subtitle="Everyone here works at this tenant. Add admins (co-owners) or cashiers."
+        breadcrumbs={[
+          { label: STRINGS.nav.dashboard, href: `/${slug}/admin` },
+          { label: STRINGS.users.pageTitle },
+        ]}
         actions={
           <Button variant="primary" leadingIcon="plus" onClick={openCreate}>
             {STRINGS.users.addNew}

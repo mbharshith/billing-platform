@@ -155,99 +155,181 @@ export const SIDEBAR_GROUPS: readonly SidebarGroup[] = [
 ];
 
 /* -------------------------------------------------------------------------- */
-/* AdminSidebar                                                               */
+/* AdminSidebar - controlled component (collapse state lives in shell)        */
+/* -------------------------------------------------------------------------- */
+
+interface AdminSidebarProps {
+  readonly slug: string;
+  readonly collapsed: boolean;
+}
+
+export const AdminSidebar: FC<AdminSidebarProps> = ({ slug, collapsed }) => (
+  <aside className={cls.sidebar} data-collapsed={collapsed} aria-label="Admin navigation">
+    <div className={cls.sidebar__brand}>
+      <Icon name="spark" size={22} />
+      {!collapsed && (
+        <div className={cls['sidebar__brand-text']}>
+          <Text as="span" size="sm" weight="heavy">{BRAND.name}</Text>
+          <Text as="span" size="xs" tone="subtle">Admin Console</Text>
+        </div>
+      )}
+    </div>
+
+    {SIDEBAR_GROUPS.map((group) => (
+      <div key={group.id} className={cls.sidebar__group} data-group={group.id}>
+        <div className={cls['sidebar__group-header']}>
+          <span className={cls['sidebar__group-dot']} aria-hidden />
+          <span>{group.label}</span>
+        </div>
+        {group.links.map((link) => (
+          <NavLink
+            key={link.path}
+            to={`/${slug}/admin/${link.path}`}
+            end={link.path === ''}
+            data-label={link.label}   /* fed to the collapsed-mode flyout tooltip */
+            className={({ isActive }) => [
+              cls.sidebar__link,
+              isActive && cls['sidebar__link--active'],
+            ].filter(Boolean).join(' ')}
+            title={link.label}
+          >
+            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+            <Icon name={link.icon as any} size={16} />
+            <span className={cls['sidebar__link-label']}>{link.label}</span>
+          </NavLink>
+        ))}
+      </div>
+    ))}
+
+    <div className={cls.sidebar__footer}>
+      <span className={cls['sidebar__footer-hint']}>v11.7  KartWise</span>
+    </div>
+  </aside>
+);
+
+/* -------------------------------------------------------------------------- */
+/* Top bar - hamburger, outlet chip, global search, quick actions, alerts     */
+/* -------------------------------------------------------------------------- */
+
+interface TopBarProps {
+  readonly outletName: string;
+  readonly outletTag?: string;         // e.g. "BENGALURU / DINE-IN"
+  readonly collapsed: boolean;
+  readonly onToggleSidebar: () => void;
+  readonly onQuickAdd?: () => void;
+  readonly notificationCount?: number;
+  readonly extra?: ReactNode;          // user menu comes in here
+}
+
+export const TopBar: FC<TopBarProps> = ({
+  outletName, outletTag, collapsed, onToggleSidebar, onQuickAdd,
+  notificationCount = 0, extra,
+}) => (
+  <header className={cls.topbar}>
+    <button
+      type="button"
+      className={cls.topbar__toggle}
+      onClick={onToggleSidebar}
+      aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+      title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+    >
+      <Icon name={collapsed ? 'arrow' : 'menu'} size={18} />
+    </button>
+
+    <div className={cls.topbar__outlet} title={outletName}>
+      <span className={cls['topbar__outlet-dot']} aria-hidden />
+      <span className={cls['topbar__outlet-name']}>{outletName}</span>
+      {outletTag && <span className={cls['topbar__outlet-tag']}>{outletTag}</span>}
+    </div>
+
+    <div className={cls.topbar__search}>
+      <span className={cls['topbar__search-icon']}>
+        <Icon name="search" size={15} />
+      </span>
+      <input
+        type="search"
+        className={cls['topbar__search-input']}
+        placeholder="Search bills, items, customers..."
+        aria-label="Global search"
+      />
+      <span className={cls['topbar__search-kbd']}>Ctrl K</span>
+    </div>
+
+    <div className={cls.topbar__spacer} />
+
+    <div className={cls.topbar__actions}>
+      {onQuickAdd && (
+        <button type="button" className={cls.topbar__cta} onClick={onQuickAdd}>
+          <Icon name="plus" size={14} />
+          <span>New Sale</span>
+        </button>
+      )}
+      <button
+        type="button"
+        className={cls.topbar__iconbtn}
+        aria-label={`Notifications${notificationCount ? ` (${notificationCount})` : ''}`}
+        title="Notifications"
+      >
+        <Icon name="bell" size={17} />
+        {notificationCount > 0 && (
+          <span className={cls['topbar__iconbtn-badge']}>
+            {notificationCount > 99 ? '99+' : notificationCount}
+          </span>
+        )}
+      </button>
+      <span className={cls.topbar__divider} />
+      <ThemeToggle />
+      {extra}
+    </div>
+  </header>
+);
+
+/* -------------------------------------------------------------------------- */
+/* AdminShell - hosts sidebar + top-bar. Owns the collapsed state.            */
 /* -------------------------------------------------------------------------- */
 
 const COLLAPSED_KEY = 'admin-sidebar-collapsed';
 
-interface AdminSidebarProps { slug: string }
+interface AdminShellProps {
+  readonly slug: string;
+  readonly outletName: string;
+  readonly outletTag?: string;
+  readonly onQuickAdd?: () => void;
+  readonly notificationCount?: number;
+  readonly topbar?: ReactNode;  // user-menu + any tenant-specific chip
+}
 
-export const AdminSidebar: FC<AdminSidebarProps> = ({ slug }) => {
+export const AdminShell: FC<AdminShellProps> = ({
+  slug, outletName, outletTag, onQuickAdd, notificationCount, topbar,
+}) => {
   const [collapsed, setCollapsed] = useState<boolean>(() => {
     try { return localStorage.getItem(COLLAPSED_KEY) === '1'; } catch { return false; }
   });
-
   useEffect(() => {
     try { localStorage.setItem(COLLAPSED_KEY, collapsed ? '1' : '0'); } catch { /* ignore */ }
   }, [collapsed]);
 
   return (
-    <aside className={cls.sidebar} data-collapsed={collapsed} aria-label="Admin navigation">
-      <div className={cls.sidebar__brand}>
-        <Icon name="spark" size={22} />
-        {!collapsed && (
-          <div className={cls['sidebar__brand-text']}>
-            <Text as="span" size="sm" weight="heavy">{BRAND.name}</Text>
-            <Text as="span" size="xs" tone="subtle">Admin Console</Text>
-          </div>
-        )}
-      </div>
-
-      {SIDEBAR_GROUPS.map((group) => (
-        <div key={group.id} className={cls.sidebar__group} data-group={group.id}>
-          <div className={cls['sidebar__group-header']}>
-            <span className={cls['sidebar__group-dot']} aria-hidden />
-            <span>{group.label}</span>
-          </div>
-          {group.links.map((link) => (
-            <NavLink
-              key={link.path}
-              to={`/${slug}/admin/${link.path}`}
-              end={link.path === ''}
-              className={({ isActive }) => [
-                cls.sidebar__link,
-                isActive && cls['sidebar__link--active'],
-              ].filter(Boolean).join(' ')}
-              title={link.label}
-            >
-              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-              <Icon name={link.icon as any} size={16} />
-              <span className={cls['sidebar__link-label']}>{link.label}</span>
-            </NavLink>
-          ))}
+    <div className={cls.adminShell}>
+      <AdminSidebar slug={slug} collapsed={collapsed} />
+      <div className={cls.adminShell__main}>
+        <TopBar
+          outletName={outletName}
+          outletTag={outletTag}
+          collapsed={collapsed}
+          onToggleSidebar={() => setCollapsed((v) => !v)}
+          onQuickAdd={onQuickAdd}
+          notificationCount={notificationCount ?? 0}
+          extra={topbar}
+        />
+        <div className={cls.adminShell__content}>
+          <Outlet />
         </div>
-      ))}
-
-      <button
-        type="button"
-        className={cls.sidebar__collapse}
-        onClick={() => setCollapsed((v) => !v)}
-        aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-      >
-        <Icon name="arrow" size={14} />
-        {!collapsed && <span>Collapse</span>}
-      </button>
-    </aside>
+      </div>
+      <ToastStack />
+    </div>
   );
 };
-
-/* -------------------------------------------------------------------------- */
-/* AdminShell - top-level layout for admin routes                             */
-/* -------------------------------------------------------------------------- */
-
-interface AdminShellProps {
-  readonly slug: string;
-  readonly outletName: string;
-  readonly topbar?: ReactNode;
-}
-
-export const AdminShell: FC<AdminShellProps> = ({ slug, outletName, topbar }) => (
-  <div className={cls.adminShell}>
-    <AdminSidebar slug={slug} />
-    <div className={cls.adminShell__main}>
-      <div className={cls.adminShell__topbar}>
-        <Text weight="semibold">{outletName}</Text>
-        <div className={cls['adminShell__topbar-spacer']} />
-        {topbar}
-        <ThemeToggle />
-      </div>
-      <div className={cls.adminShell__content}>
-        <Outlet />
-      </div>
-    </div>
-    <ToastStack />
-  </div>
-);
 
 /* -------------------------------------------------------------------------- */
 /* AdminPage - shared header + intro + actions envelope                       */
@@ -312,8 +394,8 @@ export const StubPage: FC<StubPageProps> = ({ title, icon = 'spark', phase, hint
           {hint ?? `Table structure and seed data are in place. Detailed CRUD UI will land in ${phase}.`}
         </Text>
         <div style={{ marginTop: 16 }}>
-          <button type="button" onClick={() => navigate(-1)} className={cls.sidebar__collapse}>
-            <Icon name="arrow" size={14} /> Back
+          <button type="button" onClick={() => navigate(-1)} className={cls.topbar__iconbtn} style={{ width: 'auto', padding: '8px 14px' }}>
+            <Icon name="arrow" size={14} flipX /> Back
           </button>
         </div>
       </div>

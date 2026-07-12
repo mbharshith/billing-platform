@@ -1,5 +1,4 @@
-// CashierPage - primary "ring up a sale" experience. Reads Products/Settings/Auth,
-// writes Sales (record), Products (stock), Customers (create/link + lending).
+// CashierPage — primary ring-up experience. Reads Products/Settings/Auth; writes Sales, Products, Customers.
 import { useMemo, useState, type FC } from 'react';
 import pages from './pages.module.css';
 import {
