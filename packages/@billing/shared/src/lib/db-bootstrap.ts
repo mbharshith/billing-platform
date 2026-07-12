@@ -17,12 +17,16 @@ import {
   SEED_AGGREGATORS, SEED_DELIVERY_ZONES, SEED_INGREDIENTS, SEED_RECIPES,
   SEED_SUPPLIERS, SEED_PURCHASE_ORDERS, SEED_WASTAGE, SEED_CUSTOMER_GROUPS,
   SEED_LOYALTY_TIERS, SEED_COUPONS, SEED_FEEDBACK,
+  SEED_WAREHOUSES, SEED_RM_CATEGORIES, SEED_UOM, SEED_STOCK_ADJUSTMENTS,
+  SEED_GRNS, SEED_STOCK_TRANSFERS, SEED_INDENTS, SEED_PRODUCTION_BATCHES,
+  SEED_ACCOUNTS, SEED_EXP_CATEGORIES, SEED_EXPENSES, SEED_VENDOR_BILLS,
+  SEED_WA_TEMPLATES, SEED_SEGMENTS, SEED_CAMPAIGNS,
 } from '@billing/shared/fixtures';
 import type {
   Customer, CustomerPayment, Product, Sale, Store, User, UserRole,
 } from '@billing/shared/domain/types';
 
-const MIGRATION_FLAG = 'db-bootstrap::v5';
+const MIGRATION_FLAG = 'db-bootstrap::v6';
 
 // Normalise legacy user roles: drop 'super_admin' rows (that surface moved to the
 // dedicated vendor account), rename 'master' -> 'admin' (v1 schema). Idempotent.
@@ -146,6 +150,22 @@ const seedRestaurantTables = async (): Promise<void> => {
   await seedIfEmpty(db.loyaltyTiers,    SEED_LOYALTY_TIERS);
   await seedIfEmpty(db.coupons,         SEED_COUPONS);
   await seedIfEmpty(db.feedback,        SEED_FEEDBACK);
+  // v6 seeds
+  await seedIfEmpty(db.warehouses,        SEED_WAREHOUSES);
+  await seedIfEmpty(db.rmCategories,      SEED_RM_CATEGORIES);
+  await seedIfEmpty(db.uom,               SEED_UOM);
+  await seedIfEmpty(db.stockAdjustments,  SEED_STOCK_ADJUSTMENTS);
+  await seedIfEmpty(db.grns,              SEED_GRNS);
+  await seedIfEmpty(db.stockTransfers,    SEED_STOCK_TRANSFERS);
+  await seedIfEmpty(db.indents,           SEED_INDENTS);
+  await seedIfEmpty(db.productionBatches, SEED_PRODUCTION_BATCHES);
+  await seedIfEmpty(db.accounts,          SEED_ACCOUNTS);
+  await seedIfEmpty(db.expenseCategories, SEED_EXP_CATEGORIES);
+  await seedIfEmpty(db.expenses,          SEED_EXPENSES);
+  await seedIfEmpty(db.vendorBills,       SEED_VENDOR_BILLS);
+  await seedIfEmpty(db.waTemplates,       SEED_WA_TEMPLATES);
+  await seedIfEmpty(db.segments,          SEED_SEGMENTS);
+  await seedIfEmpty(db.campaigns,         SEED_CAMPAIGNS);
 };
 
 // Idempotent: create the vendor account if missing (runs every boot so pre-v3 installs get vendor too).

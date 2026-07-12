@@ -38,8 +38,14 @@ const StorePage          = lazy(() => import('./pages/StorePage').then(m => ({ d
 const named = <K extends string>(key: K) =>
   lazy(async () => {
     const m = (await import('./pages/admin')) as unknown as Record<K, FC>;
-    const Cmp = m[key];
-    return { default: Cmp };
+    return { default: m[key] };
+  });
+
+// Same helper but for the sibling modules (inventory-extras, accounting, marketing, dashboard, reports, logs).
+const namedFrom = <K extends string>(loader: () => Promise<Record<string, unknown>>, key: K) =>
+  lazy(async () => {
+    const m = await loader();
+    return { default: m[key] as FC };
   });
 
 // TMBill admin routes - one lazy import per named export.
@@ -84,6 +90,39 @@ const TaxReportPage          = named('TaxReportPage');
 const WastageReportPage      = named('WastageReportPage');
 const CashierReportPage      = named('CashierReportPage');
 
+// --- Phase 8+ pages (V2 dashboard, V2 reports with charts, inventory extras,
+// accounting, marketing, logs). Each loader is its own lazy chunk.
+const RevenueDashboardPage   = namedFrom(() => import('./pages/admin/dashboard'),         'RevenueDashboardPage');
+
+const SalesReportV2          = namedFrom(() => import('./pages/admin/reports'),           'SalesReportPageV2');
+const ProductMixReportV2     = namedFrom(() => import('./pages/admin/reports'),           'ProductMixReportPageV2');
+const HourlyReportV2         = namedFrom(() => import('./pages/admin/reports'),           'HourlyReportPageV2');
+const DiscountReportV2       = namedFrom(() => import('./pages/admin/reports'),           'DiscountReportPageV2');
+const TaxReportV2            = namedFrom(() => import('./pages/admin/reports'),           'TaxReportPageV2');
+const WastageReportV2        = namedFrom(() => import('./pages/admin/reports'),           'WastageReportPageV2');
+const CashierReportV2        = namedFrom(() => import('./pages/admin/reports'),           'CashierReportPageV2');
+const PaymentModesReport     = namedFrom(() => import('./pages/admin/reports'),           'PaymentModesReportPage');
+
+const WarehousesPage         = namedFrom(() => import('./pages/admin/inventory-extras'),  'WarehousesPage');
+const RmCategoriesPage       = namedFrom(() => import('./pages/admin/inventory-extras'),  'RmCategoriesPage');
+const UomPage                = namedFrom(() => import('./pages/admin/inventory-extras'),  'UomPage');
+const StockAdjustmentsPage   = namedFrom(() => import('./pages/admin/inventory-extras'),  'StockAdjustmentsPage');
+const GRNsPage               = namedFrom(() => import('./pages/admin/inventory-extras'),  'GRNsPage');
+const StockTransfersPage     = namedFrom(() => import('./pages/admin/inventory-extras'),  'StockTransfersPage');
+const IndentsPage            = namedFrom(() => import('./pages/admin/inventory-extras'),  'IndentsPage');
+const ProductionBatchesPage  = namedFrom(() => import('./pages/admin/inventory-extras'),  'ProductionBatchesPage');
+
+const ChartOfAccountsPage    = namedFrom(() => import('./pages/admin/accounting'),        'ChartOfAccountsPage');
+const ExpenseCategoriesPage  = namedFrom(() => import('./pages/admin/accounting'),        'ExpenseCategoriesPage');
+const ExpensesPage           = namedFrom(() => import('./pages/admin/accounting'),        'ExpensesPage');
+const VendorBillsPage        = namedFrom(() => import('./pages/admin/accounting'),        'VendorBillsPage');
+
+const WATemplatesPage        = namedFrom(() => import('./pages/admin/marketing'),         'WATemplatesPage');
+const SegmentsPage           = namedFrom(() => import('./pages/admin/marketing'),         'SegmentsPage');
+const CampaignsPage          = namedFrom(() => import('./pages/admin/marketing'),         'CampaignsPage');
+
+const LogsPage               = namedFrom(() => import('./pages/admin/logs'),              'LogsPage');
+
 // Route wrapper: ErrorBoundary + Suspense envelope per page.
 const R = (label: string, node: ReactNode): JSX.Element => (
   <ErrorBoundary label={label}>
@@ -113,7 +152,7 @@ export const AdminApp: FC = () => (
     <Route element={<AdminRoute />}>
       <Route element={<AdminShellRoute />}>
         {/* ---- Overview ---- */}
-        <Route index                    element={R('dashboard',      <DashboardPage />)} />
+        <Route index                    element={R('dashboard',      <RevenueDashboardPage />)} />
         <Route path="live-orders"       element={R('live-orders',    <LiveOrdersPage />)} />
 
         {/* ---- POS Config (Phase 1) ---- */}
@@ -146,34 +185,55 @@ export const AdminApp: FC = () => (
         <Route path="delivery-zones"    element={R('delivery-zones', <DeliveryZonesPage />)} />
         <Route path="online-orders"     element={R('online-orders',  <OnlineOrdersPage />)} />
 
-        {/* ---- Reports (Phase 5 - stubs) ---- */}
-        <Route path="reports/sales"     element={R('rpt-sales',      <SalesReportPage />)} />
-        <Route path="reports/products"  element={R('rpt-prods',      <ProductMixReportPage />)} />
-        <Route path="reports/hourly"    element={R('rpt-hourly',     <HourlyReportPage />)} />
-        <Route path="reports/discounts" element={R('rpt-disc',       <DiscountReportPage />)} />
-        <Route path="reports/tax"       element={R('rpt-tax',        <TaxReportPage />)} />
-        <Route path="reports/wastage"   element={R('rpt-wast',       <WastageReportPage />)} />
-        <Route path="reports/cashier"   element={R('rpt-cash',       <CashierReportPage />)} />
+        {/* ---- Reports (Phase 5 - real charts) ---- */}
+        <Route path="reports/sales"     element={R('rpt-sales',      <SalesReportV2 />)} />
+        <Route path="reports/products"  element={R('rpt-prods',      <ProductMixReportV2 />)} />
+        <Route path="reports/hourly"    element={R('rpt-hourly',     <HourlyReportV2 />)} />
+        <Route path="reports/discounts" element={R('rpt-disc',       <DiscountReportV2 />)} />
+        <Route path="reports/tax"       element={R('rpt-tax',        <TaxReportV2 />)} />
+        <Route path="reports/wastage"   element={R('rpt-wast',       <WastageReportV2 />)} />
+        <Route path="reports/cashier"   element={R('rpt-cash',       <CashierReportV2 />)} />
+        <Route path="reports/payment-modes" element={R('rpt-pm',     <PaymentModesReport />)} />
 
-        {/* ---- Inventory (Phase 6) ---- */}
+        {/* ---- Inventory (Phase 6 + 8 expansion) ---- */}
+        <Route path="warehouses"        element={R('warehouses',     <WarehousesPage />)} />
+        <Route path="rm-categories"     element={R('rm-cats',        <RmCategoriesPage />)} />
+        <Route path="uom"               element={R('uom',            <UomPage />)} />
         <Route path="ingredients"       element={R('ingredients',    <IngredientsPage />)} />
         <Route path="recipes"           element={R('recipes',        <RecipesPage />)} />
         <Route path="suppliers"         element={R('suppliers',      <SuppliersPage />)} />
         <Route path="purchase-orders"   element={R('pos',            <PurchaseOrdersPage />)} />
+        <Route path="grns"              element={R('grns',           <GRNsPage />)} />
+        <Route path="stock-adjustments" element={R('stock-adj',      <StockAdjustmentsPage />)} />
+        <Route path="stock-transfers"   element={R('stock-trf',      <StockTransfersPage />)} />
+        <Route path="indents"           element={R('indents',        <IndentsPage />)} />
+        <Route path="production"        element={R('production',     <ProductionBatchesPage />)} />
         <Route path="wastage"           element={R('wastage',        <WastagePage />)} />
 
-        {/* ---- CRM & Loyalty (Phase 7) ---- */}
+        {/* ---- Accounting (Phase 9 - new) ---- */}
+        <Route path="accounts"           element={R('accounts',      <ChartOfAccountsPage />)} />
+        <Route path="expense-categories" element={R('exp-cats',      <ExpenseCategoriesPage />)} />
+        <Route path="expenses"           element={R('expenses',      <ExpensesPage />)} />
+        <Route path="vendor-bills"       element={R('vendor-bills',  <VendorBillsPage />)} />
+
+        {/* ---- CRM & Loyalty (Phase 7 + segments) ---- */}
         <Route path="customers"         element={R('customers',       <CustomersPage />)} />
         <Route path="customers/:id"     element={R('customer-detail', <CustomerDetailPage />)} />
         <Route path="customer-groups"   element={R('cust-groups',     <CustomerGroupsPage />)} />
+        <Route path="segments"          element={R('segments',        <SegmentsPage />)} />
         <Route path="loyalty"           element={R('loyalty',         <LoyaltyPage />)} />
         <Route path="coupons"           element={R('coupons',         <CouponsPage />)} />
         <Route path="feedback"          element={R('feedback',        <FeedbackPage />)} />
 
-        {/* ---- Administration (existing) ---- */}
+        {/* ---- Marketing (Phase 10 - new) ---- */}
+        <Route path="wa-templates"      element={R('wa-templates',    <WATemplatesPage />)} />
+        <Route path="campaigns"         element={R('campaigns',       <CampaignsPage />)} />
+
+        {/* ---- Administration (existing + logs) ---- */}
         <Route path="users"             element={R('users',      <UsersPage />)} />
         <Route path="sales"             element={R('sales',      <SalesPage />)} />
         <Route path="sales/:id"         element={R('sale-detail',<SaleDetailPage />)} />
+        <Route path="logs"              element={R('logs',       <LogsPage />)} />
         <Route path="settings"          element={R('settings',   <SettingsPage />)} />
         <Route path="store"             element={R('store',      <StorePage />)} />
 

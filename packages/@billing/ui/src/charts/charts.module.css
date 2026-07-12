@@ -1,0 +1,124 @@
+/* Chart wrappers - fixed-height containers because Chart.js's responsive
+ * mode ignores canvas height attributes. This is the primary bug that
+ * bites every Chart.js integration. Always wrap the canvas in a fixed
+ * height div.
+ */
+
+.chart {
+  position: relative;
+  width: 100%;
+}
+
+.chart--sm { height: 180px; }
+.chart--md { height: 240px; }
+.chart--lg { height: 320px; }
+.chart--xl { height: 420px; }
+
+.chart-frame {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.chart-frame__header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.chart-frame__title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.chart-frame__subtitle {
+  font-size: 12px;
+  color: var(--text-subtle);
+  margin: 0;
+}
+
+.chart-frame__meta {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-subtle);
+}
+
+/* -------------------------------------------------------------------------- */
+/* KPICard - big-number stat tiles                                            */
+/* -------------------------------------------------------------------------- */
+
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.kpi {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: transform 120ms, box-shadow 120ms;
+  border-left: 3px solid var(--kpi-accent, var(--brand-primary));
+}
+
+.kpi:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px -12px color-mix(in srgb, var(--brand-primary) 40%, transparent);
+}
+
+.kpi__label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-subtle);
+}
+
+.kpi__value {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1.1;
+}
+
+.kpi__delta {
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.kpi__delta--up   { color: var(--success, #16a34a); }
+.kpi__delta--down { color: var(--danger,  #dc2626); }
+.kpi__delta--flat { color: var(--text-subtle); }
+
+/* -------------------------------------------------------------------------- */
+/* Chart grid - responsive 2-col layout                                       */
+/* -------------------------------------------------------------------------- */
+
+.chart-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.chart-grid--3col {
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}

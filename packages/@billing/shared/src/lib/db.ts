@@ -20,6 +20,11 @@ import type {
   DeliveryZone, Ingredient, Recipe, Supplier, PurchaseOrder, WastageEntry,
   CustomerGroup, LoyaltyTier, Coupon, FeedbackEntry,
 } from '@billing/shared/domain/restaurant';
+import type {
+  Warehouse, RawMaterialCategory, UnitOfMeasure, StockAdjustment, GRN,
+  StockTransfer, IndentRequest, ProductionBatch, Account, ExpenseCategory,
+  Expense, VendorBill, WhatsAppTemplate, CustomerSegment, MarketingCampaign,
+} from '@billing/shared/domain/tmbill-extras';
 
 class AppDB extends Dexie {
   // v1-v4 tables
@@ -60,6 +65,23 @@ class AppDB extends Dexie {
   loyaltyTiers!:      Table<LoyaltyTier, string>;
   coupons!:           Table<Coupon, string>;
   feedback!:          Table<FeedbackEntry, string>;
+
+  // v6 tables - Phase 8+ (Inventory depth, Accounting, Marketing)
+  warehouses!:        Table<Warehouse, string>;
+  rmCategories!:      Table<RawMaterialCategory, string>;
+  uom!:               Table<UnitOfMeasure, string>;
+  stockAdjustments!:  Table<StockAdjustment, string>;
+  grns!:              Table<GRN, string>;
+  stockTransfers!:    Table<StockTransfer, string>;
+  indents!:           Table<IndentRequest, string>;
+  productionBatches!: Table<ProductionBatch, string>;
+  accounts!:          Table<Account, string>;
+  expenseCategories!: Table<ExpenseCategory, string>;
+  expenses!:          Table<Expense, string>;
+  vendorBills!:       Table<VendorBill, string>;
+  waTemplates!:       Table<WhatsAppTemplate, string>;
+  segments!:          Table<CustomerSegment, string>;
+  campaigns!:         Table<MarketingCampaign, string>;
 
   constructor() {
     // Renaming BRAND.dbName orphans existing local data - keep it stable OR ship a migration.
@@ -175,6 +197,62 @@ class AppDB extends Dexie {
       loyaltyTiers:      'id, storeId, active',
       coupons:           'id, storeId, code, active',
       feedback:          'id, storeId, at, resolved',
+    });
+
+    // v6 - Phase 8+ extras: warehouses, GRN, stock ops, accounting,
+    // marketing. All storeId-scoped, no upgrade fn (new tables only).
+    this.version(6).stores({
+      stores:            'id, name, status',
+      users:             'id, username, storeId, role',
+      products:          'id, storeId, [storeId+sku], category, active',
+      customers:         'id, storeId, [storeId+mobile]',
+      sales:             'id, storeId, completedAt, customerId, cashierId, voided, channel, orderStatus, [storeId+channel], [storeId+orderStatus]',
+      customerPayments:  'id, customerId, receivedAt',
+      auditLog:          'id, at, actorUsername, targetStoreId, action',
+      markets:           'id, code, active',
+      brands:            'id, marketId, active',
+      outlets:           'id, brandId, marketId, active',
+      paymentModes:      'id, storeId, code, active',
+      orderTypes:        'id, storeId, code, active',
+      taxSlabs:          'id, storeId, appliesTo, active',
+      discounts:         'id, storeId, type, active',
+      addlCharges:       'id, storeId, active',
+      reasons:           'id, storeId, category, active',
+      outletSettings:    'outletId',
+      menuCategories:    'id, storeId, sortOrder, active',
+      modifiers:         'id, storeId, active',
+      combos:            'id, storeId, active',
+      variants:          'id, storeId, menuItemId, active',
+      sections:          'id, storeId, sortOrder, active',
+      diningTables:      'id, storeId, sectionId, status, active',
+      kotStations:       'id, storeId, active',
+      aggregators:       'id, storeId, provider, enabled',
+      deliveryZones:     'id, storeId, active',
+      ingredients:       'id, storeId, active',
+      recipes:           'id, storeId, menuItemId',
+      suppliers:         'id, storeId, active',
+      purchaseOrders:    'id, storeId, status, orderedAt',
+      wastage:           'id, storeId, reportedAt',
+      customerGroups:    'id, storeId, active',
+      loyaltyTiers:      'id, storeId, active',
+      coupons:           'id, storeId, code, active',
+      feedback:          'id, storeId, at, resolved',
+      // v6 new tables
+      warehouses:        'id, storeId, type, active',
+      rmCategories:      'id, storeId, sortOrder, active',
+      uom:               'id, storeId, code, active',
+      stockAdjustments:  'id, storeId, warehouseId, ingredientId, performedAt',
+      grns:              'id, storeId, grnNumber, supplierId, status, receivedAt',
+      stockTransfers:    'id, storeId, transferNumber, status, requestedAt',
+      indents:           'id, storeId, indentNumber, status, requestedAt',
+      productionBatches: 'id, storeId, batchNumber, status, producedAt',
+      accounts:          'id, storeId, code, type, active',
+      expenseCategories: 'id, storeId, active',
+      expenses:          'id, storeId, voucherNumber, categoryId, incurredAt',
+      vendorBills:       'id, storeId, billNumber, supplierId, status, dueDate',
+      waTemplates:       'id, storeId, category, active',
+      segments:          'id, storeId, active',
+      campaigns:         'id, storeId, channel, status, scheduledAt',
     });
   }
 }

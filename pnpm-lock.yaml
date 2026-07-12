@@ -173,6 +173,12 @@ importers:
       '@billing/shared':
         specifier: workspace:*
         version: link:../shared
+      chart.js:
+        specifier: ^4.5.1
+        version: 4.5.1
+      react-chartjs-2:
+        specifier: ^5.3.1
+        version: 5.3.1(chart.js@4.5.1)(react@18.3.1)
     devDependencies:
       '@types/react':
         specifier: ^18.3.12
@@ -432,6 +438,9 @@ packages:
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==, tarball: https://npme.walmart.com/artifactory/api/npm/npme-npm/@jridgewell/trace-mapping/-/trace-mapping-0.3.31.tgz}
 
+  '@kurkle/color@0.3.4':
+    resolution: {integrity: sha512-M5UknZPHRu3DEDWoipU6sE8PdkZ6Z/S+v4dD+Ke8IaNlpdSQah50lz1KtcFBa2vsdOnwbbnxJwVM4wty6udA5w==, tarball: https://npme.walmart.com/artifactory/api/npm/npme-npm/@kurkle/color/-/color-0.3.4.tgz}
+
   '@originjs/vite-plugin-federation@1.4.1':
     resolution: {integrity: sha512-Uo08jW5pj1t58OUKuZNkmzcfTN2pqeVuAWCCiKf/75/oll4Efq4cHOqSE1FXMlvwZNGDziNdDyBbQ5IANem3CQ==, tarball: https://npme.walmart.com/artifactory/api/npm/npme-npm/@originjs/vite-plugin-federation/-/vite-plugin-federation-1.4.1.tgz}
     engines: {node: '>=14.0.0', pnpm: '>=7.0.1'}
@@ -626,6 +635,10 @@ packages:
   caniuse-lite@1.0.30001803:
     resolution: {integrity: sha512-g/uHREV2ZpK9qMalCsWaxmA6ol+DX8GYhuf3T40RKoP+oL7vhRJh8LNt73PCjpnR6l14FzfPrB5Yux4PKm2meg==, tarball: https://npme.walmart.com/artifactory/api/npm/npme-npm/caniuse-lite/-/caniuse-lite-1.0.30001803.tgz}
 
+  chart.js@4.5.1:
+    resolution: {integrity: sha512-GIjfiT9dbmHRiYi6Nl2yFCq7kkwdkp1W/lp2J99rX0yo9tgJGn3lKQATztIjb5tVtevcBtIdICNWqlq5+E8/Pw==, tarball: https://npme.walmart.com/artifactory/api/npm/npme-npm/chart.js/-/chart.js-4.5.1.tgz}
+    engines: {pnpm: '>=8'}
+
   convert-source-map@2.0.0:
     resolution: {integrity: sha512-Kvp459HrV2FEJ1CAsi1Ku+MY3kasH19TFykTz2xWmMeq6bk2NU3XXvfJ+Q61m0xktWwt+1HSYf3JZsTms3aRJg==, tarball: https://npme.walmart.com/artifactory/api/npm/npme-npm/convert-source-map/-/convert-source-map-2.0.0.tgz}
 
@@ -716,6 +729,12 @@ packages:
   postcss@8.5.16:
     resolution: {integrity: sha512-vuwillviilfKZsg0VGj5R/YwwcHx4SLsIOI/7K6mQkWx+l5cUHTjj5g0AasTBcyXsbfTgrwsUNmVUb5xVwyPwg==, tarball: https://npme.walmart.com/artifactory/api/npm/npme-npm/postcss/-/postcss-8.5.16.tgz}
     engines: {node: ^10 || ^12 || >=14}
+
+  react-chartjs-2@5.3.1:
+    resolution: {integrity: sha512-h5IPXKg9EXpjoBzUfyWJvllMjG2mQ4EiuHQFhms/AjUm0XSZHhyRy2xVmLXHKrtcdrPO4mnGqRtYoD0vp95A0A==, tarball: https://npme.walmart.com/artifactory/api/npm/npme-npm/react-chartjs-2/-/react-chartjs-2-5.3.1.tgz}
+    peerDependencies:
+      chart.js: ^4.1.1
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
   react-dom@18.3.1:
     resolution: {integrity: sha512-5m4nQKp+rZRb09LNH59GM4BxTh9251/ylbKIbpe7TpGxfJ+9kv6BLkLBXIjjspbgbnIBNqlI23tRnTWT0snUIw==, tarball: https://npme.walmart.com/artifactory/api/npm/npme-npm/react-dom/-/react-dom-18.3.1.tgz}
@@ -1006,6 +1025,8 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.5
 
+  '@kurkle/color@0.3.4': {}
+
   '@originjs/vite-plugin-federation@1.4.1':
     dependencies:
       estree-walker: 3.0.3
@@ -1148,6 +1169,10 @@ snapshots:
 
   caniuse-lite@1.0.30001803: {}
 
+  chart.js@4.5.1:
+    dependencies:
+      '@kurkle/color': 0.3.4
+
   convert-source-map@2.0.0: {}
 
   csstype@3.2.3: {}
@@ -1233,6 +1258,11 @@ snapshots:
       nanoid: 3.3.15
       picocolors: 1.1.1
       source-map-js: 1.2.1
+
+  react-chartjs-2@5.3.1(chart.js@4.5.1)(react@18.3.1):
+    dependencies:
+      chart.js: 4.5.1
+      react: 18.3.1
 
   react-dom@18.3.1(react@18.3.1):
     dependencies:

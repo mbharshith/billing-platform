@@ -102,13 +102,31 @@ export const SIDEBAR_GROUPS: readonly SidebarGroup[] = [
   },
   {
     id: 'inv',
-    label: 'Inventory',
+    label: 'Inventory Management',
     links: [
+      { path: 'warehouses',       label: 'Warehouses',       icon: 'store' },
+      { path: 'rm-categories',    label: 'RM Categories',    icon: 'bag' },
+      { path: 'uom',              label: 'Units of Measure', icon: 'chart' },
       { path: 'ingredients',      label: 'Ingredients',      icon: 'bag' },
       { path: 'recipes',          label: 'Recipes',          icon: 'edit' },
       { path: 'suppliers',        label: 'Suppliers',        icon: 'user' },
       { path: 'purchase-orders',  label: 'Purchase Orders',  icon: 'receipt' },
+      { path: 'grns',             label: 'Goods Receipts',   icon: 'receipt' },
+      { path: 'stock-adjustments',label: 'Stock Adjustments',icon: 'edit' },
+      { path: 'stock-transfers',  label: 'Stock Transfers',  icon: 'zap' },
+      { path: 'indents',          label: 'Indents',          icon: 'plus' },
+      { path: 'production',       label: 'Production Batches',icon: 'spark' },
       { path: 'wastage',          label: 'Wastage',          icon: 'trash' },
+    ],
+  },
+  {
+    id: 'acct',
+    label: 'Accounting',
+    links: [
+      { path: 'accounts',           label: 'Chart of Accounts', icon: 'chart' },
+      { path: 'expense-categories', label: 'Expense Categories',icon: 'bag' },
+      { path: 'expenses',           label: 'Expenses',          icon: 'coins' },
+      { path: 'vendor-bills',       label: 'Vendor Bills',      icon: 'receipt' },
     ],
   },
   {
@@ -117,18 +135,28 @@ export const SIDEBAR_GROUPS: readonly SidebarGroup[] = [
     links: [
       { path: 'customers',         label: 'Customers',        icon: 'user' },
       { path: 'customer-groups',   label: 'Customer Groups',  icon: 'user' },
+      { path: 'segments',          label: 'Segments',         icon: 'spark' },
       { path: 'loyalty',           label: 'Loyalty Tiers',    icon: 'spark' },
       { path: 'coupons',           label: 'Coupons',          icon: 'coins' },
       { path: 'feedback',          label: 'Feedback',         icon: 'phone' },
     ],
   },
   {
+    id: 'marketing',
+    label: 'Marketing',
+    links: [
+      { path: 'wa-templates',      label: 'WhatsApp Templates', icon: 'phone' },
+      { path: 'campaigns',         label: 'Campaigns',          icon: 'zap' },
+    ],
+  },
+  {
     id: 'admin',
     label: 'Administration',
     links: [
-      { path: 'users',    label: 'Staff',      icon: 'user' },
+      { path: 'users',    label: 'Staff',       icon: 'user' },
       { path: 'sales',    label: 'Bill History', icon: 'receipt' },
-      { path: 'settings', label: 'Settings',   icon: 'shield' },
+      { path: 'logs',     label: 'Audit Log',   icon: 'shield' },
+      { path: 'settings', label: 'Settings',    icon: 'shield' },
       { path: 'store',    label: 'Outlet Info', icon: 'store' },
     ],
   },
@@ -164,12 +192,11 @@ export const AdminSidebar: FC<AdminSidebarProps> = ({ slug }) => {
       </div>
 
       {SIDEBAR_GROUPS.map((group) => (
-        <div key={group.id} className={cls.sidebar__group}>
-          {!collapsed && (
-            <div className={cls['sidebar__group-header']}>
-              <span>{group.label}</span>
-            </div>
-          )}
+        <div key={group.id} className={cls.sidebar__group} data-group={group.id}>
+          <div className={cls['sidebar__group-header']}>
+            <span className={cls['sidebar__group-dot']} aria-hidden />
+            <span>{group.label}</span>
+          </div>
           {group.links.map((link) => (
             <NavLink
               key={link.path}
