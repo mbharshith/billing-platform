@@ -103,9 +103,65 @@ export interface SaleLine {
   readonly sku: string;
   readonly name: string;
   readonly tone: BadgeTone;
-  readonly unitPrice: number;
+  readonly unitPrice: number;         // final unit price after variant/mod deltas
   readonly quantity: number;
-  readonly lineTotal: number;
+  readonly lineTotal: number;         // (unitPrice * quantity) - lineDiscount
+
+  /* -- Cashier extensions (all optional for back-compat with old sales) --- */
+  /** Original list price before variant / modifier deltas. Populated only
+   *  when the line was configured through the modifier picker. */
+  readonly originalUnitPrice?: number;
+  /** Variant selected (e.g. "Half", "Full"). */
+  readonly variantId?: string;
+  readonly variantLabel?: string;
+  /** Chosen modifier options (extra cheese, no onions, etc.). */
+  readonly modifiers?: readonly SaleLineModifier[];
+  /** Discount applied on this line specifically (positive currency amount). */
+  readonly lineDiscount?: number;
+  readonly lineDiscountReason?: string;
+  /** Note the cashier attached (e.g. "allergy: peanuts"). */
+  readonly note?: string;
+}
+
+export interface SaleLineModifier {
+  readonly modifierId: string;
+  readonly modifierName: string;
+  readonly optionId: string;
+  readonly optionName: string;
+  readonly priceDelta: number;
+}
+
+/** A single payment tender on a split-payment sale. */
+export interface SalePayment {
+  readonly method: PaymentMethod;
+  readonly amount: number;
+  readonly reference?: string;      // e.g. UPI txn id, last-4 card
+}
+
+/** An additional charge line (service / packaging / delivery / etc). */
+export interface SaleCharge {
+  readonly chargeId: string;
+  readonly name: string;
+  readonly amount: number;
+  readonly taxable: boolean;
+}
+
+/** Bill-level discount snapshot. */
+export interface SaleBillDiscount {
+  readonly discountId: string | null;   // null = ad-hoc manual discount
+  readonly name: string;
+  readonly type: 'percent' | 'flat';
+  readonly value: number;               // 10 = 10% or Rs 10
+  readonly amount: number;              // computed currency amount
+}
+
+/** Coupon redemption snapshot. */
+export interface SaleCoupon {
+  readonly couponId: string;
+  readonly code: string;
+  readonly type: 'percent' | 'flat';
+  readonly value: number;
+  readonly amount: number;              // computed currency amount
 }
 
 export interface Sale {
@@ -117,7 +173,7 @@ export interface Sale {
   readonly tax: number;
   readonly total: number;
   readonly unitCount: number;
-  readonly paymentMethod: PaymentMethod;
+  readonly paymentMethod: PaymentMethod;   // primary tender - kept for back-compat
   // Set for lending sales AND every online order (customer supplied at checkout).
   readonly customerMobile: string | null;
   // FK to customer entity — set for lending sales + online orders.
@@ -139,6 +195,27 @@ export interface Sale {
   readonly deliveryAddress: DeliveryAddress | null;
   readonly customerNotes: string | null;
   readonly statusHistory: readonly OrderStatusEvent[] | null;
+
+  /* -- Cashier extensions (all optional for back-compat) ----------------- */
+  /** Order type code (dine-in / takeaway / delivery / etc). */
+  readonly orderTypeCode?: string;
+  /** Table (Dine-in only). */
+  readonly tableId?: string;
+  readonly tableCode?: string;
+  /** Bill-level discount applied. */
+  readonly billDiscount?: SaleBillDiscount;
+  /** Coupon redeemed. */
+  readonly coupon?: SaleCoupon;
+  /** Sum of every SaleLine.lineDiscount (denormalised for fast reporting). */
+  readonly lineDiscountTotal?: number;
+  /** Additional charges applied to this bill. */
+  readonly charges?: readonly SaleCharge[];
+  /** Split-payment tenders. paymentMethod above is payments[0].method. */
+  readonly payments?: readonly SalePayment[];
+  /** Held-order timestamp. Non-null while the sale is parked; cleared on resume. */
+  readonly heldAt?: Iso8601 | null;
+  /** Sale-level note. */
+  readonly note?: string;
 }
 
 // System actor id for online orders that haven't been touched by staff yet.

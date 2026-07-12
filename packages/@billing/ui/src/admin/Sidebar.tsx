@@ -127,7 +127,7 @@ export const AdminSidebar: FC<AdminSidebarProps> = ({ slug, collapsed, groups })
         )}
       </div>
 
-      {/* Live search - only when expanded */}
+      {/* Live search - only when expanded, pinned above the scroll area. */}
       {!collapsed && (
         <div className={cls['sidebar__search']}>
           <Icon name="search" size={14} />
@@ -151,16 +151,18 @@ export const AdminSidebar: FC<AdminSidebarProps> = ({ slug, collapsed, groups })
         </div>
       )}
 
-      {/* Empty state */}
-      {nothingFound && !collapsed && (
-        <div className={cls['sidebar__empty']}>
-          <Icon name="search" size={20} tone="muted" />
-          <Text as="span" size="sm" tone="subtle">No matches for &ldquo;{query}&rdquo;</Text>
-        </div>
-      )}
+      {/* Scroll area - the ONLY scrollable region. Brand + search + footer are pinned. */}
+      <div className={cls['sidebar__scroll']}>
+        {/* Empty state */}
+        {nothingFound && !collapsed && (
+          <div className={cls['sidebar__empty']}>
+            <Icon name="search" size={20} tone="muted" />
+            <Text as="span" size="sm" tone="subtle">No matches for &ldquo;{query}&rdquo;</Text>
+          </div>
+        )}
 
-      {/* Groups */}
-      {filteredGroups.map((group) => {
+        {/* Groups */}
+        {filteredGroups.map((group) => {
         // When searching or collapsed, always show; user is scanning.
         const forceOpen = isSearching || collapsed;
         const isOpen = forceOpen || openMap[group.id] !== false;
@@ -220,8 +222,9 @@ export const AdminSidebar: FC<AdminSidebarProps> = ({ slug, collapsed, groups })
           </div>
         );
       })}
+      </div>
 
-      {/* Footer */}
+      {/* Footer - pinned at the bottom */}
       <div className={cls.sidebar__footer}>
         <span className={cls['sidebar__footer-hint']}>KartWise v11.7</span>
       </div>

@@ -751,12 +751,26 @@ export interface BuildSaleInput {
   readonly lines: readonly SaleLine[];
   readonly subtotal: number;
   readonly tax: number;
+  readonly total?: number;               // pass explicit total when it != subtotal + tax
   readonly paymentMethod: PaymentMethod;
   readonly customerMobile: string | null;
   readonly customerId: string | null;
   readonly cashierId: string;
   readonly cashierName: string;
   readonly storeId: string;
+
+  /* -- Optional cashier extensions - passed through when present ---------- */
+  readonly orderTypeCode?: string;
+  readonly tableId?: string;
+  readonly tableCode?: string;
+  readonly customerName?: string | null;
+  readonly billDiscount?: import('@billing/shared/domain/types').SaleBillDiscount;
+  readonly coupon?: import('@billing/shared/domain/types').SaleCoupon;
+  readonly lineDiscountTotal?: number;
+  readonly charges?: readonly import('@billing/shared/domain/types').SaleCharge[];
+  readonly payments?: readonly import('@billing/shared/domain/types').SalePayment[];
+  readonly heldAt?: string | null;
+  readonly note?: string;
 }
 
 export const buildSale = (input: BuildSaleInput): Sale => ({
@@ -766,7 +780,7 @@ export const buildSale = (input: BuildSaleInput): Sale => ({
   lines: input.lines,
   subtotal: input.subtotal,
   tax: input.tax,
-  total: input.subtotal + input.tax,
+  total: input.total ?? input.subtotal + input.tax,
   unitCount: input.lines.reduce((s, l) => s + l.quantity, 0),
   paymentMethod: input.paymentMethod,
   customerMobile: input.customerMobile,
@@ -777,14 +791,53 @@ export const buildSale = (input: BuildSaleInput): Sale => ({
   voidedAt: null,
   voidedReason: null,
   storeId: input.storeId,
-  // Counter sales - null for every online-only field.
   channel: 'counter',
   orderStatus: null,
-  customerName: null,
+  customerName: input.customerName ?? null,
   deliveryAddress: null,
   customerNotes: null,
   statusHistory: null,
+  // Cashier extensions - only set when caller provided them.
+  ...(input.orderTypeCode     ? { orderTypeCode:     input.orderTypeCode }     : {}),
+  ...(input.tableId           ? { tableId:           input.tableId }           : {}),
+  ...(input.tableCode         ? { tableCode:         input.tableCode }         : {}),
+  ...(input.billDiscount      ? { billDiscount:      input.billDiscount }      : {}),
+  ...(input.coupon            ? { coupon:            input.coupon }            : {}),
+  ...(input.lineDiscountTotal !== undefined ? { lineDiscountTotal: input.lineDiscountTotal } : {}),
+  ...(input.charges           ? { charges:           input.charges }           : {}),
+  ...(input.payments          ? { payments:          input.payments }          : {}),
+  ...(input.heldAt !== undefined ? { heldAt: input.heldAt } : {}),
+  ...(input.note              ? { note:              input.note }              : {}),
 });
 
 // Re-export spinner for pages that need it
 export { Spinner };
+
+/* -------------------------------------------------------------------------- */
+/* Cashier organisms - order type, table picker, customer picker, discount,   */
+/* coupon, charges, split-payment, modifiers, held orders, KOT.                */
+/* Split across 3 files to keep each under 400 lines. All share cashier.module.css. */
+/* -------------------------------------------------------------------------- */
+
+export {
+  OrderTypeToggle, TablePickerModal, CustomerPickerModal,
+} from './cashier-context';
+export type {
+  OrderTypeToggleProps, TablePickerModalProps, CustomerPickerModalProps,
+} from './cashier-context';
+
+export {
+  BillDiscountModal, CouponInput, ChargesPickerModal,
+  SplitPaymentModal, LineDiscountModal,
+} from './cashier-money';
+export type {
+  BillDiscountModalProps, CouponInputProps, ChargesPickerModalProps,
+  SplitPaymentModalProps, LineDiscountModalProps,
+} from './cashier-money';
+
+export {
+  ModifierPickerModal, HeldOrdersDrawer, KotPreviewModal,
+} from './cashier-depth';
+export type {
+  ModifierPickerModalProps, HeldOrdersDrawerProps, KotPreviewModalProps,
+} from './cashier-depth';
