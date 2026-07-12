@@ -2,7 +2,7 @@
 
 import { useMemo, useState, type FC } from 'react';
 import cls from './cashier.module.css';
-import { Icon, Text } from '../atoms';
+import { Icon, Input, Select, Text } from '../atoms';
 import type { Discount, Coupon, AdditionalCharge } from '@billing/shared/domain/restaurant';
 import type { PaymentMethod, SalePayment } from '@billing/shared/domain/types';
 
@@ -308,29 +308,37 @@ export const SplitPaymentModal: FC<SplitPaymentModalProps> = ({
         <div className={cls.modalBody}>
           {rows.map((r, idx) => (
             <div key={r.key} className={cls.splitRow}>
-              <select value={r.method} onChange={(e) => patchRow(r.key, { method: e.target.value as PaymentMethod })}>
-                {PAYMENT_METHOD_OPTS.map((o) => (
-                  <option key={o.code} value={o.code}>{o.label}</option>
-                ))}
-              </select>
-              <input
-                type="number"
-                min={0}
-                value={r.amount}
-                onChange={(e) => patchRow(r.key, { amount: e.target.value })}
-                placeholder="0.00"
-                inputMode="decimal"
-              />
-              <input
+              <div className={cls.splitRowTop}>
+                <Select
+                  value={r.method}
+                  onChange={(e) => patchRow(r.key, { method: e.target.value as PaymentMethod })}
+                  aria-label="Payment method"
+                >
+                  {PAYMENT_METHOD_OPTS.map((o) => (
+                    <option key={o.code} value={o.code}>{o.label}</option>
+                  ))}
+                </Select>
+                <Input
+                  type="number"
+                  min={0}
+                  value={r.amount}
+                  onChange={(e) => patchRow(r.key, { amount: e.target.value })}
+                  placeholder="0.00"
+                  inputMode="decimal"
+                  aria-label="Amount"
+                />
+                {rows.length > 1 && (
+                  <button className={cls.iconBtn} onClick={() => removeRow(r.key)} aria-label={`Remove tender ${idx + 1}`}>
+                    <Icon name="trash" size={14} />
+                  </button>
+                )}
+              </div>
+              <Input
                 value={r.reference ?? ''}
                 onChange={(e) => patchRow(r.key, { reference: e.target.value })}
-                placeholder="Ref (optional)"
+                placeholder="Reference (optional)"
+                aria-label="Reference"
               />
-              {rows.length > 1 && (
-                <button className={cls.iconBtn} onClick={() => removeRow(r.key)} aria-label={`Remove tender ${idx + 1}`}>
-                  <Icon name="trash" size={14} />
-                </button>
-              )}
             </div>
           ))}
 

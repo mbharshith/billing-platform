@@ -122,7 +122,7 @@
 
 .kpi-row {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   gap: 14px;
   margin-bottom: 18px;
 }
@@ -132,7 +132,7 @@
   background: var(--app-surface, #ffffff);
   border: 1px solid var(--app-border, #e5e7eb);
   border-radius: 14px;
-  padding: 16px 18px 14px;
+  padding: 14px 14px 12px;
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -178,11 +178,14 @@
 }
 
 .kpi__value {
-  font-size: 26px;
+  font-size: 22px;
   font-weight: 800;
   letter-spacing: -0.02em;
   color: var(--app-text, var(--app-surface-ink, #0b1220));
-  line-height: 1.1;
+  line-height: 1.15;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .kpi__delta {

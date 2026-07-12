@@ -26,7 +26,6 @@ export const AdminShellRoute: FC = () => {
       outletName={outlet?.name ?? 'Admin console'}
       outletTag={tag}
       onQuickAdd={() => navigate(`/${slug}/cashier`)}
-      notificationCount={3}
       topbar={<UserMenu />}
     />
   );

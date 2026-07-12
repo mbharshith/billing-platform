@@ -22,6 +22,7 @@ export const STRINGS = {
     logout:     'Log out',
     register:   'Register #01',
     account:    'Account',
+    myStore:    'My store',
   },
 
   auth: {
@@ -62,6 +63,8 @@ export const STRINGS = {
     tax:              'Tax',
     total:            'Total',
     noActiveStore:    'No active store selected — cannot record lending sale.',
+    walkIn:           'Walk-in',
+    walkInCustomer:   'Walk-in customer',
   },
 
   payment: {
@@ -346,6 +349,19 @@ export const STRINGS = {
     wipeConfirm:   'This will delete all sales, customers, products and settings from this browser. Continue?',
     wipeDone:      'All local data cleared. Reloading…',
     forbidden:     'Only admins can change settings.',
+  },
+
+  store: {
+    pageTitle:    'My store',
+    loadingTenant:'Loading tenant…',
+    pageSubtitle: 'Read-only view. Contact your SaaS provider to change store details.',
+  },
+
+  reports: {
+    noSalesData:   'No sales data yet',
+    noPaymentData: 'No payment data yet',
+    noCashierData: 'No cashier data yet',
+    noWastageData: 'No wastage recorded',
   },
 
   common: {

@@ -168,7 +168,7 @@ export const SalesPage: FC = () => {
               label: 'Customer',
               render: (s) => (
                 <Text size="sm" tone={s.customerMobile ? 'default' : 'muted'}>
-                  {s.customerMobile ?? 'Walk-in'}
+                  {s.customerMobile ?? STRINGS.cashier.walkIn}
                 </Text>
               ),
             },

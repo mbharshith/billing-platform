@@ -450,20 +450,15 @@
 /* Split payment                                                              */
 /* -------------------------------------------------------------------------- */
 .splitRow {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.splitRowTop {
   display: grid;
-  grid-template-columns: 120px 130px 1fr auto;
+  grid-template-columns: 1fr 120px auto;
   gap: 8px;
   align-items: center;
-}
-.splitRow select,
-.splitRow input {
-  padding: 8px 10px;
-  border-radius: 8px;
-  border: 1px solid var(--app-border, #e5e7eb);
-  font: inherit;
-  font-size: 13px;
-  background: var(--app-surface, #ffffff);
-  color: var(--app-text, #0b1220);
 }
 .iconBtn {
   padding: 6px;

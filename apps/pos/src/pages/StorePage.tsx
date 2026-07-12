@@ -41,17 +41,17 @@ export const StorePage: FC = () => {
   }, [store, users, products, customers, sales]);
 
   if (!store) {
-    return <PageHeader title="My store" subtitle="Loading tenant…" />;
+    return <PageHeader title={STRINGS.store.pageTitle} subtitle={STRINGS.store.loadingTenant} />;
   }
 
   return (
     <>
       <PageHeader
-        title="My store"
-        subtitle="Read-only view. Contact your SaaS provider to change store details."
+        title={STRINGS.store.pageTitle}
+        subtitle={STRINGS.store.pageSubtitle}
         breadcrumbs={[
           { label: STRINGS.nav.dashboard, href: `/${slug}/admin` },
-          { label: 'My store' },
+          { label: STRINGS.store.pageTitle },
         ]}
       />
 

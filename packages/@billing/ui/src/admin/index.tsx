@@ -172,13 +172,12 @@ interface TopBarProps {
   readonly collapsed: boolean;
   readonly onToggleSidebar: () => void;
   readonly onQuickAdd?: () => void;
-  readonly notificationCount?: number;
   readonly extra?: ReactNode;          // user menu comes in here
 }
 
 export const TopBar: FC<TopBarProps> = ({
   outletName, outletTag, collapsed, onToggleSidebar, onQuickAdd,
-  notificationCount = 0, extra,
+  extra,
 }) => (
   <header className={cls.topbar}>
     <button
@@ -219,19 +218,6 @@ export const TopBar: FC<TopBarProps> = ({
           <span>New Sale</span>
         </button>
       )}
-      <button
-        type="button"
-        className={cls.topbar__iconbtn}
-        aria-label={`Notifications${notificationCount ? ` (${notificationCount})` : ''}`}
-        title="Notifications"
-      >
-        <Icon name="bell" size={17} />
-        {notificationCount > 0 && (
-          <span className={cls['topbar__iconbtn-badge']}>
-            {notificationCount > 99 ? '99+' : notificationCount}
-          </span>
-        )}
-      </button>
       <span className={cls.topbar__divider} />
       <ThemeToggle />
       {extra}
@@ -250,12 +236,11 @@ interface AdminShellProps {
   readonly outletName: string;
   readonly outletTag?: string;
   readonly onQuickAdd?: () => void;
-  readonly notificationCount?: number;
   readonly topbar?: ReactNode;  // user-menu + any tenant-specific chip
 }
 
 export const AdminShell: FC<AdminShellProps> = ({
-  slug, outletName, outletTag, onQuickAdd, notificationCount, topbar,
+  slug, outletName, outletTag, onQuickAdd, topbar,
 }) => {
   const [collapsed, setCollapsed] = useState<boolean>(() => {
     try { return localStorage.getItem(COLLAPSED_KEY) === '1'; } catch { return false; }
@@ -274,7 +259,6 @@ export const AdminShell: FC<AdminShellProps> = ({
           collapsed={collapsed}
           onToggleSidebar={() => setCollapsed((v) => !v)}
           onQuickAdd={onQuickAdd}
-          notificationCount={notificationCount ?? 0}
           extra={topbar}
         />
         <div className={cls.adminShell__content}>

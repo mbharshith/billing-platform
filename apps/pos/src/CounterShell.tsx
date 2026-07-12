@@ -132,7 +132,7 @@ export const UserMenu: FC = () => {
             <>
               <button type="button" role="menuitem" className={cls.userDropdown__item}
                       onClick={() => go(`/${slug}/admin/store`)}>
-                <Icon name="store" size={16} /> My store
+                <Icon name="store" size={16} /> {STRINGS.nav.myStore}
               </button>
               <button type="button" role="menuitem" className={cls.userDropdown__item}
                       onClick={() => go(`/${slug}/admin/users`)}>

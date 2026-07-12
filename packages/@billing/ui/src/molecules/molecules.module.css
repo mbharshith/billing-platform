@@ -576,6 +576,11 @@
 .dataTable :global(th.actions),
 .dataTable :global(td.actions) { text-align: right; white-space: nowrap; }
 .dataTable :global(td.actions > * + *) { margin-left: var(--app-space-2); }
+.dataTable :global(th.numeric) .dtThInner,
+.dataTable :global(th.actions) .dtThInner {
+  display: flex;
+  justify-content: flex-end;
+}
 @media (max-width: 767px) {
   .dataTable :global(td.actions button),
   .dataTable :global(td.actions a) { padding: 0.35rem 0.5rem; font-size: 0.75rem; }

@@ -373,7 +373,7 @@ export const CashierPage: FC = () => {
           style={selectedCustomer ? undefined : { display: 'none' }}
         >
           <Icon name="user" size={14} />
-          <span>{selectedCustomer ? selectedCustomer.name : 'Walk-in customer'}</span>
+          <span>{selectedCustomer ? selectedCustomer.name : STRINGS.cashier.walkInCustomer}</span>
           {selectedCustomer && selectedCustomer.lendingBalance > 0 && (
             <span className={contextCls.contextChipBadge} aria-label="outstanding lending">
               <Icon name="coins" size={11} />

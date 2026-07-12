@@ -9,6 +9,7 @@ import {
 import { DataTable, type DataTableColumn } from '@billing/ui/molecules';
 import { db } from '@billing/shared/lib/db';
 import type { Sale } from '@billing/shared/domain/types';
+import { STRINGS } from '@billing/shared/domain/strings';
 import cls from './admin.module.css';
 
 const money = (n: number): string => `Rs ${Math.round(n).toLocaleString('en-IN')}`;
@@ -56,10 +57,10 @@ export const SalesReportPageV2: FC = () => {
     <AdminPage title="Sales Report" subtitle="Bill-wise and day-wise sales analytics."
                breadcrumb={['Reports', 'Sales']}>
       <KPIRow>
-        <KPICard label="Total Sales"      value={money(stats.total)}     accentColor="#8b5cf6" />
-        <KPICard label="Order Count"      value={String(stats.orderCount)} accentColor="#0ea5e9" />
-        <KPICard label="Avg. Bill Value"  value={money(stats.orderCount ? stats.total / stats.orderCount : 0)} accentColor="#16a34a" />
-        <KPICard label="Days in Range"    value="30" accentColor="#f59e0b" />
+        <KPICard label="Total Sales"      value={money(stats.total)}     accentColor="var(--app-brand-violet, #8b5cf6)" />
+        <KPICard label="Order Count"      value={String(stats.orderCount)} accentColor="var(--app-info, #0ea5e9)" />
+        <KPICard label="Avg. Bill Value"  value={money(stats.orderCount ? stats.total / stats.orderCount : 0)} accentColor="var(--app-success, #16a34a)" />
+        <KPICard label="Days in Range"    value="30" accentColor="var(--app-warning, #f59e0b)" />
       </KPIRow>
 
       <ChartFrame title="Daily Sales - Last 30 Days" meta="TREND">
@@ -134,7 +135,7 @@ export const ProductMixReportPageV2: FC = () => {
         searchFn={(r, q) => r.name.toLowerCase().includes(q)}
         searchPlaceholder="Search items…"
         emptyIcon="bag"
-        emptyTitle="No sales data yet"
+        emptyTitle={STRINGS.reports.noSalesData}
       />
     </AdminPage>
   );
@@ -160,9 +161,9 @@ export const HourlyReportPageV2: FC = () => {
     <AdminPage title="Hourly Sales Report" subtitle="When your customers actually spend."
                breadcrumb={['Reports', 'Hourly Sales']}>
       <KPIRow>
-        <KPICard label="Peak Hour"       value={`${String(stats.peakHour).padStart(2, '0')}:00`} accentColor="#8b5cf6" />
-        <KPICard label="Peak Hour Sales" value={money(stats.hourly[stats.peakHour] ?? 0)}       accentColor="#0ea5e9" />
-        <KPICard label="Peak Hour Orders" value={String(stats.hourlyCount[stats.peakHour] ?? 0)} accentColor="#16a34a" />
+        <KPICard label="Peak Hour"       value={`${String(stats.peakHour).padStart(2, '0')}:00`} accentColor="var(--app-brand-violet, #8b5cf6)" />
+        <KPICard label="Peak Hour Sales" value={money(stats.hourly[stats.peakHour] ?? 0)}       accentColor="var(--app-info, #0ea5e9)" />
+        <KPICard label="Peak Hour Orders" value={String(stats.hourlyCount[stats.peakHour] ?? 0)} accentColor="var(--app-success, #16a34a)" />
       </KPIRow>
       <ChartFrame title="Revenue by Hour of Day" meta="24-HOUR HEATMAP">
         <BarChart size="xl"
@@ -208,7 +209,7 @@ export const PaymentModesReportPage: FC = () => {
           {stats.length > 0 ? (
             <DoughnutChart size="xl" labels={stats.map((s) => s.mode)} data={stats.map((s) => s.amount)} />
           ) : (
-            <p className={cls.emptyHint}>No payment data yet.</p>
+            <p className={cls.emptyHint}>{STRINGS.reports.noPaymentData}.</p>
           )}
         </ChartFrame>
         <ChartFrame title="Transactions per Mode" meta="COUNT">
@@ -218,7 +219,7 @@ export const PaymentModesReportPage: FC = () => {
               datasets={[{ label: 'Count', data: stats.map((s) => s.count) }]}
             />
           ) : (
-            <p className={cls.emptyHint}>No payment data yet.</p>
+            <p className={cls.emptyHint}>{STRINGS.reports.noPaymentData}.</p>
           )}
         </ChartFrame>
       </ChartGrid>
@@ -233,7 +234,7 @@ export const PaymentModesReportPage: FC = () => {
         getKey={(r) => r.mode}
         hidePagination
         emptyIcon="card"
-        emptyTitle="No payment data yet"
+        emptyTitle={STRINGS.reports.noPaymentData}
       />
     </AdminPage>
   );
@@ -267,7 +268,7 @@ export const CashierReportPageV2: FC = () => {
             datasets={[{ label: 'Sales', data: stats.map((s) => s.total) }]}
           />
         ) : (
-          <p className={cls.emptyHint}>No cashier data yet.</p>
+          <p className={cls.emptyHint}>{STRINGS.reports.noCashierData}.</p>
         )}
       </ChartFrame>
       <DataTable
@@ -281,7 +282,7 @@ export const CashierReportPageV2: FC = () => {
         getKey={(r) => r.name}
         hidePagination
         emptyIcon="user"
-        emptyTitle="No cashier data yet"
+        emptyTitle={STRINGS.reports.noCashierData}
       />
     </AdminPage>
   );
@@ -304,11 +305,11 @@ export const TaxReportPageV2: FC = () => {
     <AdminPage title="Tax Summary Report" subtitle="GST liability breakdown (CGST + SGST)."
                breadcrumb={['Reports', 'Tax Summary']}>
       <KPIRow>
-        <KPICard label="Taxable Value" value={money(stats.subtotal)} accentColor="#8b5cf6" />
-        <KPICard label="Total Tax"     value={money(stats.tax)}      accentColor="#f43f5e" />
-        <KPICard label="CGST @ 2.5%"   value={money(stats.cgst)}     accentColor="#0ea5e9" />
-        <KPICard label="SGST @ 2.5%"   value={money(stats.sgst)}     accentColor="#16a34a" />
-        <KPICard label="Total Sales"   value={money(stats.total)}    accentColor="#f59e0b" />
+        <KPICard label="Taxable Value" value={money(stats.subtotal)} accentColor="var(--app-brand-violet, #8b5cf6)" />
+        <KPICard label="Total Tax"     value={money(stats.tax)}      accentColor="var(--app-danger, #f43f5e)" />
+        <KPICard label="CGST @ 2.5%"   value={money(stats.cgst)}     accentColor="var(--app-info, #0ea5e9)" />
+        <KPICard label="SGST @ 2.5%"   value={money(stats.sgst)}     accentColor="var(--app-success, #16a34a)" />
+        <KPICard label="Total Sales"   value={money(stats.total)}    accentColor="var(--app-warning, #f59e0b)" />
       </KPIRow>
       <ChartFrame title="Tax Composition" meta="CGST vs SGST">
         <DoughnutChart size="lg" labels={['CGST', 'SGST']} data={[stats.cgst, stats.sgst]} />
@@ -331,10 +332,10 @@ export const DiscountReportPageV2: FC = () => {
     <AdminPage title="Discount Usage Report" subtitle="How much money you're leaving on the table."
                breadcrumb={['Reports', 'Discount Usage']}>
       <KPIRow>
-        <KPICard label="Bills with Discount" value={String(stats.withDiscount)} accentColor="#f43f5e" />
-        <KPICard label="Total Discount"      value={money(stats.totalDiscount)}  accentColor="#8b5cf6" />
-        <KPICard label="Gross Value"         value={money(stats.totalGross)}     accentColor="#0ea5e9" />
-        <KPICard label="Discount Rate"       value={`${stats.pctBills.toFixed(1)}% of bills`} accentColor="#16a34a" />
+        <KPICard label="Bills with Discount" value={String(stats.withDiscount)} accentColor="var(--app-danger, #f43f5e)" />
+        <KPICard label="Total Discount"      value={money(stats.totalDiscount)}  accentColor="var(--app-brand-violet, #8b5cf6)" />
+        <KPICard label="Gross Value"         value={money(stats.totalGross)}     accentColor="var(--app-info, #0ea5e9)" />
+        <KPICard label="Discount Rate"       value={`${stats.pctBills.toFixed(1)}% of bills`} accentColor="var(--app-success, #16a34a)" />
       </KPIRow>
     </AdminPage>
   );
@@ -359,8 +360,8 @@ export const WastageReportPageV2: FC = () => {
     <AdminPage title="Wastage Report" subtitle="Where your food cost is leaking."
                breadcrumb={['Reports', 'Wastage']}>
       <KPIRow>
-        <KPICard label="Wastage Events"   value={String(rows.length)} accentColor="#f43f5e" />
-        <KPICard label="Total Cost Impact" value={money(totalCost)}   accentColor="#8b5cf6" />
+        <KPICard label="Wastage Events"   value={String(rows.length)} accentColor="var(--app-danger, #f43f5e)" />
+        <KPICard label="Total Cost Impact" value={money(totalCost)}   accentColor="var(--app-brand-violet, #8b5cf6)" />
       </KPIRow>
       <ChartFrame title="Wastage Cost by Reason" meta="ROOT CAUSE">
         {byReason.size > 0 ? (
@@ -368,7 +369,7 @@ export const WastageReportPageV2: FC = () => {
             labels={Array.from(byReason.keys())}
             data={Array.from(byReason.values())} />
         ) : (
-          <p className={cls.emptyHint}>No wastage recorded.</p>
+          <p className={cls.emptyHint}>{STRINGS.reports.noWastageData}.</p>
         )}
       </ChartFrame>
     </AdminPage>
