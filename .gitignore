@@ -21,8 +21,14 @@ Thumbs.db
 .idea/
 *.swp
 
-# Cashier-app local
-cashier-app/coverage/
+# Cashier-app local (legacy - directory removed by monorepo split)
+# cashier-app/coverage/
+
+# Monorepo dist folders (per-app builds)
+apps/*/dist/
+packages/@billing/*/dist/
+apps/*/node_modules/
+packages/@billing/*/node_modules/
 
 # Backend WIP
 cashier-api/node_modules/

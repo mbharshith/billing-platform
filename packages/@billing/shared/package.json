@@ -1,0 +1,34 @@
+{
+  "name": "@billing/shared",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".":            "./src/index.ts",
+    "./brand":      "./src/brand.ts",
+    "./domain/*":   "./src/domain/*.ts",
+    "./lib/*":      "./src/lib/*.ts",
+    "./store/*":    "./src/store/*.tsx",
+    "./hooks/*":    "./src/hooks/*.ts",
+    "./fixtures":   "./src/fixtures/index.ts"
+  },
+  "peerDependencies": {
+    "react":     "^18",
+    "react-dom": "^18",
+    "dexie":     "^4",
+    "dexie-react-hooks": "^4",
+    "react-router-dom":  "^6"
+  },
+  "devDependencies": {
+    "@types/react":     "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "react":            "^18.3.1",
+    "react-dom":        "^18.3.1",
+    "react-router-dom": "^6.28.0",
+    "dexie":            "^4.4.4",
+    "dexie-react-hooks": "^4.4.0",
+    "typescript":       "^5.6.3"
+  }
+}

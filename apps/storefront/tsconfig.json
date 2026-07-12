@@ -1,0 +1,14 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "include": ["src"],
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@billing/shared":     ["../../packages/@billing/shared/src/index.ts"],
+      "@billing/shared/*":   ["../../packages/@billing/shared/src/*"],
+      "@billing/ui":         ["../../packages/@billing/ui/src/index.ts"],
+      "@billing/ui/*":       ["../../packages/@billing/ui/src/*"],
+      "@/*":                 ["./src/*"]
+    }
+  }
+}

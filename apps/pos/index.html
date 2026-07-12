@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>POS remote (standalone dev)</title>
+  </head>
+  <body>
+    <!-- This file exists so `pnpm dev` inside apps/pos serves the remoteEntry.
+         For local development you'll usually run the shell app (which loads
+         this remote via federation). Standalone rendering here is intentionally
+         minimal - the pos app needs shell providers to fully function. -->
+    <div id="root"></div>
+    <script type="module">
+      // Devtime sanity check - just import the remoteEntry so Vite serves it.
+      import('./src/CashierApp.tsx');
+      const root = document.getElementById('root');
+      root.textContent = 'POS remote is running on :5001. Load the shell at :5000 to compose the full app.';
+      root.style.cssText = 'font-family: sans-serif; padding: 24px; color: #555;';
+    </script>
+  </body>
+</html>

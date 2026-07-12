@@ -1,0 +1,8 @@
+packages:
+  - 'apps/*'
+  - 'packages/@billing/*'
+
+onlyBuiltDependencies:
+  - esbuild
+allowBuilds:
+  esbuild: true
