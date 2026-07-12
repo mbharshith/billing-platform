@@ -865,3 +865,18 @@
   background: #ffffff;
   border-radius: 1px;
 }
+
+/* Group icon in sidebar header - replaces the coloured dot when the group
+ * declares a semantic icon. Slight tint via currentColor so it inherits
+ * the group hover/active state. */
+.sidebar__group-icon {
+  color: var(--app-text-subtle, #64748b);
+  flex-shrink: 0;
+}
+.sidebar__group-header:hover .sidebar__group-icon,
+.sidebar__group-header[data-open='true'] .sidebar__group-icon {
+  color: var(--app-primary, #2563eb);
+}
+.sidebar[data-collapsed='true'] .sidebar__group-icon {
+  color: var(--app-text-subtle, #64748b);
+}

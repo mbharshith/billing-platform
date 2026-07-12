@@ -36,6 +36,9 @@ export interface SidebarLink {
 export interface SidebarGroup {
   readonly id: string;
   readonly label: string;
+  /** Icon shown next to the group header. Falls back to a coloured dot
+   *  when not supplied (back-compat with older callers). */
+  readonly icon?: IconName;
   /** Whether the group is expanded on the FIRST visit. Once the user
    *  toggles it, localStorage takes over. */
   readonly defaultOpen: boolean;
@@ -192,7 +195,9 @@ export const AdminSidebar: FC<AdminSidebarProps> = ({ slug, collapsed, groups })
                 data-open={isOpen}
                 disabled={isSearching}   /* don't allow toggle during search */
               >
-                <span className={cls['sidebar__group-dot']} aria-hidden />
+                {group.icon
+                  ? <Icon name={group.icon} size={14} className={cls['sidebar__group-icon']} />
+                  : <span className={cls['sidebar__group-dot']} aria-hidden />}
                 <span className={cls['sidebar__group-label']}>{group.label}</span>
                 {!isSearching && (
                   <Icon
@@ -206,8 +211,10 @@ export const AdminSidebar: FC<AdminSidebarProps> = ({ slug, collapsed, groups })
                 )}
               </button>
             ) : (
-              <div className={cls['sidebar__group-header']}>
-                <span className={cls['sidebar__group-dot']} aria-hidden />
+              <div className={cls['sidebar__group-header']} title={group.label}>
+                {group.icon
+                  ? <Icon name={group.icon} size={16} className={cls['sidebar__group-icon']} />
+                  : <span className={cls['sidebar__group-dot']} aria-hidden />}
               </div>
             )}
 

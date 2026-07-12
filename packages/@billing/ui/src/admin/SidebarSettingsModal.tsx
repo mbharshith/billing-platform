@@ -87,6 +87,7 @@ export const SidebarSettingsModal: FC<Props> = ({ open, onClose, groups }) => {
                   aria-pressed={state === 'all'}
                 >
                   <Checkbox state={pinned ? 'all' : state} />
+                  {g.icon && <Icon name={g.icon} size={14} />}
                   <span className={cls.settingsGroupLabel}>{g.label}</span>
                   {pinned && <span className={cls.pinnedBadge}>Pinned</span>}
                   <span className={cls.settingsGroupCount}>

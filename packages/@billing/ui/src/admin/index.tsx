@@ -15,6 +15,7 @@ export const SIDEBAR_GROUPS: readonly SidebarGroup[] = [
   {
     id: 'overview',
     label: 'Overview',
+    icon: 'zap',
     defaultOpen: true,
     links: [
       { path: '',              label: 'Dashboard',       icon: 'chart' },
@@ -24,6 +25,7 @@ export const SIDEBAR_GROUPS: readonly SidebarGroup[] = [
   {
     id: 'pos',
     label: 'POS Configuration',
+    icon: 'settings',
     defaultOpen: true,
     links: [
       { path: 'markets',           label: 'Markets',            icon: 'globe' },
@@ -41,6 +43,7 @@ export const SIDEBAR_GROUPS: readonly SidebarGroup[] = [
   {
     id: 'menu',
     label: 'Menu Management',
+    icon: 'menu',
     defaultOpen: true,
     links: [
       { path: 'menu-categories', label: 'Categories',   icon: 'list' },
@@ -53,6 +56,7 @@ export const SIDEBAR_GROUPS: readonly SidebarGroup[] = [
   {
     id: 'tables',
     label: 'Tables & KDS',
+    icon: 'flame',
     defaultOpen: false,
     links: [
       { path: 'sections',     label: 'Floor Sections', icon: 'group' },
@@ -64,6 +68,7 @@ export const SIDEBAR_GROUPS: readonly SidebarGroup[] = [
   {
     id: 'online',
     label: 'Online & Delivery',
+    icon: 'truck',
     defaultOpen: false,
     links: [
       { path: 'aggregators',    label: 'Aggregators',     icon: 'globe' },
@@ -74,6 +79,7 @@ export const SIDEBAR_GROUPS: readonly SidebarGroup[] = [
   {
     id: 'reports',
     label: 'Reports',
+    icon: 'chart',
     defaultOpen: false,
     links: [
       { path: 'reports/sales',       label: 'Sales Report',      icon: 'chart' },
@@ -88,6 +94,7 @@ export const SIDEBAR_GROUPS: readonly SidebarGroup[] = [
   {
     id: 'inv',
     label: 'Inventory Management',
+    icon: 'layers',
     defaultOpen: false,
     links: [
       { path: 'warehouses',       label: 'Warehouses',        icon: 'store' },
@@ -108,6 +115,7 @@ export const SIDEBAR_GROUPS: readonly SidebarGroup[] = [
   {
     id: 'acct',
     label: 'Accounting',
+    icon: 'coins',
     defaultOpen: false,
     links: [
       { path: 'accounts',           label: 'Chart of Accounts', icon: 'chart' },
@@ -119,6 +127,7 @@ export const SIDEBAR_GROUPS: readonly SidebarGroup[] = [
   {
     id: 'crm',
     label: 'CRM & Loyalty',
+    icon: 'star',
     defaultOpen: false,
     links: [
       { path: 'customers',         label: 'Customers',        icon: 'user' },
@@ -132,6 +141,7 @@ export const SIDEBAR_GROUPS: readonly SidebarGroup[] = [
   {
     id: 'marketing',
     label: 'Marketing',
+    icon: 'bell',
     defaultOpen: false,
     links: [
       { path: 'wa-templates',      label: 'WhatsApp Templates', icon: 'phone' },
@@ -141,6 +151,7 @@ export const SIDEBAR_GROUPS: readonly SidebarGroup[] = [
   {
     id: 'admin',
     label: 'Administration',
+    icon: 'shield',
     defaultOpen: false,
     links: [
       { path: 'users',    label: 'Staff',       icon: 'user' },
