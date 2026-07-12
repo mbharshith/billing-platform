@@ -595,3 +595,21 @@
   align-items: center;
   padding: 2px 0;
 }
+
+/* Warning badge shown INSIDE the customer chip when the attached
+ * customer has outstanding lending. Uses --app-danger so it screams
+ * 'they already owe money' in both light + dark themes. */
+.contextChipBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-left: 6px;
+  padding: 2px 8px;
+  border-radius: var(--app-radius-pill, 999px);
+  background: color-mix(in srgb, var(--app-danger, #dc2626) 12%, transparent);
+  color: var(--app-danger, #dc2626);
+  font-size: 11px;
+  font-weight: var(--app-font-weight-bold, 700);
+  line-height: 1;
+  white-space: nowrap;
+}

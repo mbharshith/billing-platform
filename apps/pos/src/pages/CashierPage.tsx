@@ -26,6 +26,7 @@ import {
   ModifierPickerModal, HeldOrdersDrawer, KotPreviewModal,
 } from '@billing/ui/organisms';
 import contextCls from '@billing/ui/organisms/cashier.module.css';
+import { useMoney } from '@billing/shared/hooks/useMoney';
 import { Icon, Text } from '@billing/ui/atoms';
 import { PageHeader } from '../CounterShell';
 import { STRINGS } from '@billing/shared/domain/strings';
@@ -80,6 +81,7 @@ export const CashierPage: FC = () => {
   const [orderTypeCode, setOrderTypeCode] = useState<string | null>(null);
   const [selectedTable, setSelectedTable] = useState<DiningTable | null>(null);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+  const { money } = useMoney();
 
   /* -- Money ------------------------------------------------------------- */
   const [billDiscount, setBillDiscount] = useState<SaleBillDiscount | undefined>();
@@ -374,9 +376,20 @@ export const CashierPage: FC = () => {
         <button
           className={`${contextCls.contextChip} ${selectedCustomer ? contextCls['contextChip--filled'] : ''}`}
           onClick={() => setShowCustomerPicker(true)}
+          title={
+            selectedCustomer && selectedCustomer.lendingBalance > 0
+              ? `${selectedCustomer.name} owes ${money(selectedCustomer.lendingBalance)}`
+              : undefined
+          }
         >
           <Icon name="user" size={14} />
           <span>{selectedCustomer ? selectedCustomer.name : 'Walk-in customer'}</span>
+          {selectedCustomer && selectedCustomer.lendingBalance > 0 && (
+            <span className={contextCls.contextChipBadge} aria-label="outstanding lending">
+              <Icon name="coins" size={11} />
+              {money(selectedCustomer.lendingBalance)}
+            </span>
+          )}
         </button>
 
         <div className={contextCls.contextSpacer} />
