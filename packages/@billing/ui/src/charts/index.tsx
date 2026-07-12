@@ -68,7 +68,6 @@ const useChartTheme = (): ChartTheme => {
   const version = useThemeVersion();
   return useMemo<ChartTheme>(() => {
     const surface     = readVar('--app-surface',        '#ffffff');
-    const surfaceInk  = readVar('--app-surface-ink',    '#0b1220');
     const border      = readVar('--app-border',         '#e5e7eb');
     const textPrimary = readVar('--app-text',           readVar('--app-surface-ink', '#0b1220'));
     const textSubtle  = readVar('--app-text-subtle',    '#64748b');
@@ -87,8 +86,14 @@ const useChartTheme = (): ChartTheme => {
       border,
       textPrimary,
       textSubtle,
-      tooltipBg: surfaceInk,
-      tooltipFg: readVar('--app-primary-fg', '#ffffff'),
+      /* Tooltip must contrast with the chart surface in BOTH themes.
+       * Using text-color as the background + surface as the text auto-inverts
+       * per theme so we always get a readable floating chip:
+       *   light: near-black bg + white text
+       *   dark:  near-white bg + near-black text
+       */
+      tooltipBg: textPrimary,
+      tooltipFg: surface,
       gridColor: readVar('--app-border-subtle', border) + '55', // subtle even without a token
     };
     // version is used only to bust the memo; ignore the eslint 'unused' warning
