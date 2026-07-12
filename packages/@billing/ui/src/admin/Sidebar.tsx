@@ -20,6 +20,8 @@ import { NavLink } from 'react-router-dom';
 import cls from './admin.module.css';
 import { Icon, Text, type IconName } from '@billing/ui/atoms';
 import { BRAND } from '@billing/shared/brand';
+import { useSidebarVisibility } from './useSidebarVisibility';
+import { SidebarSettingsModal } from './SidebarSettingsModal';
 
 /* -------------------------------------------------------------------------- */
 /* Types                                                                      */
@@ -71,11 +73,21 @@ interface AdminSidebarProps {
 }
 
 export const AdminSidebar: FC<AdminSidebarProps> = ({ slug, collapsed, groups }) => {
+  // Per-user visibility prefs (localStorage). Applied BEFORE search filtering
+  // so hidden groups/links do not appear in either the tree or the filtered
+  // search results.
+  const visibility = useSidebarVisibility();
+  const visibleGroups = useMemo(() => visibility.filter(groups), [visibility, groups]);
+
+  // Settings modal open state - local to the sidebar.
+  const [settingsOpen, setSettingsOpen] = useState(false);
+
   // Filter query - drives live search.
   const [query, setQuery] = useState('');
   const normalized = query.trim().toLowerCase();
 
-  // Per-group open state, persisted.
+  // Per-group open state, persisted. Seed from `groups` (full list) so that
+  // toggling a link back on later keeps the previous open/closed choice.
   const [openMap, setOpenMap] = useState<GroupState>(() => {
     const stored = readGroupState();
     const seeded: GroupState = {};
@@ -87,10 +99,11 @@ export const AdminSidebar: FC<AdminSidebarProps> = ({ slug, collapsed, groups })
 
   useEffect(() => { writeGroupState(openMap); }, [openMap]);
 
-  // Filtered groups. If searching, only include groups with matching links.
+  // Filtered groups. Search runs OVER the visibility-filtered list so
+  // hidden pages never appear in search results either.
   const filteredGroups = useMemo(() => {
-    if (!normalized) return groups.map((g) => ({ ...g, matchedLinks: g.links }));
-    return groups
+    if (!normalized) return visibleGroups.map((g) => ({ ...g, matchedLinks: g.links }));
+    return visibleGroups
       .map((g) => ({
         ...g,
         matchedLinks: g.links.filter((l) =>
@@ -99,7 +112,7 @@ export const AdminSidebar: FC<AdminSidebarProps> = ({ slug, collapsed, groups })
         ),
       }))
       .filter((g) => g.matchedLinks.length > 0);
-  }, [groups, normalized]);
+  }, [visibleGroups, normalized]);
 
   const isSearching = !!normalized;
   const nothingFound = isSearching && filteredGroups.length === 0;
@@ -224,10 +237,28 @@ export const AdminSidebar: FC<AdminSidebarProps> = ({ slug, collapsed, groups })
       })}
       </div>
 
-      {/* Footer - pinned at the bottom */}
+      {/* Footer - pinned at the bottom. Settings gear opens visibility modal. */}
       <div className={cls.sidebar__footer}>
-        <span className={cls['sidebar__footer-hint']}>KartWise v11.7</span>
+        <button
+          type="button"
+          className={cls['sidebar__footer-btn']}
+          onClick={() => setSettingsOpen(true)}
+          aria-label="Customize sidebar"
+          title="Customize sidebar"
+        >
+          <Icon name="settings" size={14} />
+          {!collapsed && <span>Customize</span>}
+        </button>
+        {!collapsed && (
+          <span className={cls['sidebar__footer-hint']}>KartWise v11.7</span>
+        )}
       </div>
+
+      <SidebarSettingsModal
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        groups={groups}
+      />
     </aside>
   );
 };

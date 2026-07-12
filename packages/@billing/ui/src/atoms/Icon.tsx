@@ -8,7 +8,7 @@ export type IconName =
   | 'shield' | 'zap' | 'chart' | 'arrow' | 'lock' | 'cash'
   | 'card' | 'coins' | 'spark' | 'store' | 'sun' | 'moon' | 'edit'
   | 'menu' | 'bell' | 'chevron' | 'list' | 'flame' | 'truck'
-  | 'history' | 'star' | 'tag' | 'globe' | 'group' | 'layers';
+  | 'history' | 'star' | 'tag' | 'globe' | 'group' | 'layers' | 'settings';
 
 export type IconTone = 'primary' | 'accent' | 'success' | 'danger' | 'muted';
 
@@ -66,6 +66,7 @@ const PATHS: Record<IconName, JSX.Element> = {
   globe:   <path d="M12 2a10 10 0 100 20 10 10 0 000-20zm-1 2.1v3.9H8a8 8 0 013-3.9zM6.3 10h2.7v4H6.3a8 8 0 010-4zM13 4.1a8 8 0 013 3.9h-3V4.1zM11 10h2v4h-2v-4zm4 0h2.7a8 8 0 010 4H15v-4zm-4 6h2v3.9a8 8 0 01-2 0V16zm4 0h3a8 8 0 01-3 3.9V16z"/>,
   group:   <path d="M8 11a4 4 0 100-8 4 4 0 000 8zm8 0a3 3 0 100-6 3 3 0 000 6zm-8 2c-4.4 0-8 2.2-8 5v2h16v-2c0-2.8-3.6-5-8-5zm8 1a7 7 0 016 3v2h-4v-2c0-1.4-.7-2.6-1.7-3.5.5-.3 1.1-.5 1.7-.5z"/>,
   layers:  <path d="M12 2l10 6-10 6L2 8l10-6zm0 8l10 6-10 6L2 16l10-6z"/>,
+  settings:<path d="M12 8a4 4 0 100 8 4 4 0 000-8zm8.94 2.5l1.8 1.4a1 1 0 010 1.6l-1.8 1.4c.04.35.06.7.06 1.1 0 .4-.02.75-.06 1.1l1.8 1.4a1 1 0 010 1.6l-1.7 2.9a1 1 0 01-1.3.4l-2.1-.85c-.55.4-1.14.75-1.78 1.03l-.32 2.25a1 1 0 01-1 .88h-3.4a1 1 0 01-1-.88l-.32-2.25c-.64-.28-1.23-.62-1.78-1.03l-2.1.85a1 1 0 01-1.3-.4l-1.7-2.9a1 1 0 010-1.6l1.8-1.4c-.04-.35-.06-.7-.06-1.1 0-.4.02-.75.06-1.1l-1.8-1.4a1 1 0 010-1.6l1.7-2.9a1 1 0 011.3-.4l2.1.85c.55-.4 1.14-.75 1.78-1.03l.32-2.25A1 1 0 019.7 2h3.4a1 1 0 011 .88l.32 2.25c.64.28 1.23.62 1.78 1.03l2.1-.85a1 1 0 011.3.4l1.7 2.9c.05.09.08.19.08.29 0-.1-.03-.2-.08-.29z"/>,
 };
 
 export const Icon: FC<IconProps> = ({
