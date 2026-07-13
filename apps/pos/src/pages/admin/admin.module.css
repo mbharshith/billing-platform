@@ -130,9 +130,19 @@
 /* -------------------------------------------------------------------------- */
 
 .lineEditor { display: flex; flex-direction: column; gap: 8px; }
-.lineEditor__row { display: grid; grid-template-columns: 1fr 100px 100px 40px; gap: 8px; align-items: center; }
-.lineEditor__row select, .lineEditor__row input { width: 100%; }
+.lineEditor__row { display: grid; gap: 8px; align-items: center; }
+.lineEditor__row select, .lineEditor__row input { width: 100%; padding: 8px 10px; border: 1px solid var(--app-border); border-radius: 8px; background: var(--app-surface); color: var(--app-text); font: inherit; font-size: 13px; }
+.lineEditor__row select:focus, .lineEditor__row input:focus { outline: none; border-color: var(--app-primary); box-shadow: 0 0 0 3px var(--app-primary-glow); }
 .lineEditor__empty { color: var(--app-text-subtle); font-size: 12px; font-style: italic; padding: 8px 0; }
+.lineEditor__readonly {
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--app-border);
+  color: var(--app-text);
+  font-size: 13px;
+  font-weight: 600;
+  text-align: right;
+}
 .lineEditor__addBtn { align-self: flex-start; margin-top: 4px; }
 
 /* -------------------------------------------------------------------------- */

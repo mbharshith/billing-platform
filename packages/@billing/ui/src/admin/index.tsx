@@ -386,3 +386,4 @@ export const StubPage: FC<StubPageProps> = ({ title, icon = 'spark', phase, hint
 
 // Re-export CrudPage helper so consumers only import from @billing/ui/admin.
 export * from './CrudPage';
+export * from './LineItemsEditor';

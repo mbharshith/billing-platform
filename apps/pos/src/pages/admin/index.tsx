@@ -602,10 +602,6 @@ export const IngredientsPage: FC = () => {
   );
 };
 
-export const RecipesPage: FC = () =>
-  <StubPage title="Recipes" phase="Phase 6" icon="edit"
-    hint="Bill-of-materials that maps each menu item to its ingredients. Recipe editor is a bigger form so it will land in a follow-up turn." />;
-
 export const SuppliersPage: FC = () => {
   const api = useTable<Supplier>('suppliers');
   return (
@@ -632,10 +628,6 @@ export const SuppliersPage: FC = () => {
     />
   );
 };
-
-export const PurchaseOrdersPage: FC = () =>
-  <StubPage title="Purchase Orders" phase="Phase 6" icon="receipt"
-    hint="Draft/sent/received PO tracking. List view exists (see seed data); editor pending." />;
 
 export const WastagePage: FC = () => {
   const api = useTable<WastageEntry>('wastage');
