@@ -89,7 +89,7 @@ export const SIDEBAR_GROUPS: readonly SidebarGroup[] = [
       { path: 'reports/discounts',   label: 'Discount Usage',    icon: 'coins' },
       { path: 'reports/tax',         label: 'Tax Summary',       icon: 'tag' },
       { path: 'reports/wastage',     label: 'Wastage Report',    icon: 'trash' },
-      { path: 'reports/cashier',     label: 'Cashier Report',    icon: 'user' },
+      { path: 'reports/cashier',     label: 'Sales by Staff',    icon: 'user' },
     ],
   },
   {

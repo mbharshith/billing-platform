@@ -12,7 +12,7 @@ export const STRINGS = {
   },
 
   nav: {
-    cashier:    'Cashier',
+    cashier:    'Register',
     dashboard:  'Dashboard',
     sales:      'Sales',
     customers:  'Customers',
@@ -40,7 +40,7 @@ export const STRINGS = {
     sessionExpired: 'Your session has expired. Please sign in again.',    welcome:        (name: string) => `Welcome, ${name}!`,  },
 
   cashier: {
-    pageTitle:        'Cashier Terminal',
+    pageTitle:        'Sales Register',
     pageSubtitle:     'Ring up items and check out customers.',
     searchPlaceholder:'Search by product name…',
     clearSearch:      'Clear search',
@@ -115,7 +115,7 @@ export const STRINGS = {
     kpiLendingWO:   'Lending balance',
 
     recentSalesTitle:     'Recent sales',
-    recentSalesEmpty:     'No sales yet — head to the Cashier to ring one up.',
+    recentSalesEmpty:     'No sales yet — head to the Register to ring one up.',
     columnInvoice:        'Invoice',
     columnTime:           'Time',
     columnItems:          'Items',
@@ -165,7 +165,7 @@ export const STRINGS = {
     save:          'Save',
     saving:        'Saving…',
     saved:         'Product saved.',
-    deleteConfirm: 'Deactivate this product? It will be hidden from the Cashier terminal.',
+    deleteConfirm: 'Deactivate this product? It will be hidden from the Sales Register.',
     duplicateSku:      'A product with that SKU already exists.',
     searchPlaceholder: 'Search by name or SKU…',
     clearSearch:       'Clear search',
@@ -249,7 +249,7 @@ export const STRINGS = {
     pageTitle:      'Sales history',
     pageSubtitle:   'Every sale, filterable, exportable, voidable.',
     empty:          'No sales recorded yet.',
-    emptyHint:      'Head to the Cashier to ring one up.',
+    emptyHint:      'Head to the Register to ring one up.',
     filterAll:      'All',
     filterCash:     'Cash',
     filterCard:     'Card',

@@ -62,10 +62,10 @@ const detectMode = (t: OrderType): Mode => {
 };
 
 const MODE_LABELS: Record<Mode, string> = {
-  counter:    'Counter',
+  counter:    'Walk-in',
   'dine-in':  'Dine-in',
   delivery:   'Delivery',
-  aggregator: 'Aggregator',
+  aggregator: 'Marketplace',
 };
 const MODE_ORDER: readonly Mode[] = ['counter', 'dine-in', 'delivery', 'aggregator'];
 
@@ -371,11 +371,11 @@ export const CheckoutModal: FC<CheckoutModalProps> = ({
           {/* -- 2c. Aggregator: provider dropdown + order-id ----------- */}
           {mode === 'aggregator' && (
             <section className={cls.checkoutSection}>
-              <Text size="xs" tone="subtle" weight="heavy" upper>Aggregator</Text>
+              <Text size="xs" tone="subtle" weight="heavy" upper>Marketplace</Text>
               <Select
                 value={aggregatorTypeCode ?? ''}
                 onChange={(e) => setAggregatorTypeCode(e.target.value)}
-                aria-label="Aggregator provider"
+                aria-label="Marketplace provider"
               >
                 {typesByMode.aggregator.map((t) => (
                   <option key={t.id} value={t.code}>{t.name}</option>
@@ -384,8 +384,8 @@ export const CheckoutModal: FC<CheckoutModalProps> = ({
               <Input
                 value={aggregatorRef}
                 onChange={(e) => setAggregatorRef(e.target.value)}
-                placeholder={`${activeOrderType?.name ?? 'Aggregator'} order id`}
-                aria-label="Aggregator order id"
+                placeholder={`${activeOrderType?.name ?? 'Marketplace'} order id`}
+                aria-label="Marketplace order id"
               />
             </section>
           )}

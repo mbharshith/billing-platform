@@ -825,4 +825,4 @@ export const HourlyReportPage     = makeReportStub('Hourly Sales Report');
 export const DiscountReportPage   = makeReportStub('Discount Usage Report');
 export const TaxReportPage        = makeReportStub('Tax Summary Report');
 export const WastageReportPage    = makeReportStub('Wastage Report');
-export const CashierReportPage    = makeReportStub('Cashier Report');
+export const CashierReportPage    = makeReportStub('Sales by Staff');

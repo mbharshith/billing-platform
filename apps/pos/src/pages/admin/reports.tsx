@@ -259,8 +259,8 @@ export const CashierReportPageV2: FC = () => {
   }, [sales]);
 
   return (
-    <AdminPage title="Cashier Report" subtitle="Who sold what, this period."
-               breadcrumb={['Reports', 'Cashier']}>
+    <AdminPage title="Sales by Staff" subtitle="Who sold what, this period."
+               breadcrumb={['Reports', 'Sales by Staff']}>
       <ChartFrame title="Sales by Cashier" meta="LEADERBOARD">
         {stats.length > 0 ? (
           <BarChart horizontal size="lg"

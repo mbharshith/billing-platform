@@ -137,7 +137,7 @@ export const RevenueDashboardPage: FC = () => {
           />
         </ChartFrame>
 
-        <ChartFrame title="Channel Split" subtitle="Counter vs online" meta="MIX">
+        <ChartFrame title="Channel Split" subtitle="Walk-in vs online" meta="MIX">
           {channelValues.length > 0 ? (
             <DoughnutChart size="lg" labels={channelLabels} data={channelValues}
               centerText={String(stats.orderCount)} centerSubtext="ORDERS" />
