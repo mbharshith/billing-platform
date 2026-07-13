@@ -273,23 +273,47 @@ class AppDB extends Dexie {
       products:  'id, storeId, outletId, [storeId+outletId], [storeId+outletId+sku], category, active',
       customers: 'id, storeId, outletId, [storeId+outletId], [storeId+outletId+mobile]',
     }).upgrade(async (tx) => {
-      // Build storeId -> first-outlet-id map from the outlets table so the
-      // backfill picks a real outlet (falls back to storeId if none exist).
+      // Build storeId -> [outlet-ids] map. We fan products out across every
+      // outlet of their store (chain-wide menu at launch, per-outlet stock)
+      // and backfill customers to the primary outlet only (people belong to
+      // one branch until they walk into another).
       const outletTable = tx.table<{ id: string; storeId: string; active: boolean }>('outlets');
       const outlets = await outletTable.toArray();
-      const firstByStore = new Map<string, string>();
+      const outletsByStore = new Map<string, string[]>();
+      const primaryByStore = new Map<string, string>();
       for (const o of outlets) {
-        if (!firstByStore.has(o.storeId)) firstByStore.set(o.storeId, o.id);
+        const list = outletsByStore.get(o.storeId) ?? [];
+        list.push(o.id);
+        outletsByStore.set(o.storeId, list);
+        // Primary outlet = the one whose id === storeId (our seed convention)
+        // OR the first one inserted for that store.
+        if (o.id === o.storeId) primaryByStore.set(o.storeId, o.id);
+        else if (!primaryByStore.has(o.storeId)) primaryByStore.set(o.storeId, o.id);
       }
-      const outletFor = (storeId: string): string => firstByStore.get(storeId) ?? storeId;
+      const primaryFor = (storeId: string): string => primaryByStore.get(storeId) ?? storeId;
 
-      const productTable = tx.table<{ id: string; storeId: string; outletId?: string }>('products');
-      await productTable.toCollection().modify((p) => {
-        if (!p.outletId) p.outletId = outletFor(p.storeId);
-      });
+      // Products: fan out. Existing row keeps its id + gets outletId=primary;
+      // a NEW row is inserted for every other outlet (id suffixed with outletId).
+      const productTable = tx.table<{ id: string; storeId: string; outletId?: string; sku: string }>('products');
+      const existingProducts = await productTable.toArray();
+      const duplicates: typeof existingProducts = [];
+      for (const p of existingProducts) {
+        if (!p.outletId) {
+          await productTable.update(p.id, { outletId: primaryFor(p.storeId) });
+        }
+        const allOutlets = outletsByStore.get(p.storeId) ?? [p.storeId];
+        for (const outletId of allOutlets) {
+          if (outletId === primaryFor(p.storeId)) continue;   // skip primary - already there
+          duplicates.push({ ...p, id: `${p.id}::${outletId}`, outletId });
+        }
+      }
+      if (duplicates.length > 0) await productTable.bulkAdd(duplicates as never);
+
+      // Customers stay per-primary-outlet - no fan-out. Same phone at another
+      // outlet will genuinely be a new record when someone walks in.
       const customerTable = tx.table<{ id: string; storeId: string; outletId?: string }>('customers');
       await customerTable.toCollection().modify((c) => {
-        if (!c.outletId) c.outletId = outletFor(c.storeId);
+        if (!c.outletId) c.outletId = primaryFor(c.storeId);
       });
     });
   }

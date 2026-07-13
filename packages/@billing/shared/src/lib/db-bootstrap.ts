@@ -26,7 +26,7 @@ import type {
   Customer, CustomerPayment, Product, Sale, Store, User, UserRole,
 } from '@billing/shared/domain/types';
 
-const MIGRATION_FLAG = 'db-bootstrap::v8';
+const MIGRATION_FLAG = 'db-bootstrap::v8b';
 
 // Normalise legacy user roles: drop 'super_admin' rows (that surface moved to the
 // dedicated vendor account), rename 'master' -> 'admin' (v1 schema). Idempotent.
@@ -93,6 +93,35 @@ export const bootstrapDb = async (): Promise<void> => {
 
   const fallbackStoreId = stores[0]?.id ?? '';
 
+  // v8 - fan-out the base menu across every outlet of each store. Real
+  // chains launch with the same menu at every branch but track stock and
+  // pricing PER OUTLET. Rather than repeat 40+ product rows per outlet in
+  // the fixtures, we duplicate the base SEED_PRODUCTS here: each product
+  // ends up as N rows (one per outlet of its storeId), each with its own
+  // stable id + outletId. The primary outlet keeps the original id so any
+  // hard-coded references in seed sales / demo orders still resolve.
+  const outletsByStore = new Map<string, readonly string[]>();
+  for (const o of SEED_OUTLETS) {
+    const list = outletsByStore.get(o.storeId) ?? [];
+    outletsByStore.set(o.storeId, [...list, o.id]);
+  }
+  const fanOutProducts = <T extends { readonly id: string; readonly storeId: string; readonly outletId?: string }>(rows: readonly T[]): T[] => {
+    const out: T[] = [];
+    for (const row of rows) {
+      const outlets = outletsByStore.get(row.storeId) ?? [row.storeId];
+      for (const outletId of outlets) {
+        // Primary outlet (id === storeId) keeps original row id so legacy
+        // references still work; other outlets get a suffixed id.
+        const id = outletId === row.storeId ? row.id : `${row.id}::${outletId}`;
+        out.push({ ...row, id, outletId });
+      }
+    }
+    return out;
+  };
+  const fannedProducts = hasLegacyData
+    ? products                       // legacy = keep as-is, upgrade fn already backfilled outletId
+    : fanOutProducts(products as readonly (typeof products)[number][]);
+
   // Bulk-insert everything in one transaction so a mid-write reload leaves
   // us either fully seeded or fully empty — never partially populated.
   await db.transaction(
@@ -101,7 +130,7 @@ export const bootstrapDb = async (): Promise<void> => {
     async () => {
       await db.stores.bulkPut([...stores]);
       await db.users.bulkPut([...users]);
-      await db.products.bulkPut([...backfillStoreId(products,  fallbackStoreId)]);
+      await db.products.bulkPut([...backfillStoreId(fannedProducts, fallbackStoreId)]);
       await db.customers.bulkPut([...backfillStoreId(customers, fallbackStoreId)]);
       await db.customerPayments.bulkPut([...oldPayments]);
       await db.sales.bulkPut([...backfillStoreId(oldSales,     fallbackStoreId)]);
