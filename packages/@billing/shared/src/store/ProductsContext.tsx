@@ -1,6 +1,9 @@
-// ProductsContext — Dexie-backed catalog, store-scoped.
+// ProductsContext — Dexie-backed catalog, OUTLET-scoped as of v8.
 
-// Products - live-queried on [storeId+sku] for current tenant. SKU uniqueness enforced at app layer for typed 'duplicateSku' errors.
+// Menus are managed per-branch: each outlet has its own product list, and
+// SKU uniqueness is enforced per (storeId, outletId). Same SKU 'PIZZA-01'
+// can exist at Koramangala AND Indiranagar as two separate products with
+// independent stock levels.
 
 // Stock adjustments run inside a single Dexie transaction to keep basket state consistent across reloads.
 import {
@@ -10,7 +13,7 @@ import {
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@billing/shared/lib/db';
 import type { BadgeTone, Product, ProductCategory } from '@billing/shared/domain/types';
-import { useCurrentStoreId } from './AuthContext';
+import { useCurrentOutletId, useCurrentStoreId } from './AuthContext';
 
 export interface ProductInput {
   readonly sku: string;
@@ -20,11 +23,12 @@ export interface ProductInput {
   readonly tone: BadgeTone;
   readonly stock: number;
   readonly storeId?: string;
+  readonly outletId?: string;
 }
 
 type CreateResult =
   | { readonly ok: true; readonly product: Product }
-  | { readonly ok: false; readonly error: 'duplicateSku' | 'noStore' };
+  | { readonly ok: false; readonly error: 'duplicateSku' | 'noStore' | 'noOutlet' };
 
 interface ProductsContextValue {
   readonly products: readonly Product[];
@@ -47,13 +51,14 @@ const EMPTY: readonly Product[] = [];
 
 export const ProductsProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const currentStoreId = useCurrentStoreId();
+  const currentOutletId = useCurrentOutletId();
 
   const scoped = useLiveQuery(
     async () => {
-      if (!currentStoreId) return EMPTY;
-      return db.products.where('storeId').equals(currentStoreId).toArray();
+      if (!currentStoreId || !currentOutletId) return EMPTY;
+      return db.products.where('[storeId+outletId]').equals([currentStoreId, currentOutletId]).toArray();
     },
-    [currentStoreId],
+    [currentStoreId, currentOutletId],
     EMPTY,
   ) ?? EMPTY;
 
@@ -66,14 +71,17 @@ export const ProductsProvider: FC<{ children: ReactNode }> = ({ children }) => {
 
   const create: ProductsContextValue['create'] = useCallback(async (input) => {
     const storeId = input.storeId ?? currentStoreId;
+    const outletId = input.outletId ?? currentOutletId;
     if (!storeId) return { ok: false, error: 'noStore' };
+    if (!outletId) return { ok: false, error: 'noOutlet' };
     const sku = input.sku.trim();
 
-
+    // SKU uniqueness is per-outlet: 'PIZZA-01' at Koramangala and 'PIZZA-01'
+    // at Indiranagar are two distinct products (each outlet's stock).
     const exact = await db.products
-      .where('[storeId+sku]').equals([storeId, sku]).first();
+      .where('[storeId+outletId+sku]').equals([storeId, outletId, sku]).first();
     const dup = exact ?? await db.products
-      .where('storeId').equals(storeId)
+      .where('[storeId+outletId]').equals([storeId, outletId])
       .filter((p) => p.sku.toLowerCase() === sku.toLowerCase())
       .first();
     if (dup) return { ok: false, error: 'duplicateSku' };
@@ -89,10 +97,11 @@ export const ProductsProvider: FC<{ children: ReactNode }> = ({ children }) => {
       active: true,
       createdAt: new Date().toISOString(),
       storeId,
+      outletId,
     };
     await db.products.add(product);
     return { ok: true, product };
-  }, [currentStoreId]);
+  }, [currentStoreId, currentOutletId]);
 
   const update: ProductsContextValue['update'] = useCallback(async (id, patch) => {
     const target = await db.products.get(id);
@@ -100,7 +109,7 @@ export const ProductsProvider: FC<{ children: ReactNode }> = ({ children }) => {
 
     if (patch.sku && patch.sku.trim().toLowerCase() !== target.sku.toLowerCase()) {
       const dup = await db.products
-        .where('storeId').equals(target.storeId)
+        .where('[storeId+outletId]').equals([target.storeId, target.outletId ?? target.storeId])
         .filter((p) => p.id !== id
           && p.sku.toLowerCase() === patch.sku!.trim().toLowerCase())
         .first();

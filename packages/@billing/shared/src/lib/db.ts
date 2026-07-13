@@ -262,6 +262,36 @@ class AppDB extends Dexie {
       outlets: 'id, storeId, brandId, marketId, active',
       sales:   'id, storeId, outletId, completedAt, customerId, cashierId, voided, channel, orderStatus, [storeId+channel], [storeId+orderStatus], [storeId+outletId]',
     });
+
+    // v8 - EVERYTHING outlet-scoped. Products and Customers now carry an
+    // outletId. Compound indexes replace the store-only ones so uniqueness
+    // is per-outlet ('same phone at Koramangala != same phone at Indiranagar'
+    // - each outlet manages its own book). Legacy rows are backfilled to
+    // the first outlet of their storeId in the upgrade function below so
+    // no data is lost.
+    this.version(8).stores({
+      products:  'id, storeId, outletId, [storeId+outletId], [storeId+outletId+sku], category, active',
+      customers: 'id, storeId, outletId, [storeId+outletId], [storeId+outletId+mobile]',
+    }).upgrade(async (tx) => {
+      // Build storeId -> first-outlet-id map from the outlets table so the
+      // backfill picks a real outlet (falls back to storeId if none exist).
+      const outletTable = tx.table<{ id: string; storeId: string; active: boolean }>('outlets');
+      const outlets = await outletTable.toArray();
+      const firstByStore = new Map<string, string>();
+      for (const o of outlets) {
+        if (!firstByStore.has(o.storeId)) firstByStore.set(o.storeId, o.id);
+      }
+      const outletFor = (storeId: string): string => firstByStore.get(storeId) ?? storeId;
+
+      const productTable = tx.table<{ id: string; storeId: string; outletId?: string }>('products');
+      await productTable.toCollection().modify((p) => {
+        if (!p.outletId) p.outletId = outletFor(p.storeId);
+      });
+      const customerTable = tx.table<{ id: string; storeId: string; outletId?: string }>('customers');
+      await customerTable.toCollection().modify((c) => {
+        if (!c.outletId) c.outletId = outletFor(c.storeId);
+      });
+    });
   }
 }
 

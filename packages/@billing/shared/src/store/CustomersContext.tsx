@@ -1,7 +1,8 @@
 // CustomersContext — Dexie-backed CRUD + lending payments.
 
-// Uniqueness on `mobile` is per-tenant, enforced app-side so we can return
-// a typed 'duplicateMobile' error.
+// As of v8 customers are OUTLET-scoped, not just store-scoped. The same
+// phone number CAN exist under different outletIds - each outlet manages
+// its own customer book. Uniqueness is enforced on [storeId+outletId+mobile].
 
 // `recordPayment` runs inside a Dexie transaction so the payment row and
 // the customer's lending-balance decrement land atomically.
@@ -12,11 +13,11 @@ import {
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@billing/shared/lib/db';
 import type { Customer, CustomerPayment } from '@billing/shared/domain/types';
-import { useCurrentStoreId } from './AuthContext';
+import { useCurrentOutletId, useCurrentStoreId } from './AuthContext';
 
 type CreateResult =
   | { readonly ok: true; readonly customer: Customer }
-  | { readonly ok: false; readonly error: 'duplicateMobile' | 'noStore' };
+  | { readonly ok: false; readonly error: 'duplicateMobile' | 'noStore' | 'noOutlet' };
 
 interface CustomerInput {
   readonly name: string;
@@ -24,6 +25,7 @@ interface CustomerInput {
   readonly email?: string | null;
   readonly notes?: string | null;
   readonly storeId?: string;
+  readonly outletId?: string;
 }
 
 interface CustomersContextValue {
@@ -57,13 +59,15 @@ const EMPTY_P: readonly CustomerPayment[] = [];
 
 export const CustomersProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const currentStoreId = useCurrentStoreId();
+  const currentOutletId = useCurrentOutletId();
 
+  // Outlet-scoped list: only customers registered at the current outlet.
   const scoped = useLiveQuery(
     async () => {
-      if (!currentStoreId) return EMPTY_C;
-      return db.customers.where('storeId').equals(currentStoreId).toArray();
+      if (!currentStoreId || !currentOutletId) return EMPTY_C;
+      return db.customers.where('[storeId+outletId]').equals([currentStoreId, currentOutletId]).toArray();
     },
-    [currentStoreId],
+    [currentStoreId, currentOutletId],
     EMPTY_C,
   ) ?? EMPTY_C;
 
@@ -82,11 +86,15 @@ export const CustomersProvider: FC<{ children: ReactNode }> = ({ children }) => 
 
   const create: CustomersContextValue['create'] = useCallback(async (input) => {
     const storeId = input.storeId ?? currentStoreId;
+    const outletId = input.outletId ?? currentOutletId;
     if (!storeId) return { ok: false, error: 'noStore' };
+    if (!outletId) return { ok: false, error: 'noOutlet' };
     const mobile = input.mobile.trim();
 
+    // Uniqueness is per-outlet - same phone can be registered at different
+    // outlets of the same brand (each outlet's book is its own).
     const dup = await db.customers
-      .where('[storeId+mobile]').equals([storeId, mobile]).first();
+      .where('[storeId+outletId+mobile]').equals([storeId, outletId, mobile]).first();
     if (dup) return { ok: false, error: 'duplicateMobile' };
 
     const customer: Customer = {
@@ -98,10 +106,11 @@ export const CustomersProvider: FC<{ children: ReactNode }> = ({ children }) => 
       lendingBalance: 0,
       createdAt: new Date().toISOString(),
       storeId,
+      outletId,
     };
     await db.customers.add(customer);
     return { ok: true, customer };
-  }, [currentStoreId]);
+  }, [currentStoreId, currentOutletId]);
 
   const update: CustomersContextValue['update'] = useCallback(async (id, patch) => {
     const target = await db.customers.get(id);
@@ -109,8 +118,8 @@ export const CustomersProvider: FC<{ children: ReactNode }> = ({ children }) => 
 
     if (patch.mobile && patch.mobile.trim() !== target.mobile) {
       const dup = await db.customers
-        .where('[storeId+mobile]')
-        .equals([target.storeId, patch.mobile.trim()])
+        .where('[storeId+outletId+mobile]')
+        .equals([target.storeId, target.outletId ?? target.storeId, patch.mobile.trim()])
         .first();
       if (dup && dup.id !== id) return { ok: false, error: 'duplicateMobile' };
     }
@@ -175,9 +184,10 @@ export const CustomersProvider: FC<{ children: ReactNode }> = ({ children }) => 
   const ensureFromMobile = useCallback(
     async (mobile: string, storeIdOverride?: string, defaultName?: string): Promise<Customer | null> => {
       const storeId = storeIdOverride ?? currentStoreId;
-      if (!storeId) return null;
+      const outletId = currentOutletId ?? storeId;  // legacy callers only pass storeId
+      if (!storeId || !outletId) return null;
       const existing = await db.customers
-        .where('[storeId+mobile]').equals([storeId, mobile]).first();
+        .where('[storeId+outletId+mobile]').equals([storeId, outletId, mobile]).first();
       if (existing) {
         // If we have a defaultName and existing customer's name looks auto-generated, upgrade it.
         if (defaultName && existing.name.startsWith('Customer · ')) {
@@ -195,11 +205,12 @@ export const CustomersProvider: FC<{ children: ReactNode }> = ({ children }) => 
         lendingBalance: 0,
         createdAt: new Date().toISOString(),
         storeId,
+        outletId,
       };
       await db.customers.add(customer);
       return customer;
     },
-    [currentStoreId],
+    [currentStoreId, currentOutletId],
   );
 
   const value = useMemo<CustomersContextValue>(() => ({

@@ -98,6 +98,9 @@ export const CheckoutPage: FC = () => {
         cashierName: SYSTEM_ACTOR_NAME,
         voided: false, voidedAt: null, voidedReason: null,
         storeId: tenant.id,
+        // Online orders always land at the store's primary outlet for now.
+        // Future: route by delivery pincode -> nearest outlet.
+        outletId: tenant.id,
         channel: 'online',
         orderStatus: 'placed',
         customerName: name.trim(),

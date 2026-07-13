@@ -84,6 +84,12 @@ export interface Product {
   readonly createdAt: Iso8601;
   // Store that owns this product.
   readonly storeId: string;
+  // Outlet within the store. As of v8 EVERY product belongs to exactly one
+  // outlet - menus are managed per-branch. Optional in the type only for
+  // back-compat with legacy rows read during migration; the bootstrap
+  // migration backfills every existing row to the first outlet of its
+  // storeId, and all writes require it.
+  readonly outletId?: string;
 
   // * Optional photo URL — populated in fixture tenants; future: served by product API.
   readonly image?: string;
@@ -223,7 +229,7 @@ export const ACTIVE_ORDER_STATUSES: readonly OrderStatus[] =
 export interface Customer {
   readonly id: string;
   readonly name: string;
-  // 10-digit mobile (digits only). Unique per tenant.
+  // 10-digit mobile (digits only). Unique per (storeId, outletId) as of v8.
   readonly mobile: string;
   readonly email: string | null;
   readonly notes: string | null;
@@ -232,6 +238,11 @@ export interface Customer {
   readonly createdAt: Iso8601;
   // Store that owns this customer record.
   readonly storeId: string;
+  // Outlet the customer was registered at (or first visited). Same phone at
+  // a different outlet = a new record - branches manage their own CRM.
+  // Optional in the type only for back-compat with legacy rows; the v8
+  // migration backfills all existing rows and all writes require it.
+  readonly outletId?: string;
 }
 
 export interface CustomerPayment {

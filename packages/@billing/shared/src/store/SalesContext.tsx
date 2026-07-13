@@ -7,7 +7,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { buildDemoSales, buildDemoOrders } from '@billing/shared/fixtures';
 import { db } from '@billing/shared/lib/db';
 import type { Sale, OrderStatus, OrderStatusEvent } from '@billing/shared/domain/types';
-import { useCurrentStoreId } from './AuthContext';
+import { useCurrentOutletId, useCurrentStoreId } from './AuthContext';
 import { useCustomers } from './CustomersContext';
 import { useProducts } from './ProductsContext';
 import { useStores } from './StoresContext';
@@ -38,18 +38,25 @@ const EMPTY: readonly Sale[] = [];
 
 export const SalesProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const currentStoreId = useCurrentStoreId();
+  const currentOutletId = useCurrentOutletId();
   const { allProducts } = useProducts();
   const { allCustomers } = useCustomers();
   const { stores } = useStores();
 
   // -- scoped read (dashboard / sales page / etc.) ------------------------
+  // Filters to the CURRENT OUTLET when one is selected. Legacy sales without
+  // an outletId fall back to matching the storeId (they surface under the
+  // 'primary' outlet - see v8 migration). Vendor / cross-outlet reporting
+  // uses `allSales` instead.
   const scoped = useLiveQuery(
     async () => {
       if (!currentStoreId) return EMPTY;
-      const rows = await db.sales.where('storeId').equals(currentStoreId).toArray();
+      const rows = currentOutletId
+        ? await db.sales.where('[storeId+outletId]').equals([currentStoreId, currentOutletId]).toArray()
+        : await db.sales.where('storeId').equals(currentStoreId).toArray();
       return rows.sort((a, b) => b.completedAt.localeCompare(a.completedAt));
     },
-    [currentStoreId],
+    [currentStoreId, currentOutletId],
     EMPTY,
   ) ?? EMPTY;
 

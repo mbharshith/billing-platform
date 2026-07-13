@@ -12,7 +12,15 @@ const p = (
   id: string, sku: string, name: string, price: number,
   category: Product['category'], tone: Product['tone'], stock: number,
   storeId: string, image?: string,
-): Product => ({ id, sku, name, price, category, tone, stock, active: true, createdAt: NOW, storeId, ...(image && { image }) });
+): Product => ({
+  id, sku, name, price, category, tone, stock, active: true, createdAt: NOW,
+  storeId,
+  // Seed catalog belongs to the store's primary outlet (same id as the
+  // store for our fixtures). v8 migration backfills the same value for
+  // any upgraded install.
+  outletId: storeId,
+  ...(image && { image }),
+});
 
 // Velvet Mumbai - luxury Indian fashion
 const VELVET: readonly Product[] = [
