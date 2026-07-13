@@ -26,7 +26,7 @@ import type {
   Customer, CustomerPayment, Product, Sale, Store, User, UserRole,
 } from '@billing/shared/domain/types';
 
-const MIGRATION_FLAG = 'db-bootstrap::v9b';
+const MIGRATION_FLAG = 'db-bootstrap::v9c';
 
 // Normalise legacy user roles: drop 'super_admin' rows (that surface moved to the
 // dedicated vendor account), rename 'master' -> 'admin' (v1 schema). Idempotent.

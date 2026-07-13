@@ -8,6 +8,7 @@ import {
   BarChart, LineChart, DoughnutChart,
 } from '@billing/ui/charts';
 import { db } from '@billing/shared/lib/db';
+import { useAuth } from '@billing/shared/store/AuthContext';
 import type { Sale } from '@billing/shared/domain/types';
 import cls from './admin.module.css';
 
@@ -18,15 +19,23 @@ interface DashboardData {
 }
 
 export const RevenueDashboardPage: FC = () => {
+  const { currentStoreId, currentOutletId } = useAuth();
   const [data, setData] = useState<DashboardData | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    db.sales.toArray().then((sales) => {
-      if (!cancelled) setData({ sales: sales as Sale[] });
-    });
+    if (!currentStoreId || !currentOutletId) {
+      setData({ sales: [] });
+      return () => {};
+    }
+    // Outlet-scoped: dashboard shows the current outlet's revenue only.
+    // Chain-wide roll-up is a separate vendor / HQ report (not this page).
+    db.sales.where('[storeId+outletId]').equals([currentStoreId, currentOutletId]).toArray()
+      .then((sales) => {
+        if (!cancelled) setData({ sales: sales as Sale[] });
+      });
     return () => { cancelled = true; };
-  }, []);
+  }, [currentStoreId, currentOutletId]);
 
   const stats = useMemo(() => {
     if (!data) return null;

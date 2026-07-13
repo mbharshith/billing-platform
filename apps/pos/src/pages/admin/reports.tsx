@@ -8,19 +8,26 @@ import {
 } from '@billing/ui/charts';
 import { DataTable, type DataTableColumn } from '@billing/ui/molecules';
 import { db } from '@billing/shared/lib/db';
+import { useAuth } from '@billing/shared/store/AuthContext';
 import type { Sale } from '@billing/shared/domain/types';
 import { STRINGS } from '@billing/shared/domain/strings';
 import cls from './admin.module.css';
 
 const money = (n: number): string => `Rs ${Math.round(n).toLocaleString('en-IN')}`;
 
+// Outlet-scoped sales - every report reads ONLY the current outlet's rows.
+// Vendor / cross-outlet analytics belongs in a separate 'chain-wide' report
+// screen (not exposed to store-level users).
 const useSales = (): readonly Sale[] => {
+  const { currentStoreId, currentOutletId } = useAuth();
   const [rows, setRows] = useState<Sale[]>([]);
   useEffect(() => {
     let cancelled = false;
-    db.sales.toArray().then((s) => { if (!cancelled) setRows(s as Sale[]); });
+    if (!currentStoreId || !currentOutletId) { setRows([]); return () => {}; }
+    db.sales.where('[storeId+outletId]').equals([currentStoreId, currentOutletId]).toArray()
+      .then((s) => { if (!cancelled) setRows(s as Sale[]); });
     return () => { cancelled = true; };
-  }, []);
+  }, [currentStoreId, currentOutletId]);
   return rows;
 };
 
@@ -343,14 +350,17 @@ export const DiscountReportPageV2: FC = () => {
 
 // Wastage Report
 export const WastageReportPageV2: FC = () => {
+  const { currentStoreId, currentOutletId } = useAuth();
   const [rows, setRows] = useState<Array<{
     id: string; ingredientName?: string; quantity: number; costImpact: number; reason: string; reportedAt: string;
   }>>([]);
   useEffect(() => {
     let cancelled = false;
-    db.wastage.toArray().then((data) => { if (!cancelled) setRows(data as never); });
+    if (!currentStoreId || !currentOutletId) { setRows([]); return () => {}; }
+    db.wastage.where('[storeId+outletId]').equals([currentStoreId, currentOutletId]).toArray()
+      .then((data) => { if (!cancelled) setRows(data as never); });
     return () => { cancelled = true; };
-  }, []);
+  }, [currentStoreId, currentOutletId]);
 
   const totalCost = rows.reduce((s, r) => s + (r.costImpact ?? 0), 0);
   const byReason = new Map<string, number>();

@@ -48,12 +48,13 @@ export const SalesProvider: FC<{ children: ReactNode }> = ({ children }) => {
   // an outletId fall back to matching the storeId (they surface under the
   // 'primary' outlet - see v8 migration). Vendor / cross-outlet reporting
   // uses `allSales` instead.
+  // Outlet-scoped live query. If no outlet is selected we return EMPTY
+  // (we no longer fall back to store-wide - the whole app is outlet-first).
+  // Vendor / cross-outlet reporting uses `allSales` instead.
   const scoped = useLiveQuery(
     async () => {
-      if (!currentStoreId) return EMPTY;
-      const rows = currentOutletId
-        ? await db.sales.where('[storeId+outletId]').equals([currentStoreId, currentOutletId]).toArray()
-        : await db.sales.where('storeId').equals(currentStoreId).toArray();
+      if (!currentStoreId || !currentOutletId) return EMPTY;
+      const rows = await db.sales.where('[storeId+outletId]').equals([currentStoreId, currentOutletId]).toArray();
       return rows.sort((a, b) => b.completedAt.localeCompare(a.completedAt));
     },
     [currentStoreId, currentOutletId],

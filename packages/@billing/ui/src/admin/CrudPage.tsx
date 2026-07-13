@@ -20,13 +20,19 @@ import { Modal } from '@billing/ui/organisms';
 import { DataTable, type DataTableColumn } from '@billing/ui/molecules';
 import { ConfirmDialog } from '@billing/ui/feedback';
 import { useToast } from '@billing/shared/store/ToastContext';
+import { STRINGS } from '@billing/shared/domain/strings';
 import type { CrudApi, TenantRow } from '@billing/shared/hooks/useTable';
 import { AdminPage } from '@billing/ui/admin';
 import cls from './admin.module.css';
 
 // Field descriptor types
 
-export type FormFieldType = 'text' | 'number' | 'select' | 'boolean' | 'textarea';
+type FormFieldType = 'text' | 'number' | 'boolean' | 'select' | 'textarea';
+
+// Convert a plural Title-Case entity name to its singular form.
+// Handles the common -ies → -y case (e.g. "Menu Categories" → "Menu Category").
+const singularize = (title: string): string =>
+  title.replace(/ies$/, 'y').replace(/s$/, '');
 
 export interface FormFieldDescriptor<Row> {
   readonly key: keyof Row & string;
@@ -186,7 +192,7 @@ export const CrudPage = <Row extends TenantRow>({
         <>
           {extraActions}
           <Button variant="primary" leadingIcon="plus" onClick={openCreate}>
-            {addLabel ?? `Add ${title.replace(/s$/, '').toLowerCase()}`}
+            {addLabel ?? `Add ${singularize(title)}`}
           </Button>
         </>
       }
@@ -205,8 +211,8 @@ export const CrudPage = <Row extends TenantRow>({
 
       {form && (
         <Modal
-          title={editingId ? `Edit ${title.replace(/s$/, '').toLowerCase()}`
-                           : `Add ${title.replace(/s$/, '').toLowerCase()}`}
+          title={editingId ? `Edit ${singularize(title)}`
+                           : `Add ${singularize(title)}`}
           onClose={() => { setForm(null); setEditingId(null); }}
           closeLabel="Close"
           wide
@@ -231,7 +237,7 @@ export const CrudPage = <Row extends TenantRow>({
 
       {confirming && (
         <ConfirmDialog
-          title={`Delete this ${title.replace(/s$/, '').toLowerCase()}?`}
+          title={`${STRINGS.common.delete} this ${singularize(title).toLowerCase()}?`}
           message="This cannot be undone."
           confirmLabel="Delete"
           danger

@@ -502,6 +502,7 @@
   border: 1px solid var(--app-border);
   border-radius: var(--app-radius-lg);
   background: var(--app-surface);
+  margin-top: var(--app-space-4);
 }
 /* flush — use inside a .card that already provides the container chrome */
 .dataTableWrap--flush {
