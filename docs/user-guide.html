@@ -1,0 +1,435 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Outletly &middot; User &amp; data flow</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+    :focus-visible { outline: 3px solid #0d6efd; outline-offset: 2px; }
+    .hash-target { scroll-margin-top: 6rem; }
+    .toc-link.active { color: #1d4ed8; font-weight: 700; }
+    code { background: #f3f4f6; padding: 1px 4px; border-radius: 4px; font-size: 0.85em; }
+
+    /* Flow-box building blocks --------------------------------------- */
+    .box { border-radius: 12px; padding: 12px 14px; text-align: center; font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,.06); border: 1px solid; min-width: 120px; }
+    .box-role     { background: #fef3c7; color: #78350f; border-color: #fcd34d; }
+    .box-action   { background: #dbeafe; color: #1e3a8a; border-color: #93c5fd; }
+    .box-data     { background: #dcfce7; color: #14532d; border-color: #86efac; }
+    .box-system   { background: #ede9fe; color: #4c1d95; border-color: #c4b5fd; }
+    .box-warn     { background: #fee2e2; color: #7f1d1d; border-color: #fca5a5; }
+    .box-mini     { font-size: 0.72rem; padding: 4px 8px; min-width: auto; }
+    .label-role   { display:inline-block; padding: 2px 8px; border-radius: 999px; font-size: 0.65rem; font-weight: 700; letter-spacing: .04em; }
+    .role-vendor  { background:#5b21b6; color:white; }
+    .role-owner   { background:#b45309; color:white; }
+    .role-manager { background:#1d4ed8; color:white; }
+    .role-cashier { background:#047857; color:white; }
+    .role-system  { background:#334155; color:white; }
+    .role-customer{ background:#be185d; color:white; }
+
+    /* Arrow SVGs -------------------------------------------------------- */
+    .arrow-h svg, .arrow-v svg { display:block; }
+    .arrow-down-block { width:2px; background:#94a3b8; height:32px; margin: 4px auto; position:relative; }
+    .arrow-down-block::after {
+      content:""; position:absolute; bottom:-6px; left:-5px;
+      border:6px solid transparent; border-top-color:#94a3b8;
+    }
+
+    .step-num { display:inline; width:28px; height:28px; border-radius:9999px; background:#1d4ed8; color:white; align-items:center; justify-content:center; font-weight:700; margin-right:8px; font-size:0.85rem; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900">
+
+<header class="bg-white border-b border-slate-200 sticky top-0 z-10 shadow-sm">
+  <div class="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between gap-4">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded-lg bg-indigo-600 text-white grid place-items-center font-bold">O</div>
+      <div>
+        <h1 class="text-lg font-bold leading-tight">Outletly &middot; user &amp; data flow</h1>
+        <p class="text-xs text-slate-500 leading-tight">How to actually use the app, and what creates what.</p>
+      </div>
+    </div>
+    <nav aria-label="Sections" class="hidden md:flex items-center gap-5 text-sm">
+      <a href="#quick"    class="toc-link text-slate-600 hover:text-indigo-600">Quick start</a>
+      <a href="#roles"    class="toc-link text-slate-600 hover:text-indigo-600">Roles</a>
+      <a href="#setup"    class="toc-link text-slate-600 hover:text-indigo-600">Setup flow</a>
+      <a href="#daily"    class="toc-link text-slate-600 hover:text-indigo-600">Daily flow</a>
+      <a href="#creates"  class="toc-link text-slate-600 hover:text-indigo-600">What creates what</a>
+      <a href="#ripple"   class="toc-link text-slate-600 hover:text-indigo-600">Sale ripple</a>
+      <a href="#urls"     class="toc-link text-slate-600 hover:text-indigo-600">URL map</a>
+    </nav>
+  </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-6 py-8 space-y-16">
+
+  <!-- ========================================================== -->
+  <!-- QUICK START -->
+  <!-- ========================================================== -->
+  <section id="quick" class="hash-target">
+    <h2 class="text-2xl font-bold mb-4">1. Quick start (60 seconds)</h2>
+
+    <div class="rounded-xl bg-white border border-slate-200 p-6">
+      <ol class="space-y-4 text-slate-800">
+        <li class="flex gap-3">
+          <span class="step-num">1</span>
+          <div>
+            <div class="font-bold">Open the app</div>
+            <div class="text-sm text-slate-600">Local demo: <code>http://localhost:4173</code> after <code>pnpm --filter shell preview</code>. Or double-click <code>apps/shell/dist/index.html</code>.</div>
+          </div>
+        </li>
+        <li class="flex gap-3">
+          <span class="step-num">2</span>
+          <div>
+            <div class="font-bold">Pick a tenant on the marketing page</div>
+            <div class="text-sm text-slate-600">Choose Spice Route (F&amp;B), Velvet (fashion), or La Maison (retail). Each is a fully seeded independent store.</div>
+          </div>
+        </li>
+        <li class="flex gap-3">
+          <span class="step-num">3</span>
+          <div>
+            <div class="font-bold">Log in as owner</div>
+            <div class="text-sm text-slate-600">Owner credentials sit under <em>Store &rarr; Users</em> in every tenant. Or log in as a seeded cashier for the counter view.</div>
+          </div>
+        </li>
+        <li class="flex gap-3">
+          <span class="step-num">4</span>
+          <div>
+            <div class="font-bold">Confirm the outlet in the top-right picker</div>
+            <div class="text-sm text-slate-600">Everything you do below is scoped to <strong>this outlet</strong>: menu, sales, staff PINs, kitchen tickets. Switch outlets from the same picker.</div>
+          </div>
+        </li>
+        <li class="flex gap-3">
+          <span class="step-num">5</span>
+          <div>
+            <div class="font-bold">Ring a sale</div>
+            <div class="text-sm text-slate-600">Sidebar &rarr; <em>Cashier</em>. Add items, tap Charge, pick mode &amp; payment, Confirm. Watch it appear in <em>Sales</em>, <em>Live orders</em>, <em>Dashboard</em>.</div>
+          </div>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ========================================================== -->
+  <!-- ROLES -->
+  <!-- ========================================================== -->
+  <section id="roles" class="hash-target">
+    <h2 class="text-2xl font-bold mb-4">2. Roles &mdash; who does what</h2>
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div class="rounded-xl bg-white border border-slate-200 p-5">
+        <span class="label-role role-vendor">Vendor / HQ</span>
+        <p class="text-sm text-slate-700 mt-3">Cross-store visibility. Owns markets, brands, and stores themselves. Sees chain-wide reports.</p>
+      </div>
+      <div class="rounded-xl bg-white border border-slate-200 p-5">
+        <span class="label-role role-owner">Owner</span>
+        <p class="text-sm text-slate-700 mt-3">Runs one store. Creates outlets, hires staff, sets menu / products, defines recipes and suppliers.</p>
+      </div>
+      <div class="rounded-xl bg-white border border-slate-200 p-5">
+        <span class="label-role role-manager">Manager</span>
+        <p class="text-sm text-slate-700 mt-3">Runs one outlet daily. Handles procurement (POs, GRNs), promotions (coupons), voids, reports.</p>
+      </div>
+      <div class="rounded-xl bg-white border border-slate-200 p-5">
+        <span class="label-role role-cashier">Cashier</span>
+        <p class="text-sm text-slate-700 mt-3">Front-of-house. PIN login, rings sales, takes payments, prints KOTs, closes shift.</p>
+      </div>
+      <div class="rounded-xl bg-white border border-slate-200 p-5">
+        <span class="label-role role-customer">Customer</span>
+        <p class="text-sm text-slate-700 mt-3">Browses storefront (<code>/:slug/store</code>), places online orders, pays via gateway.</p>
+      </div>
+      <div class="rounded-xl bg-white border border-slate-200 p-5">
+        <span class="label-role role-system">System</span>
+        <p class="text-sm text-slate-700 mt-3">Auto-generated rows: audit log, invoice numbers, stock adjustments from recipes, EOD roll-ups.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================== -->
+  <!-- SETUP FLOW -->
+  <!-- ========================================================== -->
+  <section id="setup" class="hash-target">
+    <h2 class="text-2xl font-bold mb-4">3. First-time setup flow</h2>
+    <p class="text-sm text-slate-600 mb-6 max-w-3xl">Follow top-to-bottom the first time a new store lands. Each row shows: who does it &rarr; what happens &rarr; what gets created.</p>
+
+    <div class="rounded-xl bg-white border border-slate-200 p-6 overflow-x-auto">
+      <div class="min-w-[720px] space-y-4">
+
+        <!-- Row 1 -->
+        <div class="flex items-center gap-3">
+          <span class="label-role role-vendor w-28 text-center">Vendor</span>
+          <div class="box box-action flex-1">Create market &rarr; brand &rarr; store</div>
+          <span class="text-slate-400 text-2xl">&rarr;</span>
+          <div class="box box-data flex-1">markets, brands, stores rows</div>
+        </div>
+        <div class="arrow-down-block"></div>
+
+        <!-- Row 2 -->
+        <div class="flex items-center gap-3">
+          <span class="label-role role-vendor w-28 text-center">Vendor</span>
+          <div class="box box-action flex-1">Create outlet(s) under the store</div>
+          <span class="text-slate-400 text-2xl">&rarr;</span>
+          <div class="box box-data flex-1">outlets rows + outletSettings blob</div>
+        </div>
+        <div class="text-center text-xs text-slate-500 italic">&darr; on outlet create, system fans out chain config across the new outlet</div>
+
+        <!-- Row 3 -->
+        <div class="flex items-center gap-3">
+          <span class="label-role role-system w-28 text-center">System</span>
+          <div class="box box-system flex-1">Fan-out: clone menu categories, tax slabs, payment modes, warehouses, etc.</div>
+          <span class="text-slate-400 text-2xl">&rarr;</span>
+          <div class="box box-data flex-1">30+ config tables seeded per outlet</div>
+        </div>
+        <div class="arrow-down-block"></div>
+
+        <!-- Row 4 -->
+        <div class="flex items-center gap-3">
+          <span class="label-role role-owner w-28 text-center">Owner</span>
+          <div class="box box-action flex-1">Log in, switch to new outlet, hire staff (create users + PINs)</div>
+          <span class="text-slate-400 text-2xl">&rarr;</span>
+          <div class="box box-data flex-1">users rows (chain-wide, allowed_outlets scoped)</div>
+        </div>
+        <div class="arrow-down-block"></div>
+
+        <!-- Row 5 -->
+        <div class="flex items-center gap-3">
+          <span class="label-role role-owner w-28 text-center">Owner</span>
+          <div class="box box-action flex-1">Add / adjust menu items, prices, variants, modifiers</div>
+          <span class="text-slate-400 text-2xl">&rarr;</span>
+          <div class="box box-data flex-1">products, variants, modifiers</div>
+        </div>
+        <div class="arrow-down-block"></div>
+
+        <!-- Row 6 -->
+        <div class="flex items-center gap-3">
+          <span class="label-role role-owner w-28 text-center">Owner</span>
+          <div class="box box-action flex-1">Define recipes (menu item &rarr; ingredients)</div>
+          <span class="text-slate-400 text-2xl">&rarr;</span>
+          <div class="box box-data flex-1">ingredients, recipes rows</div>
+        </div>
+        <div class="arrow-down-block"></div>
+
+        <!-- Row 7 -->
+        <div class="flex items-center gap-3">
+          <span class="label-role role-manager w-28 text-center">Manager</span>
+          <div class="box box-action flex-1">Onboard suppliers, raise first PO, receive stock (GRN)</div>
+          <span class="text-slate-400 text-2xl">&rarr;</span>
+          <div class="box box-data flex-1">suppliers, purchaseOrders, grns, stock &uarr;</div>
+        </div>
+        <div class="arrow-down-block"></div>
+
+        <!-- Row 8 -->
+        <div class="flex items-center gap-3">
+          <span class="label-role role-cashier w-28 text-center">Cashier</span>
+          <div class="box box-action flex-1">PIN login &rarr; Cashier POS &rarr; ready for the first sale</div>
+          <span class="text-slate-400 text-2xl">&rarr;</span>
+          <div class="box box-data flex-1">shift token issued</div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================== -->
+  <!-- DAILY FLOW -->
+  <!-- ========================================================== -->
+  <section id="daily" class="hash-target">
+    <h2 class="text-2xl font-bold mb-4">4. A day at the counter (cashier flow)</h2>
+
+    <div class="rounded-xl bg-white border border-slate-200 p-6 overflow-x-auto">
+      <div class="min-w-[720px] flex flex-col items-center gap-4">
+
+        <div class="box box-action w-80">Cashier enters 4-digit PIN + picks outlet</div>
+        <div class="arrow-down-block"></div>
+        <div class="box box-system w-80">System issues 8-hour shift token &middot; loads outlet menu</div>
+        <div class="arrow-down-block"></div>
+
+        <div class="box box-action w-80">Add items &middot; apply modifiers &middot; pick variants</div>
+        <div class="arrow-down-block"></div>
+        <div class="box box-action w-80">Tap <em>Charge</em> &rarr; checkout modal</div>
+        <div class="arrow-down-block"></div>
+
+        <div class="grid md:grid-cols-4 gap-3 w-full max-w-4xl">
+          <div class="box box-action">Pick mode<br><span class="text-xs font-normal">Counter / Dine-in / Delivery / Aggregator</span></div>
+          <div class="box box-action">Pick table / address / provider (mode-specific)</div>
+          <div class="box box-action">Pick payment<br><span class="text-xs font-normal">Cash / UPI / Card / Lending</span></div>
+          <div class="box box-action">Confirm</div>
+        </div>
+        <div class="arrow-down-block"></div>
+
+        <div class="box box-data w-80">sales row created &middot; invoice minted</div>
+        <div class="arrow-down-block"></div>
+
+        <div class="grid md:grid-cols-3 gap-3 w-full max-w-3xl text-sm">
+          <div class="box box-system">KOT ticket &rarr; kitchen KDS</div>
+          <div class="box box-system">Live-orders kanban updates</div>
+          <div class="box box-system">Dashboard KPIs re-render</div>
+        </div>
+        <div class="arrow-down-block"></div>
+
+        <div class="box box-warn w-80">End of shift &rarr; cashier signs off, cash drawer reconciled</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================== -->
+  <!-- WHO CREATES WHAT -->
+  <!-- ========================================================== -->
+  <section id="creates" class="hash-target">
+    <h2 class="text-2xl font-bold mb-4">5. What creates what &mdash; ownership map</h2>
+    <p class="text-sm text-slate-600 mb-4 max-w-3xl">One line per role showing every table it authors (directly or via a UI action). If a role isn't in a column, it can't create that row.</p>
+
+    <div class="rounded-xl bg-white border border-slate-200 overflow-hidden">
+      <table class="w-full text-sm">
+        <thead class="bg-slate-50 text-slate-600 text-xs uppercase">
+          <tr>
+            <th class="text-left px-4 py-2">Role</th>
+            <th class="text-left px-4 py-2">Creates directly</th>
+            <th class="text-left px-4 py-2">Auto side-effects</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          <tr>
+            <td class="px-4 py-3 align-top"><span class="label-role role-vendor">Vendor</span></td>
+            <td class="px-4 py-3 align-top">markets &middot; brands &middot; stores &middot; outlets &middot; outletSettings</td>
+            <td class="px-4 py-3 align-top">Fan-out of chain config into every new outlet</td>
+          </tr>
+          <tr>
+            <td class="px-4 py-3 align-top"><span class="label-role role-owner">Owner</span></td>
+            <td class="px-4 py-3 align-top">users (with PIN) &middot; menuCategories &middot; products &middot; variants &middot; modifiers &middot; combos &middot; sections &middot; diningTables &middot; kotStations &middot; recipes &middot; ingredients &middot; suppliers &middot; warehouses &middot; uom &middot; rmCategories &middot; taxSlabs &middot; paymentModes &middot; orderTypes &middot; aggregators &middot; deliveryZones &middot; accounts &middot; expenseCategories &middot; customerGroups &middot; loyaltyTiers &middot; waTemplates &middot; reasons</td>
+            <td class="px-4 py-3 align-top">auditLog row on every mutation</td>
+          </tr>
+          <tr>
+            <td class="px-4 py-3 align-top"><span class="label-role role-manager">Manager</span></td>
+            <td class="px-4 py-3 align-top">purchaseOrders &middot; grns &middot; vendorBills &middot; expenses &middot; stockAdjustments &middot; stockTransfers &middot; indents &middot; productionBatches &middot; wastage &middot; discounts &middot; addlCharges &middot; coupons &middot; segments &middot; campaigns</td>
+            <td class="px-4 py-3 align-top">Stock movements on GRN receipt &middot; auditLog rows</td>
+          </tr>
+          <tr>
+            <td class="px-4 py-3 align-top"><span class="label-role role-cashier">Cashier</span></td>
+            <td class="px-4 py-3 align-top">sales &middot; customerPayments (lending pay-back) &middot; customers (create-on-the-fly during checkout) &middot; feedback</td>
+            <td class="px-4 py-3 align-top">KOT tickets &middot; stock deduct via recipe &middot; invoice number &middot; auditLog</td>
+          </tr>
+          <tr>
+            <td class="px-4 py-3 align-top"><span class="label-role role-customer">Customer</span></td>
+            <td class="px-4 py-3 align-top">sales (channel=online) &middot; customers (self)</td>
+            <td class="px-4 py-3 align-top">Same KOT / stock / audit side-effects as counter sale</td>
+          </tr>
+          <tr>
+            <td class="px-4 py-3 align-top"><span class="label-role role-system">System</span></td>
+            <td class="px-4 py-3 align-top">auditLog &middot; invoiceNumber sequence &middot; stock deltas &middot; EOD report snapshots &middot; scheduled campaign sends</td>
+            <td class="px-4 py-3 align-top">(none &mdash; system is the ultimate side-effect)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ========================================================== -->
+  <!-- SALE RIPPLE -->
+  <!-- ========================================================== -->
+  <section id="ripple" class="hash-target">
+    <h2 class="text-2xl font-bold mb-4">6. The sale ripple &mdash; one action, seven effects</h2>
+    <p class="text-sm text-slate-600 mb-6 max-w-3xl">When a cashier taps <em>Confirm</em> on the checkout modal, this cascade fires. Every downstream box is automatic &mdash; nobody types them.</p>
+
+    <div class="rounded-xl bg-white border border-slate-200 p-6">
+      <div class="flex flex-col items-center">
+
+        <!-- Trigger -->
+        <div class="box box-action" style="min-width: 280px;">Cashier taps <strong>Confirm</strong></div>
+
+        <!-- Fan out -->
+        <svg class="my-2" viewBox="0 0 700 60" width="100%" height="60" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+          <g stroke="#94a3b8" stroke-width="2" fill="none">
+            <path d="M350 0 L 60 55"/>
+            <path d="M350 0 L 180 55"/>
+            <path d="M350 0 L 300 55"/>
+            <path d="M350 0 L 420 55"/>
+            <path d="M350 0 L 540 55"/>
+            <path d="M350 0 L 660 55"/>
+          </g>
+          <g fill="#94a3b8">
+            <polygon points="60,55 55,45 65,45"/>
+            <polygon points="180,55 175,45 185,45"/>
+            <polygon points="300,55 295,45 305,45"/>
+            <polygon points="420,55 415,45 425,45"/>
+            <polygon points="540,55 535,45 545,45"/>
+            <polygon points="660,55 655,45 665,45"/>
+          </g>
+        </svg>
+
+        <!-- 6 downstream boxes -->
+        <div class="grid grid-cols-2 md:grid-cols-6 gap-2 w-full">
+          <div class="box box-data box-mini">1. sales row inserted with items[], payments[], outletId stamp</div>
+          <div class="box box-data box-mini">2. invoice_no minted from per-outlet sequence</div>
+          <div class="box box-system box-mini">3. KOT tickets pushed to relevant kotStations (KDS)</div>
+          <div class="box box-system box-mini">4. Stock decrement for every recipe ingredient</div>
+          <div class="box box-data box-mini">5. customerPayments &amp; balance if Lending mode</div>
+          <div class="box box-system box-mini">6. Live-orders kanban + Dashboard KPIs re-render (live query)</div>
+        </div>
+
+        <div class="my-3 text-xs text-slate-500 italic">and one final one, out-of-band</div>
+
+        <div class="box box-data w-full max-w-md">7. auditLog row: <code>action=sale.recorded</code>, actor, before/after</div>
+
+      </div>
+    </div>
+
+    <div class="mt-4 rounded-xl bg-amber-50 border border-amber-200 p-4 text-sm text-slate-700">
+      <strong>Why this matters:</strong> because #3&ndash;#6 are automatic <em>and</em> outlet-scoped, a cashier at Koramangala cannot accidentally push a KOT to Indiranagar's kitchen. Same code path, same scoping, no chance of cross-outlet leakage.
+    </div>
+  </section>
+
+  <!-- ========================================================== -->
+  <!-- URL MAP -->
+  <!-- ========================================================== -->
+  <section id="urls" class="hash-target">
+    <h2 class="text-2xl font-bold mb-4">7. URL map &mdash; where each screen lives</h2>
+    <p class="text-sm text-slate-600 mb-4 max-w-3xl">Every URL below is prefixed with the tenant slug (<code>spiceroute</code>, <code>velvet</code>, <code>lamaison</code>). All routes are scoped by the outlet selected in the top-right picker.</p>
+    <div class="rounded-xl bg-white border border-slate-200 overflow-hidden">
+      <table class="w-full text-sm">
+        <thead class="bg-slate-50 text-slate-600 text-xs uppercase">
+          <tr><th class="text-left px-4 py-2">URL</th><th class="text-left px-4 py-2">Who</th><th class="text-left px-4 py-2">What</th></tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          <tr><td class="px-4 py-2 font-mono">/</td><td class="px-4 py-2"><span class="label-role role-customer">Anyone</span></td><td class="px-4 py-2">Marketing home &middot; tenant picker</td></tr>
+          <tr><td class="px-4 py-2 font-mono">/login</td><td class="px-4 py-2"><span class="label-role role-owner">Owner</span> <span class="label-role role-manager">Manager</span> <span class="label-role role-cashier">Cashier</span></td><td class="px-4 py-2">Password / PIN login</td></tr>
+          <tr><td class="px-4 py-2 font-mono">/:slug/store</td><td class="px-4 py-2"><span class="label-role role-customer">Customer</span></td><td class="px-4 py-2">Public storefront &middot; browse &middot; cart</td></tr>
+          <tr><td class="px-4 py-2 font-mono">/:slug/store/checkout</td><td class="px-4 py-2"><span class="label-role role-customer">Customer</span></td><td class="px-4 py-2">Place online order</td></tr>
+          <tr><td class="px-4 py-2 font-mono">/:slug/cashier</td><td class="px-4 py-2"><span class="label-role role-cashier">Cashier</span></td><td class="px-4 py-2">Counter POS &middot; ring sales</td></tr>
+          <tr><td class="px-4 py-2 font-mono">/:slug/admin</td><td class="px-4 py-2"><span class="label-role role-owner">Owner</span> <span class="label-role role-manager">Manager</span></td><td class="px-4 py-2">Admin home / dashboard</td></tr>
+          <tr><td class="px-4 py-2 font-mono">/:slug/admin/dashboard</td><td class="px-4 py-2"><span class="label-role role-manager">Manager</span></td><td class="px-4 py-2">Revenue KPIs (outlet-scoped)</td></tr>
+          <tr><td class="px-4 py-2 font-mono">/:slug/admin/reports</td><td class="px-4 py-2"><span class="label-role role-manager">Manager</span></td><td class="px-4 py-2">Sales / collections / tax reports</td></tr>
+          <tr><td class="px-4 py-2 font-mono">/:slug/admin/live-orders</td><td class="px-4 py-2"><span class="label-role role-manager">Manager</span></td><td class="px-4 py-2">Kanban of in-progress orders</td></tr>
+          <tr><td class="px-4 py-2 font-mono">/:slug/admin/kds</td><td class="px-4 py-2"><span class="label-role role-cashier">Kitchen</span></td><td class="px-4 py-2">KDS ticket bump screen</td></tr>
+          <tr><td class="px-4 py-2 font-mono">/:slug/admin/kitchen-ops</td><td class="px-4 py-2"><span class="label-role role-owner">Owner</span></td><td class="px-4 py-2">Sections / tables / KOT stations</td></tr>
+          <tr><td class="px-4 py-2 font-mono">/:slug/admin/recipes</td><td class="px-4 py-2"><span class="label-role role-owner">Owner</span></td><td class="px-4 py-2">Menu-item &rarr; ingredient definitions</td></tr>
+          <tr><td class="px-4 py-2 font-mono">/:slug/admin/purchase-orders</td><td class="px-4 py-2"><span class="label-role role-manager">Manager</span></td><td class="px-4 py-2">Suppliers, POs, GRNs</td></tr>
+          <tr><td class="px-4 py-2 font-mono">/:slug/admin/inventory-extras</td><td class="px-4 py-2"><span class="label-role role-manager">Manager</span></td><td class="px-4 py-2">Warehouses, transfers, indents, wastage</td></tr>
+          <tr><td class="px-4 py-2 font-mono">/:slug/admin/accounting</td><td class="px-4 py-2"><span class="label-role role-manager">Manager</span></td><td class="px-4 py-2">Accounts, expenses, cash book</td></tr>
+          <tr><td class="px-4 py-2 font-mono">/:slug/admin/marketing</td><td class="px-4 py-2"><span class="label-role role-owner">Owner</span></td><td class="px-4 py-2">WA templates, segments, campaigns</td></tr>
+          <tr><td class="px-4 py-2 font-mono">/:slug/admin/outlet-settings</td><td class="px-4 py-2"><span class="label-role role-owner">Owner</span></td><td class="px-4 py-2">Per-outlet config (invoice format, currency&hellip;)</td></tr>
+          <tr><td class="px-4 py-2 font-mono">/:slug/admin/logs</td><td class="px-4 py-2"><span class="label-role role-owner">Owner</span></td><td class="px-4 py-2">Audit log filter</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer class="pt-8 pb-4 text-center text-xs text-slate-500 border-t border-slate-200">
+    Outletly user &amp; data flow &middot; Companion to <a href="architecture.html" class="text-indigo-600 hover:underline">architecture.html</a>
+  </footer>
+</main>
+
+<script>
+  const links = document.querySelectorAll('.toc-link');
+  const ids = ['quick','roles','setup','daily','creates','ripple','urls'];
+  const sections = ids.map(id => document.getElementById(id));
+  const setActive = () => {
+    const y = window.scrollY + 120;
+    let idx = 0;
+    sections.forEach((s, i) => { if (s && s.offsetTop <= y) idx = i; });
+    links.forEach((l, i) => l.classList.toggle('active', i === idx));
+  };
+  window.addEventListener('scroll', setActive, { passive: true });
+  setActive();
+</script>
+</body>
+</html>
