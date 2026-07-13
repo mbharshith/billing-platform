@@ -378,7 +378,9 @@
   box-sizing: border-box;
   background: var(--app-surface, #ffffff);
   border-bottom: 1px solid var(--app-border, #e5e7eb);
-  backdrop-filter: blur(8px);
+  /* NOTE: no backdrop-filter here. It would create a new containing block
+     for position:fixed descendants (breaking UserMenu dropdown) and does
+     nothing visible when background is opaque. */
   flex-shrink: 0;
 }
 
