@@ -66,7 +66,10 @@ export const UsersProvider: FC<{ children: ReactNode }> = ({ children }) => {
   }, []);
 
   const update: UsersContextValue['update'] = useCallback(async (id, patch) => {
-    await db.users.update(id, patch);
+    const finalPatch = patch.password
+      ? { ...patch, password: await sha256(patch.password) }
+      : patch;
+    await db.users.update(id, finalPatch);
   }, []);
 
   const setActive = useCallback(async (id: string, active: boolean) => {
