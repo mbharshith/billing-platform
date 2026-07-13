@@ -65,6 +65,7 @@
       <a href="#architecture" class="toc-link text-slate-600 hover:text-indigo-600">Architecture</a>
       <a href="#backend"      class="toc-link text-slate-600 hover:text-indigo-600">Backend</a>
       <a href="#api"          class="toc-link text-slate-600 hover:text-indigo-600">API</a>
+      <a href="#security"     class="toc-link text-slate-600 hover:text-indigo-600">Security</a>
       <a href="#dataflow"     class="toc-link text-slate-600 hover:text-indigo-600">Data flow</a>
       <a href="#howto"        class="toc-link text-slate-600 hover:text-indigo-600">How to use</a>
     </nav>
@@ -1172,8 +1173,242 @@ X-Request-Id: 01HXREQ...
   <!-- ============================================================ -->
   <!-- DATA FLOW -->
   <!-- ============================================================ -->
+  <!-- ============================================================ -->
+  <!-- SECURITY -->
+  <!-- ============================================================ -->
+  <section id="security" class="hash-target">
+    <h2 class="text-2xl font-bold mb-2">6. Security</h2>
+    <p class="text-sm text-slate-600 mb-6 max-w-3xl">
+      A single-tenant SaaS gets away with lazy security. A multi-tenant POS handling <strong>real money</strong> across thousands of outlets does not. Security here is enforced at three layers &mdash; edge, app, and database &mdash; so no single failure breaches the tenant boundary.
+    </p>
+
+    <!-- Defense in depth diagram -->
+    <h3 class="text-lg font-bold mt-4 mb-3">Defense in depth</h3>
+    <div class="rounded-xl bg-white border border-slate-200 p-6">
+      <div class="max-w-4xl mx-auto space-y-0">
+        <div class="rounded-lg border border-indigo-200 bg-indigo-50 p-4 text-center">
+          <div class="text-xs font-semibold text-indigo-700 uppercase">Edge</div>
+          <div class="font-bold">Cloudflare WAF &middot; DDoS shield &middot; TLS 1.3 &middot; bot rules &middot; geo blocks</div>
+          <div class="text-xs text-slate-600 mt-1">Blocks the top-100 automated attacks before they touch the origin</div>
+        </div>
+        <div class="arrow-down"></div>
+        <div class="rounded-lg border border-purple-200 bg-purple-50 p-4 text-center">
+          <div class="text-xs font-semibold text-purple-700 uppercase">App middleware</div>
+          <div class="font-bold text-sm">JWT verify &rarr; RBAC &rarr; tenant scope &rarr; rate limit &rarr; input validate</div>
+          <div class="text-xs text-slate-600 mt-1">Every request runs the same pipeline in the same order &mdash; no per-route bypass paths</div>
+        </div>
+        <div class="arrow-down"></div>
+        <div class="rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-center">
+          <div class="text-xs font-semibold text-emerald-700 uppercase">Database</div>
+          <div class="font-bold text-sm">Row-Level Security policies &middot; least-privilege DB roles &middot; encryption at rest</div>
+          <div class="text-xs text-slate-600 mt-1">Even a bug that bypasses app-layer scoping cannot read another outlet's data</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Auth details -->
+    <h3 class="text-lg font-bold mt-10 mb-3">Authentication</h3>
+    <div class="grid md:grid-cols-2 gap-4 text-sm">
+      <div class="rounded-xl bg-white border border-slate-200 p-5">
+        <h4 class="font-bold mb-2">Password login (owners / admins)</h4>
+        <ul class="list-disc pl-5 space-y-1 text-slate-700">
+          <li>Passwords hashed with <strong>Argon2id</strong> (m=64 MB, t=3, p=4). Never bcrypt.</li>
+          <li>Min 12 chars, checked against <strong>HIBP</strong> pwned list on set.</li>
+          <li>Rate limit: <strong>5 attempts / 15 min / IP + username</strong>. Lockout at 10 with email alert.</li>
+          <li>Optional <strong>TOTP MFA</strong> (RFC 6238) &mdash; enforced for role <code>owner</code>, opt-in below.</li>
+          <li>WebAuthn / passkeys planned for admin console.</li>
+        </ul>
+      </div>
+      <div class="rounded-xl bg-white border border-slate-200 p-5">
+        <h4 class="font-bold mb-2">PIN login (cashiers)</h4>
+        <ul class="list-disc pl-5 space-y-1 text-slate-700">
+          <li>4-digit PIN &mdash; but PIN alone is <em>not</em> the credential.</li>
+          <li>Real credential = <code>(PIN, outlet_id, device_id)</code>. PIN validates only against the outlet's roster.</li>
+          <li>Rate limit: <strong>3 wrong attempts &rarr; 60 s lockout, exponential thereafter</strong>.</li>
+          <li>Issued token is <strong>shift-scoped</strong>: expires at end of shift OR 8 h, whichever first.</li>
+          <li>Device pairing required: unknown <code>device_id</code> triggers admin approval flow.</li>
+        </ul>
+      </div>
+      <div class="rounded-xl bg-white border border-slate-200 p-5">
+        <h4 class="font-bold mb-2">Token model</h4>
+        <ul class="list-disc pl-5 space-y-1 text-slate-700">
+          <li><strong>Access token</strong>: JWT, RS256, 15-min TTL. Claims: <code>sub</code>, <code>role</code>, <code>store_id</code>, <code>allowed_outlets[]</code>, <code>device_id</code>, <code>jti</code>.</li>
+          <li><strong>Refresh token</strong>: opaque 256-bit random, 30-d TTL, stored in Redis (<code>SETEX</code>). Rotation on use (one-time-use); reuse detection revokes the whole family.</li>
+          <li>Signing key rotated quarterly via <code>/.well-known/jwks.json</code>; old key stays verifiable for 24 h grace.</li>
+          <li><strong>Storage on client</strong>: access in memory only; refresh in <code>httpOnly + Secure + SameSite=strict</code> cookie. Never localStorage &rarr; XSS-proof.</li>
+        </ul>
+      </div>
+      <div class="rounded-xl bg-white border border-slate-200 p-5">
+        <h4 class="font-bold mb-2">Session &amp; account safety</h4>
+        <ul class="list-disc pl-5 space-y-1 text-slate-700">
+          <li>Every session shows in <em>My Devices</em>; user can revoke individually or nuke all.</li>
+          <li>Login from a new device / country &rarr; email + WA alert with revoke link.</li>
+          <li>Password change &rarr; revoke every refresh token (except current device).</li>
+          <li>Suspicious activity (3+ 403s in 60 s) &rarr; auto-revoke session + audit event.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Authorization / RBAC -->
+    <h3 class="text-lg font-bold mt-10 mb-3">Authorization &amp; multi-tenant isolation</h3>
+    <div class="rounded-xl bg-white border border-slate-200 p-5 text-sm">
+      <p class="text-slate-700 mb-3">The outlet boundary is the tenant boundary. Every layer enforces it independently:</p>
+      <table class="w-full text-sm">
+        <thead class="bg-slate-50 text-slate-600 text-xs uppercase">
+          <tr><th class="text-left px-4 py-2">Layer</th><th class="text-left px-4 py-2">Check</th><th class="text-left px-4 py-2">Failure mode</th></tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          <tr><td class="px-4 py-2 font-bold align-top">JWT claim</td><td class="px-4 py-2 align-top">Requested <code>X-Store-Id</code> / <code>X-Outlet-Id</code> must appear in token's <code>allowed_outlets</code>.</td><td class="px-4 py-2 align-top">403 <code>OUTLET_NOT_ALLOWED</code></td></tr>
+          <tr><td class="px-4 py-2 font-bold align-top">RBAC</td><td class="px-4 py-2 align-top">Role &rarr; permission matrix (owner / manager / cashier / kitchen / vendor / storefront). Decorator on every route.</td><td class="px-4 py-2 align-top">403 <code>ROLE_FORBIDDEN</code></td></tr>
+          <tr><td class="px-4 py-2 font-bold align-top">Tenant scope middleware</td><td class="px-4 py-2 align-top">Sets <code>SET LOCAL app.store_id = ...; SET LOCAL app.outlet_id = ...;</code> for the connection lifetime.</td><td class="px-4 py-2 align-top">Missing header &rarr; 400</td></tr>
+          <tr><td class="px-4 py-2 font-bold align-top">Postgres RLS</td><td class="px-4 py-2 align-top">Every tenant table has <code>USING (store_id = current_setting('app.store_id') AND outlet_id = current_setting('app.outlet_id'))</code>.</td><td class="px-4 py-2 align-top">Row invisible even to <code>SELECT *</code></td></tr>
+          <tr><td class="px-4 py-2 font-bold align-top">DB role</td><td class="px-4 py-2 align-top">App connects as <code>outletly_app</code> (least privilege: <code>SELECT/INSERT/UPDATE/DELETE</code>, no <code>DDL</code>, no <code>BYPASSRLS</code>).</td><td class="px-4 py-2 align-top">Cannot disable RLS from the app</td></tr>
+          <tr><td class="px-4 py-2 font-bold align-top">Audit log</td><td class="px-4 py-2 align-top">Every cross-outlet read/write is logged with actor + before/after diff, append-only.</td><td class="px-4 py-2 align-top">Alert to SIEM if unusual</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Threat model + OWASP mapping -->
+    <h3 class="text-lg font-bold mt-10 mb-3">Threat model (OWASP Top 10)</h3>
+    <div class="rounded-xl bg-white border border-slate-200 overflow-hidden">
+      <table class="w-full text-sm">
+        <thead class="bg-slate-50 text-slate-600 text-xs uppercase">
+          <tr><th class="text-left px-4 py-2">OWASP</th><th class="text-left px-4 py-2">Threat</th><th class="text-left px-4 py-2">Our defense</th></tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          <tr><td class="px-4 py-3 align-top font-mono text-slate-500">A01</td><td class="px-4 py-3 align-top">Broken access control</td><td class="px-4 py-3 align-top">JWT + RBAC + RLS triple-check. Every route is default-deny; permissions declared per handler; RLS at the row level.</td></tr>
+          <tr><td class="px-4 py-3 align-top font-mono text-slate-500">A02</td><td class="px-4 py-3 align-top">Cryptographic failures</td><td class="px-4 py-3 align-top">TLS 1.3 (HSTS preload). Argon2id for passwords. AES-256 at rest (RDS + S3 SSE-KMS). No custom crypto anywhere.</td></tr>
+          <tr><td class="px-4 py-3 align-top font-mono text-slate-500">A03</td><td class="px-4 py-3 align-top">Injection (SQL, NoSQL, cmd)</td><td class="px-4 py-3 align-top">SQLAlchemy parameterised only. Pydantic validation on every input. Shell calls forbidden by policy. RLS is the last line even if injection lands.</td></tr>
+          <tr><td class="px-4 py-3 align-top font-mono text-slate-500">A04</td><td class="px-4 py-3 align-top">Insecure design</td><td class="px-4 py-3 align-top">Threat modelling at each new domain (STRIDE). Idempotency keys on every write endpoint. No implicit trust between services.</td></tr>
+          <tr><td class="px-4 py-3 align-top font-mono text-slate-500">A05</td><td class="px-4 py-3 align-top">Misconfiguration</td><td class="px-4 py-3 align-top">Prod config is IaC (Terraform); PR review gates every change. Security headers verified by post-deploy smoke test.</td></tr>
+          <tr><td class="px-4 py-3 align-top font-mono text-slate-500">A06</td><td class="px-4 py-3 align-top">Vulnerable components</td><td class="px-4 py-3 align-top">Dependabot + <code>pip-audit</code> + <code>npm audit</code> in CI. Base image rebuilt weekly with latest patches. SBOM published per release.</td></tr>
+          <tr><td class="px-4 py-3 align-top font-mono text-slate-500">A07</td><td class="px-4 py-3 align-top">Auth failures</td><td class="px-4 py-3 align-top">Argon2id, MFA for owners, PIN lockouts, refresh-token rotation with reuse detection, new-device alerts.</td></tr>
+          <tr><td class="px-4 py-3 align-top font-mono text-slate-500">A08</td><td class="px-4 py-3 align-top">Data integrity failures</td><td class="px-4 py-3 align-top">All webhooks HMAC-verified (Razorpay, Meta WA, Zomato/Swiggy). Container images signed with cosign; only signed images run in prod.</td></tr>
+          <tr><td class="px-4 py-3 align-top font-mono text-slate-500">A09</td><td class="px-4 py-3 align-top">Logging / monitoring gaps</td><td class="px-4 py-3 align-top">Every request logged with <code>trace_id</code> / <code>store_id</code> / <code>outlet_id</code> / <code>user_id</code>. Auth failures alert to Slack #sec. Audit log covers every mutation.</td></tr>
+          <tr><td class="px-4 py-3 align-top font-mono text-slate-500">A10</td><td class="px-4 py-3 align-top">SSRF</td><td class="px-4 py-3 align-top">All outbound HTTP goes through an <em>allowlist</em> proxy; RFC1918 / metadata IPs blocked. Image uploads validated by MIME + magic bytes.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Data protection -->
+    <h3 class="text-lg font-bold mt-10 mb-3">Data protection</h3>
+    <div class="grid md:grid-cols-2 gap-4 text-sm">
+      <div class="rounded-xl bg-white border border-slate-200 p-5">
+        <h4 class="font-bold mb-2">Encryption</h4>
+        <ul class="list-disc pl-5 space-y-1 text-slate-700">
+          <li><strong>In transit:</strong> TLS 1.3 only, HSTS preload, OCSP stapling. Internal service-to-service uses mTLS.</li>
+          <li><strong>At rest:</strong> AES-256 via KMS. Postgres, Redis persistence, S3 buckets all SSE-KMS-encrypted with per-market keys.</li>
+          <li><strong>Field-level:</strong> customer PII (mobile, email, address) encrypted with envelope encryption; app decrypts on read. Backup dumps stay ciphered.</li>
+          <li><strong>Keys:</strong> AWS KMS / GCP KMS, never in code. Rotated automatically every 90 days.</li>
+        </ul>
+      </div>
+      <div class="rounded-xl bg-white border border-slate-200 p-5">
+        <h4 class="font-bold mb-2">PII &amp; data minimisation</h4>
+        <ul class="list-disc pl-5 space-y-1 text-slate-700">
+          <li>Only <em>mobile + first name</em> required for a customer record; email, DOB, address optional.</li>
+          <li>Card details <strong>never</strong> touch our servers &mdash; Razorpay / Stripe tokenisation only (PCI-DSS SAQ-A scope).</li>
+          <li>PII fields masked in logs by structured logger (<code>{ mobile: "98****3210" }</code>).</li>
+          <li>Right-to-erasure endpoint: soft-anonymise (replace with <code>[REDACTED]</code>) while keeping sale rows intact for accounting.</li>
+          <li>Data-retention policy: raw access logs 90 d, audit log 7 y (statutory), voided sales anonymised after 24 mo.</li>
+        </ul>
+      </div>
+      <div class="rounded-xl bg-white border border-slate-200 p-5">
+        <h4 class="font-bold mb-2">Payments</h4>
+        <ul class="list-disc pl-5 space-y-1 text-slate-700">
+          <li><strong>Never store PAN / CVV / expiry</strong> &mdash; the app never sees them. Card entry runs in Razorpay/Stripe's iframe.</li>
+          <li>PCI-DSS SAQ-A scope (merchant hosting-only). Yearly self-assessment.</li>
+          <li>Refund flow requires manager PIN + reason logged.</li>
+          <li>Cash drawer opens are audited (who, when, why); mismatches at EOD reconciliation flagged.</li>
+        </ul>
+      </div>
+      <div class="rounded-xl bg-white border border-slate-200 p-5">
+        <h4 class="font-bold mb-2">Backups &amp; disaster recovery</h4>
+        <ul class="list-disc pl-5 space-y-1 text-slate-700">
+          <li>Postgres continuous WAL to S3 + nightly <code>pg_dump</code> to a cross-region bucket.</li>
+          <li><strong>RPO 5 min, RTO 30 min.</strong> Restore drill runs monthly against a staging cluster.</li>
+          <li>Backup buckets are versioned + Object-Lock (WORM) 35 d &mdash; ransomware cannot delete history.</li>
+          <li>Encryption keys stored in a <em>separate</em> KMS account &mdash; a compromise of the DB account cannot decrypt.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Frontend security -->
+    <h3 class="text-lg font-bold mt-10 mb-3">Frontend hardening</h3>
+    <div class="rounded-xl bg-white border border-slate-200 p-5 text-sm">
+      <ul class="list-disc pl-6 space-y-1 text-slate-700">
+        <li><strong>CSP</strong> strict-dynamic: no inline scripts; nonces on every deploy. Blocks XSS reflected or stored.</li>
+        <li><strong>Trusted Types</strong> where supported &mdash; prevents raw string sinks to <code>innerHTML</code>.</li>
+        <li><strong>CSRF:</strong> refresh cookie is <code>SameSite=strict</code>; state-changing endpoints require the access-token header (double-submit).</li>
+        <li><strong>XSS:</strong> React auto-escapes; ESLint rule bans <code>dangerouslySetInnerHTML</code> except behind a review comment.</li>
+        <li><strong>Clickjacking:</strong> <code>X-Frame-Options: DENY</code> and CSP <code>frame-ancestors 'none'</code>.</li>
+        <li><strong>Subresource integrity</strong> on every CDN script (Tailwind, Chart.js).</li>
+        <li><strong>Secrets never in client bundles</strong> &mdash; only publishable keys (Razorpay <code>rzp_live_pub_*</code>) ever ship.</li>
+        <li><strong>Local-first browser storage:</strong> IndexedDB rows encrypted with the user's session key (WebCrypto AES-GCM) so a stolen laptop with the browser closed reveals nothing.</li>
+      </ul>
+    </div>
+
+    <!-- Secrets, supply chain, incident -->
+    <h3 class="text-lg font-bold mt-10 mb-3">Secrets, supply chain, incident response</h3>
+    <div class="grid md:grid-cols-3 gap-4 text-sm">
+      <div class="rounded-xl bg-white border border-slate-200 p-5">
+        <h4 class="font-bold mb-2">Secrets management</h4>
+        <ul class="list-disc pl-5 space-y-1 text-slate-700">
+          <li>AWS SSM Parameter Store / HashiCorp Vault. <em>Never</em> <code>.env</code> in git.</li>
+          <li>Pre-commit hook: <code>gitleaks</code> blocks pushes containing secrets.</li>
+          <li>Ephemeral IAM creds for CI (OIDC federation), no long-lived AWS keys.</li>
+          <li>Rotation: DB creds 90 d, JWT signing key quarterly, webhook secrets on demand.</li>
+        </ul>
+      </div>
+      <div class="rounded-xl bg-white border border-slate-200 p-5">
+        <h4 class="font-bold mb-2">Supply chain</h4>
+        <ul class="list-disc pl-5 space-y-1 text-slate-700">
+          <li>Lockfiles committed (<code>uv.lock</code>, <code>pnpm-lock.yaml</code>). No <code>^</code> ranges resolved fresh in prod builds.</li>
+          <li>Dependabot + <code>pip-audit</code> + <code>npm audit</code> + <code>trivy</code> on the container image; CI fails on High/Critical CVEs.</li>
+          <li>SBOM (CycloneDX) generated per release, published to internal registry.</li>
+          <li>Container images signed with <code>cosign</code>; admission controller rejects unsigned images in prod.</li>
+        </ul>
+      </div>
+      <div class="rounded-xl bg-white border border-slate-200 p-5">
+        <h4 class="font-bold mb-2">Incident response</h4>
+        <ul class="list-disc pl-5 space-y-1 text-slate-700">
+          <li>Runbook per severity (SEV-1&hellip;3) with response times.</li>
+          <li>Kill switches: revoke-all-tokens, disable-signup, mark-outlet-quarantine.</li>
+          <li>Post-mortems blameless, published to <code>/docs/incidents/</code>. Action items tracked to close.</li>
+          <li>Bug bounty scope + disclosure policy at <code>/.well-known/security.txt</code>.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Compliance -->
+    <h3 class="text-lg font-bold mt-10 mb-3">Compliance posture</h3>
+    <div class="rounded-xl bg-white border border-slate-200 p-5 text-sm">
+      <ul class="list-disc pl-6 space-y-1 text-slate-700">
+        <li><strong>PCI-DSS SAQ-A</strong> &mdash; merchant hosting-only (card entry in gateway iframe).</li>
+        <li><strong>India DPDP Act 2023</strong> &mdash; data minimisation, purpose limitation, right-to-erasure, DPO contact in footer.</li>
+        <li><strong>GDPR</strong> &mdash; DPA available for EU customers, in-region hosting for EU tenants, 72-h breach notification workflow.</li>
+        <li><strong>SOC 2 Type II</strong> &mdash; roadmap; controls (access review, change mgmt, MFA, backup) already implemented and evidence-captured.</li>
+        <li><strong>GST invoicing</strong> &mdash; conforms to CBIC format; digitally signed invoices where the outlet opts in.</li>
+      </ul>
+    </div>
+
+    <!-- Security in the current local-first app -->
+    <h3 class="text-lg font-bold mt-10 mb-3">What's already true today (local-first build)</h3>
+    <div class="rounded-xl bg-amber-50 border border-amber-200 p-5 text-sm">
+      <p class="text-slate-700 mb-2">Outletly is Dexie / IndexedDB right now &mdash; there is no server to attack. The relevant surface today is:</p>
+      <ul class="list-disc pl-6 space-y-1 text-slate-700">
+        <li>Outlet scoping enforced by the <code>useTable</code> hook: <code>[storeId+outletId]</code> compound index in every query. Prior audit sealed three cross-outlet leaks (reports, dashboard, SalesContext fallback).</li>
+        <li>PIN / password lives client-side in seed users only; do not deploy the demo build as-is publicly.</li>
+        <li>All CDN scripts loaded with modern browsers' built-in integrity checking; no third-party trackers.</li>
+        <li>The plan above is the <em>target</em> when we lift to a server &mdash; every item is deliberately called out so the migration doesn't grow security debt.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- DATA FLOW -->
+  <!-- ============================================================ -->
   <section id="dataflow" class="hash-target">
-    <h2 class="text-2xl font-bold mb-6">6. Data flow</h2>
+    <h2 class="text-2xl font-bold mb-6">7. Data flow</h2>
 
     <div class="grid md:grid-cols-2 gap-6">
       <div class="rounded-xl bg-white border border-slate-200 p-6">
@@ -1230,7 +1465,7 @@ if (hasOutletCompound &amp;&amp; currentStoreId &amp;&amp; currentOutletId) {
   <!-- HOW TO USE HTML -->
   <!-- ============================================================ -->
   <section id="howto" class="hash-target">
-    <h2 class="text-2xl font-bold mb-6">7. How to use this HTML</h2>
+    <h2 class="text-2xl font-bold mb-6">8. How to use this HTML</h2>
 
     <div class="grid md:grid-cols-3 gap-4">
       <div class="rounded-xl bg-white border border-slate-200 p-5">
@@ -1293,7 +1528,7 @@ python3 -m http.server 8000
 <script>
   // Highlight the current section in the top-nav.
   const links = document.querySelectorAll('.toc-link');
-  const sections = ['overview','schema','architecture','backend','api','dataflow','howto'].map(id => document.getElementById(id));
+  const sections = ['overview','schema','architecture','backend','api','security','dataflow','howto'].map(id => document.getElementById(id));
   const setActive = () => {
     const y = window.scrollY + 120;
     let currentIdx = 0;
