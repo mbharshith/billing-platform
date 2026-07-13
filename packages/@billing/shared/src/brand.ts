@@ -12,51 +12,55 @@ export const BRAND = {
   /* ---------------------------------------------------------------- */
 
   /** Bare product name. Used in nav, footer, tab titles, email subjects. */
-  name:         '8services',
+  name:         'Registro',
 
   /** The two halves of the wordmark. `accent` renders FIRST (in gold Fraunces
-   *  italic via <em>), `neutral` renders after in ink sans. The '8' takes the
-   *  gold slot because it's the meaningful glyph — rotated 90° it's infinity,
-   *  and the italic Fraunces treatment stylises it enough to read as a mark. */
+   *  italic via <em>), `neutral` renders after in ink sans. The 'R' takes the
+   *  gold slot because it's the meaningful glyph — italic Fraunces stylises
+   *  the R just enough to read as a mark while the rest sits in ink sans. */
   wordmark: {
-    accent:     '8',
-    neutral:    'services',
+    accent:     'R',
+    neutral:    'egistro',
   },
 
   /** Marketing suite/platform label. Sits above hero, in eyebrows, footer. */
-  platformName: '8services Commerce Cloud',
+  platformName: 'Registro Retail OS',
 
   /** One-line pitch under the wordmark on auth / marketing surfaces. */
-  tagline:      'Infinite services, one ledger.',
+  tagline:      'One ledger. Every register. Every channel.',
 
   /** The editorial headline for the marketing hero. Two halves so the second
    *  half can render italic + gold in the serif. */
   heroHeadline: {
     lead:       'Retail commerce,',
-    accent:     'refined.',
+    accent:     'unified.',
   },
 
   /** Product-descriptor for tab titles (`<Brand> · <Product Label>`). */
-  productLabel: 'Cashier POS',
+  productLabel: 'Sales Register',
 
   /** Combined title used in <title> tags. */
-  fullTitle:    '8services · Cashier POS',
+  fullTitle:    'Registro · Sales Register',
 
   /* ---------------------------------------------------------------- */
   /* Parent org + contact                                             */
   /* ---------------------------------------------------------------- */
+  /* Registro is a demo project — the "parent org" fields here are
+   * placeholder-y on purpose so the marketing page renders complete
+   * without inventing a fake company footprint. Swap in real values
+   * if this ever ships as a commercial product.                     */
 
-  parentOrg:    '8services',
+  parentOrg:    'Registro Labs',
 
   contact: {
-    salesEmail:   '8services-sales@8services.com',
-    supportEmail: '8services-support@8services.com',
+    salesEmail:   'hello@registro.dev',
+    supportEmail: 'support@registro.dev',
     hqCity:       'Bengaluru',
     hqRegion:     'Karnataka',
     offices: [
       {
-        label:   'Global HQ',
-        name:    '8services Global Tech',
+        label:   'Studio',
+        name:    'Registro Labs',
         lines:   ['Bengaluru, Karnataka', 'India'],
       },
     ],
@@ -66,8 +70,8 @@ export const BRAND = {
   /* Persistence identifiers - CAREFUL when changing                  */
   /* ---------------------------------------------------------------- */
 
-  /** Dexie DB name. INTENTIONALLY kept as 'quickbill' after the 8services
-   *  rebrand — changing it would orphan every existing tenant's local data
+  /** Dexie DB name. INTENTIONALLY kept as 'quickbill' across rebrands —
+   *  changing it would orphan every existing tenant's local data
    *  (products, sales, customers, users, stores). If a future rename ever
    *  needs to touch this, ship a migration that opens the old DB, copies
    *  every table, then deletes the old DB. */
@@ -78,7 +82,7 @@ export const BRAND = {
   storagePrefix: 'quickbill',
 
   /** Base domain for the storefront. Subdomains under this map to tenant slugs. */
-  platformApex:  '8services.shop',
+  platformApex:  'registro.shop',
 } as const;
 
 export type Brand = typeof BRAND;
