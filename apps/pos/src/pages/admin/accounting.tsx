@@ -5,13 +5,13 @@
 import type { FC } from 'react';
 import { CrudPage, boolField, numField, selectField, textField } from '@billing/ui/admin';
 import { useTable } from '@billing/shared/hooks/useTable';
+import { fmtDate, formatMoney } from '@billing/shared/domain/format';
 import type {
   Account, ExpenseCategory, Expense, VendorBill,
 } from '@billing/shared/domain/tmbill-extras';
 import type { Supplier } from '@billing/shared/domain/restaurant';
 
-const fmtCurrency = (n: number): string => `Rs ${n.toLocaleString('en-IN')}`;
-const fmtDate = (iso: string): string => new Date(iso).toLocaleDateString();
+const fmtCurrency = (n: number): string => formatMoney(n, 'INR');
 
 export const ChartOfAccountsPage: FC = () => {
   const api = useTable<Account>('accounts');

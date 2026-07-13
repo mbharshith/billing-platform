@@ -1,0 +1,538 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>QuickBill / KartWise - Schema &amp; Architecture</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+    .hash-target { scroll-margin-top: 6rem; }
+    /* Focus outline that meets WCAG AA */
+    :focus-visible { outline: 3px solid #0d6efd; outline-offset: 2px; }
+    /* Simple table card */
+    .er-table {
+      border: 1px solid #d1d5db; border-radius: 0.75rem; background: white;
+      box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05); overflow: hidden;
+    }
+    .er-table > h4 {
+      background: #f9fafb; padding: 0.5rem 0.75rem;
+      font-weight: 700; font-size: 0.875rem; border-bottom: 1px solid #e5e7eb;
+      display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;
+    }
+    .er-table > ul {
+      padding: 0.5rem 0.75rem; font-size: 0.8125rem; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+    .er-table li { padding: 2px 0; color: #374151; }
+    .er-table li.pk::before   { content: "PK "; color: #b45309; font-weight: 700; }
+    .er-table li.fk::before   { content: "FK "; color: #1d4ed8; font-weight: 700; }
+    .er-table li.idx::before  { content: "IX "; color: #059669; font-weight: 700; }
+    .badge { display: inline-flex; align-items: center; padding: 1px 8px; border-radius: 9999px; font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.02em; }
+    .badge-chain    { background: #ede9fe; color: #5b21b6; }
+    .badge-outlet   { background: #dcfce7; color: #166534; }
+    .badge-txn      { background: #fef3c7; color: #92400e; }
+    .badge-config   { background: #cffafe; color: #155e75; }
+    .badge-topology { background: #ffe4e6; color: #9f1239; }
+    /* Arrow between architecture layers */
+    .arrow-down { width: 2px; background: #9ca3af; height: 24px; margin: 0 auto; position: relative; }
+    .arrow-down::after {
+      content: ""; position: absolute; bottom: -6px; left: -4px;
+      border: 5px solid transparent; border-top-color: #9ca3af;
+    }
+    /* Sticky top-bar spacing */
+    .toc-link.active { color: #1d4ed8; font-weight: 700; }
+    .prose h3 { font-size: 1.125rem; font-weight: 700; margin-top: 1.5rem; }
+    .prose p, .prose li { line-height: 1.55; }
+    code { background: #f3f4f6; padding: 1px 4px; border-radius: 4px; font-size: 0.85em; }
+    pre  { background: #0f172a; color: #e2e8f0; padding: 1rem; border-radius: 0.75rem; overflow: auto; font-size: 0.8125rem; line-height: 1.55; }
+    pre code { background: transparent; color: inherit; padding: 0; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900">
+
+<header class="bg-white border-b border-slate-200 sticky top-0 z-10 shadow-sm">
+  <div class="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between gap-4">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded-lg bg-indigo-600 text-white grid place-items-center font-bold">Q</div>
+      <div>
+        <h1 class="text-lg font-bold leading-tight">QuickBill / KartWise</h1>
+        <p class="text-xs text-slate-500 leading-tight">Schema &amp; architecture reference</p>
+      </div>
+    </div>
+    <nav aria-label="Sections" class="hidden md:flex items-center gap-5 text-sm">
+      <a href="#overview"     class="toc-link text-slate-600 hover:text-indigo-600">Overview</a>
+      <a href="#schema"       class="toc-link text-slate-600 hover:text-indigo-600">Data model</a>
+      <a href="#architecture" class="toc-link text-slate-600 hover:text-indigo-600">Architecture</a>
+      <a href="#dataflow"     class="toc-link text-slate-600 hover:text-indigo-600">Data flow</a>
+      <a href="#howto"        class="toc-link text-slate-600 hover:text-indigo-600">How to use</a>
+    </nav>
+  </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-6 py-8 space-y-16">
+
+  <!-- ============================================================ -->
+  <!-- OVERVIEW -->
+  <!-- ============================================================ -->
+  <section id="overview" class="hash-target">
+    <h2 class="text-2xl font-bold mb-4">1. Overview</h2>
+    <div class="grid md:grid-cols-3 gap-4">
+      <div class="rounded-xl bg-white border border-slate-200 p-5">
+        <div class="text-xs uppercase text-slate-500 font-semibold mb-1">Type</div>
+        <div class="text-lg font-bold">Multi-tenant POS + storefront</div>
+        <p class="text-sm text-slate-600 mt-2">Chain-wide topology (markets &rarr; brands &rarr; stores &rarr; outlets); operational data is <strong>outlet-scoped</strong>.</p>
+      </div>
+      <div class="rounded-xl bg-white border border-slate-200 p-5">
+        <div class="text-xs uppercase text-slate-500 font-semibold mb-1">Persistence</div>
+        <div class="text-lg font-bold">Dexie / IndexedDB v9</div>
+        <p class="text-sm text-slate-600 mt-2">Local-first. Schema v9 stamps <code>outletId</code> + <code>[storeId+outletId]</code> compound index on every tenant table.</p>
+      </div>
+      <div class="rounded-xl bg-white border border-slate-200 p-5">
+        <div class="text-xs uppercase text-slate-500 font-semibold mb-1">Frontend</div>
+        <div class="text-lg font-bold">React 18 + Vite + TS</div>
+        <p class="text-sm text-slate-600 mt-2">pnpm monorepo. <em>No</em> module federation - three apps compose via Vite aliases into <code>packages/@billing/*</code>.</p>
+      </div>
+    </div>
+
+    <div class="mt-6 grid md:grid-cols-4 gap-3 text-sm">
+      <div class="rounded-lg bg-white border border-slate-200 p-4">
+        <span class="badge badge-topology">Topology</span>
+        <p class="text-slate-700 mt-2"><code>markets</code>, <code>brands</code>, <code>outlets</code>, <code>stores</code>, <code>users</code>, <code>auditLog</code> - chain-wide.</p>
+      </div>
+      <div class="rounded-lg bg-white border border-slate-200 p-4">
+        <span class="badge badge-outlet">Outlet-scoped</span>
+        <p class="text-slate-700 mt-2">38 tenant tables key on <code>[storeId+outletId]</code>. Each branch owns its own book.</p>
+      </div>
+      <div class="rounded-lg bg-white border border-slate-200 p-4">
+        <span class="badge badge-config">Config</span>
+        <p class="text-slate-700 mt-2">Menu, kitchen, recipes, warehouses, coupons - <em>fanned</em> per outlet on seed &amp; migration.</p>
+      </div>
+      <div class="rounded-lg bg-white border border-slate-200 p-4">
+        <span class="badge badge-txn">Transactional</span>
+        <p class="text-slate-700 mt-2">Sales, POs, GRNs, expenses, lending - backfilled to primary; new rows stamped by cashier context.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- SCHEMA -->
+  <!-- ============================================================ -->
+  <section id="schema" class="hash-target">
+    <h2 class="text-2xl font-bold mb-2">2. Data model (Dexie v9)</h2>
+    <p class="text-sm text-slate-600 mb-6 max-w-3xl">
+      Every tenant table carries a compound key <code>[storeId+outletId]</code>. <span class="badge badge-outlet">Outlet</span> tables are cloned once per outlet on seed / migration; foreign-key columns (<code>*Id</code>) are rewritten with the same <code>::outletId</code> suffix so references resolve inside a single outlet.
+    </p>
+
+    <!-- Legend -->
+    <div class="mb-6 flex flex-wrap items-center gap-2 text-xs">
+      <span class="text-slate-500 uppercase font-semibold mr-2">Legend:</span>
+      <span class="badge badge-topology">Topology</span>
+      <span class="badge badge-chain">Chain-wide</span>
+      <span class="badge badge-outlet">Outlet-scoped</span>
+      <span class="badge badge-config">Config (fan-out)</span>
+      <span class="badge badge-txn">Transactional</span>
+    </div>
+
+    <!-- Topology cluster -->
+    <h3 class="text-lg font-bold mt-4 mb-3">Topology &amp; chain-wide</h3>
+    <div class="grid md:grid-cols-3 lg:grid-cols-4 gap-4">
+      <div class="er-table"><h4>markets<span class="badge badge-topology">Topology</span></h4>
+        <ul><li class="pk">id</li><li class="idx">code</li><li>name</li><li>currency</li><li>active</li></ul></div>
+      <div class="er-table"><h4>brands<span class="badge badge-topology">Topology</span></h4>
+        <ul><li class="pk">id</li><li class="fk">marketId &rarr; markets.id</li><li>name</li><li>active</li></ul></div>
+      <div class="er-table"><h4>outlets<span class="badge badge-topology">Topology</span></h4>
+        <ul><li class="pk">id</li><li class="fk">brandId &rarr; brands.id</li><li class="fk">marketId &rarr; markets.id</li><li class="fk">storeId &rarr; stores.id</li><li>name, address</li><li>active</li></ul></div>
+      <div class="er-table"><h4>stores<span class="badge badge-chain">Chain</span></h4>
+        <ul><li class="pk">id</li><li>name, status, slug</li><li>country, currency</li></ul></div>
+      <div class="er-table"><h4>users<span class="badge badge-chain">Chain</span></h4>
+        <ul><li class="pk">id, username</li><li class="fk">storeId &rarr; stores.id</li><li>role (owner/cashier/vendor)</li><li>pin</li></ul></div>
+      <div class="er-table"><h4>outletSettings<span class="badge badge-topology">Topology</span></h4>
+        <ul><li class="pk">outletId</li><li>currency, taxMode, printerConfig</li></ul></div>
+      <div class="er-table"><h4>auditLog<span class="badge badge-chain">Chain</span></h4>
+        <ul><li class="pk">id</li><li class="idx">at, action</li><li>actorUsername, targetStoreId</li></ul></div>
+    </div>
+
+    <!-- Core outlet-scoped -->
+    <h3 class="text-lg font-bold mt-8 mb-3">Core outlet-scoped tables</h3>
+    <div class="grid md:grid-cols-3 lg:grid-cols-4 gap-4">
+      <div class="er-table"><h4>products<span class="badge badge-outlet">Outlet</span></h4>
+        <ul>
+          <li class="pk">id</li>
+          <li class="fk">storeId, outletId</li>
+          <li class="idx">[storeId+outletId]</li>
+          <li class="idx">[storeId+outletId+sku]</li>
+          <li>name, price, stock</li>
+          <li>category, tone, active</li>
+        </ul></div>
+      <div class="er-table"><h4>customers<span class="badge badge-outlet">Outlet</span></h4>
+        <ul>
+          <li class="pk">id</li>
+          <li class="fk">storeId, outletId</li>
+          <li class="idx">[storeId+outletId+mobile]</li>
+          <li>name, mobile, email</li>
+          <li>lendingBalance</li>
+        </ul></div>
+      <div class="er-table"><h4>sales<span class="badge badge-outlet">Outlet</span></h4>
+        <ul>
+          <li class="pk">id</li>
+          <li class="fk">storeId, outletId, customerId, cashierId</li>
+          <li class="idx">[storeId+outletId], [storeId+channel], [storeId+orderStatus]</li>
+          <li>items[], payments[]</li>
+          <li>subtotal, tax, total</li>
+          <li>channel, orderStatus, voided</li>
+        </ul></div>
+      <div class="er-table"><h4>customerPayments<span class="badge badge-outlet">Outlet</span></h4>
+        <ul>
+          <li class="pk">id</li>
+          <li class="fk">customerId, storeId, outletId</li>
+          <li class="idx">[storeId+outletId], receivedAt</li>
+          <li>amount, mode, note</li>
+        </ul></div>
+    </div>
+
+    <!-- Menu cluster -->
+    <h3 class="text-lg font-bold mt-8 mb-3">Menu &amp; kitchen (config - fan-out)</h3>
+    <div class="grid md:grid-cols-3 lg:grid-cols-4 gap-4">
+      <div class="er-table"><h4>menuCategories<span class="badge badge-config">Config</span></h4>
+        <ul><li class="pk">id</li><li class="fk">storeId, outletId</li><li>name, sortOrder, active</li></ul></div>
+      <div class="er-table"><h4>modifiers<span class="badge badge-config">Config</span></h4>
+        <ul><li class="pk">id</li><li class="fk">storeId, outletId</li><li>name, options[]</li></ul></div>
+      <div class="er-table"><h4>variants<span class="badge badge-config">Config</span></h4>
+        <ul><li class="pk">id</li><li class="fk">storeId, outletId, menuItemId</li><li>label, priceOverride</li></ul></div>
+      <div class="er-table"><h4>combos<span class="badge badge-config">Config</span></h4>
+        <ul><li class="pk">id</li><li class="fk">storeId, outletId</li><li>items[], comboPrice</li></ul></div>
+      <div class="er-table"><h4>sections<span class="badge badge-config">Config</span></h4>
+        <ul><li class="pk">id</li><li class="fk">storeId, outletId</li><li>name, sortOrder</li></ul></div>
+      <div class="er-table"><h4>diningTables<span class="badge badge-config">Config</span></h4>
+        <ul><li class="pk">id</li><li class="fk">storeId, outletId, sectionId</li><li>code, seats, status</li></ul></div>
+      <div class="er-table"><h4>kotStations<span class="badge badge-config">Config</span></h4>
+        <ul><li class="pk">id</li><li class="fk">storeId, outletId</li><li>name, categoryIds[]</li></ul></div>
+      <div class="er-table"><h4>aggregators<span class="badge badge-config">Config</span></h4>
+        <ul><li class="pk">id</li><li class="fk">storeId, outletId</li><li>provider, commissionPct</li></ul></div>
+      <div class="er-table"><h4>deliveryZones<span class="badge badge-config">Config</span></h4>
+        <ul><li class="pk">id</li><li class="fk">storeId, outletId</li><li>name, pincodes[]</li></ul></div>
+    </div>
+
+    <!-- Inventory / procurement -->
+    <h3 class="text-lg font-bold mt-8 mb-3">Inventory &amp; procurement</h3>
+    <div class="grid md:grid-cols-3 lg:grid-cols-4 gap-4">
+      <div class="er-table"><h4>ingredients<span class="badge badge-config">Config</span></h4>
+        <ul><li class="pk">id</li><li class="fk">storeId, outletId</li><li>name, unit, stockOnHand</li></ul></div>
+      <div class="er-table"><h4>recipes<span class="badge badge-config">Config</span></h4>
+        <ul><li class="pk">id</li><li class="fk">storeId, outletId, menuItemId</li><li>items[{ingredientId, qty}]</li></ul></div>
+      <div class="er-table"><h4>suppliers<span class="badge badge-config">Config</span></h4>
+        <ul><li class="pk">id</li><li class="fk">storeId, outletId</li><li>name, phone, gst</li></ul></div>
+      <div class="er-table"><h4>warehouses<span class="badge badge-config">Config</span></h4>
+        <ul><li class="pk">id</li><li class="fk">storeId, outletId</li><li>type, location</li></ul></div>
+      <div class="er-table"><h4>uom<span class="badge badge-config">Config</span></h4>
+        <ul><li class="pk">id</li><li class="fk">storeId, outletId</li><li>code, factor</li></ul></div>
+      <div class="er-table"><h4>rmCategories<span class="badge badge-config">Config</span></h4>
+        <ul><li class="pk">id</li><li class="fk">storeId, outletId</li><li>name, sortOrder</li></ul></div>
+      <div class="er-table"><h4>purchaseOrders<span class="badge badge-txn">Txn</span></h4>
+        <ul><li class="pk">id</li><li class="fk">storeId, outletId, supplierId</li><li>items[{ingredientId, qty}]</li><li>status, orderedAt</li></ul></div>
+      <div class="er-table"><h4>grns<span class="badge badge-txn">Txn</span></h4>
+        <ul><li class="pk">id</li><li class="fk">storeId, outletId, supplierId, warehouseId</li><li>lines[], receivedAt</li></ul></div>
+      <div class="er-table"><h4>stockAdjustments<span class="badge badge-txn">Txn</span></h4>
+        <ul><li class="pk">id</li><li class="fk">storeId, outletId, warehouseId, ingredientId</li><li>delta, reason, performedAt</li></ul></div>
+      <div class="er-table"><h4>stockTransfers<span class="badge badge-txn">Txn</span></h4>
+        <ul><li class="pk">id</li><li class="fk">storeId, outletId, from/toWarehouseId</li><li>items[], status</li></ul></div>
+      <div class="er-table"><h4>indents<span class="badge badge-txn">Txn</span></h4>
+        <ul><li class="pk">id</li><li class="fk">storeId, outletId</li><li>items[], status, requestedAt</li></ul></div>
+      <div class="er-table"><h4>productionBatches<span class="badge badge-txn">Txn</span></h4>
+        <ul><li class="pk">id</li><li class="fk">storeId, outletId, ingredientId</li><li>producedQty, batchNumber</li></ul></div>
+      <div class="er-table"><h4>wastage<span class="badge badge-txn">Txn</span></h4>
+        <ul><li class="pk">id</li><li class="fk">storeId, outletId</li><li>ingredientName, quantity, reason, costImpact</li></ul></div>
+    </div>
+
+    <!-- Fin ops / CRM / Config leftovers -->
+    <h3 class="text-lg font-bold mt-8 mb-3">Finance, CRM &amp; policies</h3>
+    <div class="grid md:grid-cols-3 lg:grid-cols-4 gap-4">
+      <div class="er-table"><h4>paymentModes<span class="badge badge-config">Config</span></h4>
+        <ul><li class="pk">id</li><li class="fk">storeId, outletId</li><li>code, name, active</li></ul></div>
+      <div class="er-table"><h4>orderTypes<span class="badge badge-config">Config</span></h4>
+        <ul><li class="pk">id</li><li class="fk">storeId, outletId</li><li>code, mode, aggregatorId</li></ul></div>
+      <div class="er-table"><h4>taxSlabs<span class="badge badge-config">Config</span></h4>
+        <ul><li class="pk">id</li><li class="fk">storeId, outletId</li><li>name, pct, appliesTo</li></ul></div>
+      <div class="er-table"><h4>discounts<span class="badge badge-config">Config</span></h4>
+        <ul><li class="pk">id</li><li class="fk">storeId, outletId</li><li>type, value, code</li></ul></div>
+      <div class="er-table"><h4>addlCharges<span class="badge badge-config">Config</span></h4>
+        <ul><li class="pk">id</li><li class="fk">storeId, outletId</li><li>name, amount, taxable</li></ul></div>
+      <div class="er-table"><h4>reasons<span class="badge badge-config">Config</span></h4>
+        <ul><li class="pk">id</li><li class="fk">storeId, outletId</li><li>category, text</li></ul></div>
+      <div class="er-table"><h4>customerGroups<span class="badge badge-config">Config</span></h4>
+        <ul><li class="pk">id</li><li class="fk">storeId, outletId</li><li>name, discountPct</li></ul></div>
+      <div class="er-table"><h4>loyaltyTiers<span class="badge badge-config">Config</span></h4>
+        <ul><li class="pk">id</li><li class="fk">storeId, outletId</li><li>name, threshold, pointsMultiplier</li></ul></div>
+      <div class="er-table"><h4>coupons<span class="badge badge-config">Config</span></h4>
+        <ul><li class="pk">id</li><li class="fk">storeId, outletId</li><li>code, discountType, validity</li></ul></div>
+      <div class="er-table"><h4>segments<span class="badge badge-config">Config</span></h4>
+        <ul><li class="pk">id</li><li class="fk">storeId, outletId</li><li>name, criteria</li></ul></div>
+      <div class="er-table"><h4>waTemplates<span class="badge badge-config">Config</span></h4>
+        <ul><li class="pk">id</li><li class="fk">storeId, outletId</li><li>category, body</li></ul></div>
+      <div class="er-table"><h4>campaigns<span class="badge badge-txn">Txn</span></h4>
+        <ul><li class="pk">id</li><li class="fk">storeId, outletId</li><li>channel, status, scheduledAt</li></ul></div>
+      <div class="er-table"><h4>accounts<span class="badge badge-config">Config</span></h4>
+        <ul><li class="pk">id</li><li class="fk">storeId, outletId</li><li>code, type, balance</li></ul></div>
+      <div class="er-table"><h4>expenseCategories<span class="badge badge-config">Config</span></h4>
+        <ul><li class="pk">id</li><li class="fk">storeId, outletId</li><li>name, active</li></ul></div>
+      <div class="er-table"><h4>expenses<span class="badge badge-txn">Txn</span></h4>
+        <ul><li class="pk">id</li><li class="fk">storeId, outletId, categoryId</li><li>amount, voucherNumber, incurredAt</li></ul></div>
+      <div class="er-table"><h4>vendorBills<span class="badge badge-txn">Txn</span></h4>
+        <ul><li class="pk">id</li><li class="fk">storeId, outletId, supplierId</li><li>billNumber, status, dueDate</li></ul></div>
+      <div class="er-table"><h4>feedback<span class="badge badge-txn">Txn</span></h4>
+        <ul><li class="pk">id</li><li class="fk">storeId, outletId</li><li>rating, note, at, resolved</li></ul></div>
+    </div>
+
+    <!-- Fan-out rule diagram -->
+    <div class="mt-10 rounded-xl bg-white border border-slate-200 p-6">
+      <h3 class="text-lg font-bold mb-3">Fan-out illustrated</h3>
+      <p class="text-sm text-slate-600 mb-4">When a config row's <code>outletId</code> is not supplied, seed &amp; migration clone it once per outlet of its store. Foreign-key <code>*Id</code> columns are suffixed the same way so references resolve inside the same outlet.</p>
+      <div class="grid md:grid-cols-3 gap-4 items-start">
+        <div class="rounded-lg border border-slate-200 p-4 bg-slate-50">
+          <div class="text-xs font-semibold text-slate-500 uppercase mb-2">Source row (fixture)</div>
+<pre><code>{
+  id: "tbl-g-1",
+  storeId: "store-spiceroute",
+  sectionId: "sec-ground",
+  code: "T-01"
+}</code></pre>
+        </div>
+        <div class="text-center hidden md:block pt-14">
+          <svg width="60" height="30" viewBox="0 0 60 30" aria-hidden="true"><path d="M2 15 L52 15" stroke="#6366f1" stroke-width="2"/><polygon points="52,10 60,15 52,20" fill="#6366f1"/></svg>
+          <div class="text-xs text-indigo-600 font-semibold">fan-out + FK rewrite</div>
+        </div>
+        <div class="rounded-lg border border-emerald-200 p-4 bg-emerald-50">
+          <div class="text-xs font-semibold text-emerald-800 uppercase mb-2">3 rows (one per outlet)</div>
+<pre><code>id "tbl-g-1"
+  outletId "store-spiceroute"
+  sectionId "sec-ground"
+
+id "tbl-g-1::outlet-spice-koram"
+  outletId "outlet-spice-koram"
+  sectionId "sec-ground::outlet-spice-koram"
+
+id "tbl-g-1::outlet-spice-hsr"
+  outletId "outlet-spice-hsr"
+  sectionId "sec-ground::outlet-spice-hsr"</code></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- ARCHITECTURE -->
+  <!-- ============================================================ -->
+  <section id="architecture" class="hash-target">
+    <h2 class="text-2xl font-bold mb-6">3. Architecture</h2>
+
+    <div class="grid md:grid-cols-3 gap-4">
+      <div class="rounded-xl border border-slate-200 bg-white p-5">
+        <div class="text-xs uppercase text-slate-500 font-semibold">apps/shell</div>
+        <h4 class="text-lg font-bold mt-1">Shell &amp; router</h4>
+        <p class="text-sm text-slate-600 mt-2">Marketing home, tenant chooser, login, admin/cashier routing. Wraps <code>&lt;AuthProvider&gt;</code>. Alias-imports pos + storefront directly (no module federation).</p>
+      </div>
+      <div class="rounded-xl border border-slate-200 bg-white p-5">
+        <div class="text-xs uppercase text-slate-500 font-semibold">apps/pos</div>
+        <h4 class="text-lg font-bold mt-1">POS + Admin</h4>
+        <p class="text-sm text-slate-600 mt-2">Cashier, live orders (kanban), KDS, dashboard, reports, 30+ CRUD admin pages built on <code>useTable</code> + <code>CrudPage</code>.</p>
+      </div>
+      <div class="rounded-xl border border-slate-200 bg-white p-5">
+        <div class="text-xs uppercase text-slate-500 font-semibold">apps/storefront</div>
+        <h4 class="text-lg font-bold mt-1">Customer web</h4>
+        <p class="text-sm text-slate-600 mt-2">Browse, cart, checkout. Writes online orders via <code>SalesContext.placeOnlineOrder()</code>, stamps <code>outletId</code>.</p>
+      </div>
+    </div>
+
+    <!-- Layer diagram -->
+    <div class="mt-10 rounded-xl bg-white border border-slate-200 p-6">
+      <h3 class="text-lg font-bold mb-6 text-center">Runtime layers</h3>
+      <div class="max-w-3xl mx-auto space-y-0">
+        <!-- Layer 1 -->
+        <div class="rounded-lg border border-indigo-200 bg-indigo-50 p-4 text-center">
+          <div class="text-xs font-semibold text-indigo-700 uppercase">Route surface</div>
+          <div class="font-bold">/:slug/{admin,cashier}  &middot;  /:slug/store/*  &middot;  /login</div>
+          <div class="text-xs text-slate-600 mt-1">React Router - one <code>slug</code> per store (velvet / spiceroute / lamaison)</div>
+        </div>
+        <div class="arrow-down"></div>
+        <!-- Layer 2 -->
+        <div class="rounded-lg border border-purple-200 bg-purple-50 p-4 text-center">
+          <div class="text-xs font-semibold text-purple-700 uppercase">Contexts (React)</div>
+          <div class="font-bold text-sm">AuthContext &middot; SalesContext &middot; ProductsContext &middot; CustomersContext &middot; UsersContext &middot; StoresContext &middot; SettingsContext &middot; ToastContext &middot; AuditContext</div>
+          <div class="text-xs text-slate-600 mt-1">All read <code>currentStoreId</code> + <code>currentOutletId</code> from AuthContext to scope queries</div>
+        </div>
+        <div class="arrow-down"></div>
+        <!-- Layer 3 -->
+        <div class="rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-center">
+          <div class="text-xs font-semibold text-emerald-700 uppercase">Data hooks</div>
+          <div class="font-bold text-sm">useTable&lt;Row&gt;(name)  &middot;  useLiveQuery</div>
+          <div class="text-xs text-slate-600 mt-1">
+            Auto-detects <code>[storeId+outletId]</code> index &amp; filters live queries. Auto-stamps <code>outletId</code> on <code>create()</code>.
+          </div>
+        </div>
+        <div class="arrow-down"></div>
+        <!-- Layer 4 -->
+        <div class="rounded-lg border border-amber-200 bg-amber-50 p-4 text-center">
+          <div class="text-xs font-semibold text-amber-700 uppercase">Persistence</div>
+          <div class="font-bold text-sm">Dexie v9  &middot;  IndexedDB (browser)</div>
+          <div class="text-xs text-slate-600 mt-1">Versioned schema (v1 &rarr; v9). <code>bootstrapDb()</code> seeds &amp; fans out on first boot.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Package layout -->
+    <h3 class="text-lg font-bold mt-10 mb-3">Package layout</h3>
+    <div class="grid md:grid-cols-2 gap-4 text-sm">
+      <div class="rounded-lg border border-slate-200 bg-white p-5">
+        <h4 class="font-bold mb-2">apps/</h4>
+        <ul class="space-y-1 text-slate-700">
+          <li><code>shell</code> - router + marketing + login</li>
+          <li><code>pos</code> - cashier + admin (30+ CRUD pages)</li>
+          <li><code>storefront</code> - customer-facing browse + checkout</li>
+        </ul>
+      </div>
+      <div class="rounded-lg border border-slate-200 bg-white p-5">
+        <h4 class="font-bold mb-2">packages/@billing/</h4>
+        <ul class="space-y-1 text-slate-700">
+          <li><code>shared</code> - domain types, contexts, hooks, fixtures, Dexie</li>
+          <li><code>ui</code> - atoms / molecules / organisms / feedback / admin / charts</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- DATA FLOW -->
+  <!-- ============================================================ -->
+  <section id="dataflow" class="hash-target">
+    <h2 class="text-2xl font-bold mb-6">4. Data flow</h2>
+
+    <div class="grid md:grid-cols-2 gap-6">
+      <div class="rounded-xl bg-white border border-slate-200 p-6">
+        <h3 class="text-lg font-bold mb-3">Read (any admin page)</h3>
+        <ol class="space-y-2 text-sm text-slate-700 list-decimal list-inside">
+          <li>User logs in &rarr; <code>AuthContext</code> sets <code>currentUser</code>.</li>
+          <li><code>readOutletFor(user)</code> defaults <code>currentOutletId</code> to <code>user.storeId</code> (primary).</li>
+          <li>User can switch via <code>&lt;OutletPicker /&gt;</code> - updates <code>currentOutletId</code>, persists in <code>localStorage['active-outlet:&lt;userId&gt;']</code>.</li>
+          <li>Any admin page calls <code>useTable&lt;X&gt;('tableName')</code>.</li>
+          <li>Hook inspects Dexie schema, finds <code>[storeId+outletId]</code>, runs <code>db.X.where('[storeId+outletId]').equals([sid, oid])</code>.</li>
+          <li>Dexie's live query pushes updates whenever the underlying rows change.</li>
+        </ol>
+      </div>
+
+      <div class="rounded-xl bg-white border border-slate-200 p-6">
+        <h3 class="text-lg font-bold mb-3">Write (cashier records a sale)</h3>
+        <ol class="space-y-2 text-sm text-slate-700 list-decimal list-inside">
+          <li>Cashier picks items, taps <em>Charge</em> &rarr; <code>CashierCheckout</code> modal opens.</li>
+          <li>Selects order type / table / customer as needed.</li>
+          <li>On confirm: <code>SalesContext.recordSale(input)</code> is called.</li>
+          <li>Input is stamped: <code>storeId = currentStoreId</code>, <code>outletId = currentOutletId</code>, <code>cashierId = currentUser.id</code>.</li>
+          <li>Invoice number is minted per outlet (<code>outletSettings</code> sequence).</li>
+          <li>Dexie put in <code>db.sales</code>; live queries in Reports / Dashboard / LiveOrders update immediately.</li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="mt-6 rounded-xl bg-slate-900 text-slate-100 p-6">
+      <h3 class="text-base font-bold mb-3 text-emerald-300">useTable in ~40 lines</h3>
+<pre><code>// Every admin CRUD page collapses to this pattern:
+const OrderTypesPage = () =&gt; {
+  const api = useTable&lt;OrderType&gt;('orderTypes');   // outlet-filtered
+
+  return (
+    &lt;CrudPage
+      title="Order types"
+      api={api}
+      columns={[...]}
+      fields={[textField('name'), selectField('mode', ...)]}
+    /&gt;
+  );
+};
+
+// The hook internally does:
+if (hasOutletCompound &amp;&amp; currentStoreId &amp;&amp; currentOutletId) {
+  return await table.where('[storeId+outletId]')
+                    .equals([currentStoreId, currentOutletId])
+                    .toArray();
+}</code></pre>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- HOW TO USE HTML -->
+  <!-- ============================================================ -->
+  <section id="howto" class="hash-target">
+    <h2 class="text-2xl font-bold mb-6">5. How to use this HTML</h2>
+
+    <div class="grid md:grid-cols-3 gap-4">
+      <div class="rounded-xl bg-white border border-slate-200 p-5">
+        <div class="text-xs uppercase text-slate-500 font-semibold">Option A - Double click</div>
+        <h4 class="font-bold mt-1">Open it locally</h4>
+        <p class="text-sm text-slate-600 mt-2">In Finder / Explorer, double-click <code>docs/architecture.html</code>. Everything (Tailwind CDN) loads over the internet - no build step, no server.</p>
+      </div>
+      <div class="rounded-xl bg-white border border-slate-200 p-5">
+        <div class="text-xs uppercase text-slate-500 font-semibold">Option B - CLI</div>
+        <h4 class="font-bold mt-1">Open from the terminal</h4>
+<pre class="!bg-slate-100 !text-slate-800 !text-xs !py-3"><code># macOS
+open docs/architecture.html
+
+# Linux
+xdg-open docs/architecture.html
+
+# Windows PowerShell
+start docs\architecture.html</code></pre>
+      </div>
+      <div class="rounded-xl bg-white border border-slate-200 p-5">
+        <div class="text-xs uppercase text-slate-500 font-semibold">Option C - Serve</div>
+        <h4 class="font-bold mt-1">Static server (share on LAN)</h4>
+<pre class="!bg-slate-100 !text-slate-800 !text-xs !py-3"><code>cd docs
+python3 -m http.server 8000
+# then visit http://localhost:8000/architecture.html</code></pre>
+      </div>
+    </div>
+
+    <div class="mt-8 rounded-xl bg-white border border-slate-200 p-6 prose max-w-none">
+      <h3>Reading the diagram</h3>
+      <ul class="list-disc pl-6 text-sm">
+        <li><span class="badge badge-topology">Topology</span> = chain-wide, never fanned per outlet (markets, brands, users, outlets themselves).</li>
+        <li><span class="badge badge-outlet">Outlet</span> = keyed on <code>[storeId+outletId]</code>. Every branch has its own copy.</li>
+        <li><span class="badge badge-config">Config</span> = seed / migration duplicates each row once per outlet so the branch launches with a full config.</li>
+        <li><span class="badge badge-txn">Txn</span> = new rows are stamped with the cashier's current outlet; historical rows were backfilled to primary.</li>
+        <li><strong>PK</strong> = primary key. <strong>FK</strong> = foreign key. <strong>IX</strong> = indexed field.</li>
+      </ul>
+
+      <h3>Reading the code</h3>
+      <ul class="list-disc pl-6 text-sm">
+        <li><code>packages/@billing/shared/src/lib/db.ts</code> - Dexie schema v1 &rarr; v9 with upgrade functions.</li>
+        <li><code>packages/@billing/shared/src/lib/db-bootstrap.ts</code> - fresh-install seed + fan-out helpers.</li>
+        <li><code>packages/@billing/shared/src/hooks/useTable.ts</code> - the outlet-aware CRUD hook that powers every admin page.</li>
+        <li><code>packages/@billing/shared/src/store/*</code> - one context per bounded aggregate.</li>
+        <li><code>packages/@billing/ui/src/admin/CrudPage.tsx</code> - the DRY list + modal + confirm surface.</li>
+      </ul>
+
+      <h3>Editing this doc</h3>
+      <p class="text-sm">
+        It is <em>flat HTML</em>. Open in any editor, tweak the markup, refresh the browser tab. No build. Ship diagrams by committing changes to <code>docs/</code>.
+      </p>
+    </div>
+  </section>
+
+  <footer class="pt-8 pb-4 text-center text-xs text-slate-500 border-t border-slate-200">
+    Generated for QuickBill / KartWise &middot; Dexie schema v9 &middot; Regenerate by editing <code>docs/architecture.html</code>.
+  </footer>
+</main>
+
+<script>
+  // Highlight the current section in the top-nav.
+  const links = document.querySelectorAll('.toc-link');
+  const sections = ['overview','schema','architecture','dataflow','howto'].map(id => document.getElementById(id));
+  const setActive = () => {
+    const y = window.scrollY + 120;
+    let currentIdx = 0;
+    sections.forEach((s, i) => { if (s && s.offsetTop <= y) currentIdx = i; });
+    links.forEach((l, i) => l.classList.toggle('active', i === currentIdx));
+  };
+  window.addEventListener('scroll', setActive, { passive: true });
+  setActive();
+</script>
+</body>
+</html>

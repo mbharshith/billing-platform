@@ -4,18 +4,8 @@ import { useEffect, useState, type FC } from 'react';
 import { AdminPage } from '@billing/ui/admin';
 import { DataTable, type DataTableColumn } from '@billing/ui/molecules';
 import { db } from '@billing/shared/lib/db';
+import { fmtDateTime } from '@billing/shared/domain/format';
 import cls from './admin.module.css';
-
-interface AuditRow {
-  id: string;
-  at: string;
-  actorUsername: string;
-  targetStoreId: string;
-  action: string;
-  details?: string;
-}
-
-const fmtDateTime = (iso: string): string => new Date(iso).toLocaleString();
 
 const COLUMNS: DataTableColumn<AuditRow>[] = [
   { key: 'at',            label: 'When',    sortValue: (r) => r.at,              render: (r) => fmtDateTime(r.at) },

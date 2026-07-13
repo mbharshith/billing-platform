@@ -8,15 +8,14 @@
 import type { FC } from 'react';
 import { CrudPage, boolField, numField, selectField, textField } from '@billing/ui/admin';
 import { useTable } from '@billing/shared/hooks/useTable';
+import { fmtDate, fmtDateTime, formatMoney } from '@billing/shared/domain/format';
 import type {
   Warehouse, RawMaterialCategory, UnitOfMeasure, StockAdjustment,
   GRN, StockTransfer, IndentRequest, ProductionBatch,
 } from '@billing/shared/domain/tmbill-extras';
 import type { Ingredient, Supplier } from '@billing/shared/domain/restaurant';
 
-const fmtDate = (iso: string): string => new Date(iso).toLocaleDateString();
-const fmtDateTime = (iso: string): string => new Date(iso).toLocaleString();
-const fmtCurrency = (n: number): string => `Rs ${n.toLocaleString('en-IN')}`;
+const fmtCurrency = (n: number): string => formatMoney(n, 'INR');
 
 
 export const WarehousesPage: FC = () => {

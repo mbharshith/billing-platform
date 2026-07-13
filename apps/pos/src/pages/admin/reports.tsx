@@ -9,11 +9,13 @@ import {
 import { DataTable, type DataTableColumn } from '@billing/ui/molecules';
 import { db } from '@billing/shared/lib/db';
 import { useAuth } from '@billing/shared/store/AuthContext';
+import { formatMoney } from '@billing/shared/domain/format';
 import type { Sale } from '@billing/shared/domain/types';
 import { STRINGS } from '@billing/shared/domain/strings';
 import cls from './admin.module.css';
 
-const money = (n: number): string => `Rs ${Math.round(n).toLocaleString('en-IN')}`;
+// Local convenience — formats using INR until tenant currency is wired to reports.
+const money = (n: number): string => formatMoney(n, 'INR');
 
 // Outlet-scoped sales - every report reads ONLY the current outlet's rows.
 // Vendor / cross-outlet analytics belongs in a separate 'chain-wide' report
