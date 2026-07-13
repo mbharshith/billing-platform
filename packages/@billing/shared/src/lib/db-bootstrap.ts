@@ -26,7 +26,7 @@ import type {
   Customer, CustomerPayment, Product, Sale, Store, User, UserRole,
 } from '@billing/shared/domain/types';
 
-const MIGRATION_FLAG = 'db-bootstrap::v8c';
+const MIGRATION_FLAG = 'db-bootstrap::v9';
 
 // Normalise legacy user roles: drop 'super_admin' rows (that surface moved to the
 // dedicated vendor account), rename 'master' -> 'admin' (v1 schema). Idempotent.
@@ -58,20 +58,25 @@ export const bootstrapDb = async (): Promise<void> => {
 
   // If tables are already populated with data from a previous version, wipe
   // everything so the new seed (velvet / spiceroute / lamaison) takes effect.
+  // v9 - also wipe every OUTLET-SCOPED CONFIG TABLE so the fan-out reseed
+  // (each row per outlet) replaces old storeId-only rows. We keep audit +
+  // vendor-only tables untouched.
   const storeCount = await db.stores.count();
   if (storeCount > 0) {
-    await db.transaction(
-      'rw',
-      [db.stores, db.users, db.products, db.customers, db.customerPayments, db.sales],
-      async () => {
-        await db.stores.clear();
-        await db.users.clear();
-        await db.products.clear();
-        await db.customers.clear();
-        await db.customerPayments.clear();
-        await db.sales.clear();
-      },
-    );
+    const CORE = [db.stores, db.users, db.products, db.customers, db.customerPayments, db.sales] as const;
+    const CONFIG = [
+      db.paymentModes, db.orderTypes, db.taxSlabs, db.discounts, db.addlCharges, db.reasons,
+      db.menuCategories, db.modifiers, db.combos, db.variants,
+      db.sections, db.diningTables, db.kotStations,
+      db.aggregators, db.deliveryZones,
+      db.ingredients, db.recipes, db.suppliers,
+      db.customerGroups, db.loyaltyTiers, db.coupons,
+      db.warehouses, db.rmCategories, db.uom,
+      db.accounts, db.expenseCategories, db.waTemplates, db.segments,
+    ] as const;
+    await db.transaction('rw', [...CORE, ...CONFIG], async () => {
+      for (const t of [...CORE, ...CONFIG]) await t.clear();
+    });
     // Fall through to re-seed below with the fresh SEED_* data.
   }
 
@@ -177,49 +182,100 @@ const seedRestaurantTables = async (): Promise<void> => {
       if (existing === 0) await table.bulkPut(storeRows);
     }
   };
+
+  // -- outlet fan-out helpers ---------------------------------------------
+  // Every tenant config row (menu, kitchen, tax, recipes...) exists once
+  // PER OUTLET. Rather than repeat rows in each fixture file, wrap the seed
+  // insert to fan a base row across all outlets of its storeId. Rows already
+  // stamped with a real non-primary outletId are left alone (exclusives).
+  const outletsByStore = new Map<string, readonly string[]>();
+  const isRealOutlet = new Set<string>();
+  for (const o of SEED_OUTLETS) {
+    const list = outletsByStore.get(o.storeId) ?? [];
+    outletsByStore.set(o.storeId, [...list, o.id]);
+    isRealOutlet.add(o.id);
+  }
+  const fanOut = <T extends { id: string; storeId: string; outletId?: string }>(rows: readonly T[]): T[] => {
+    const out: T[] = [];
+    for (const row of rows) {
+      if (row.outletId && row.outletId !== row.storeId && isRealOutlet.has(row.outletId)) {
+        out.push(row);
+        continue;
+      }
+      const targets = outletsByStore.get(row.storeId) ?? [row.storeId];
+      for (const outletId of targets) {
+        const id = outletId === row.storeId ? row.id : `${row.id}::${outletId}`;
+        out.push({ ...row, id, outletId });
+      }
+    }
+    return out;
+  };
+  const seedFannedIfEmpty = async <T extends { id: string; storeId: string; outletId?: string }>(
+    table: { count: () => Promise<number>; bulkPut: (rows: T[]) => Promise<unknown> },
+    rows: readonly T[],
+  ): Promise<void> => {
+    if ((await table.count()) === 0) await table.bulkPut([...fanOut(rows)]);
+  };
+  const seedFannedPerStoreIfMissing = async <T extends { id: string; storeId: string; outletId?: string }>(
+    table: {
+      where: (key: string) => { equals: (v: string) => { count: () => Promise<number> } };
+      bulkPut: (rows: T[]) => Promise<unknown>;
+    },
+    rows: readonly T[],
+  ): Promise<void> => {
+    const byStore: Record<string, T[]> = {};
+    rows.forEach((r) => { (byStore[r.storeId] ??= []).push(r); });
+    for (const [storeId, storeRows] of Object.entries(byStore)) {
+      const existing = await table.where('storeId').equals(storeId).count();
+      if (existing === 0) await table.bulkPut(fanOut(storeRows));
+    }
+  };
+
   await seedIfEmpty(db.markets,         SEED_MARKETS);
   await seedIfEmpty(db.brands,          SEED_BRANDS);
   await seedPerStoreIfMissing(db.outlets as never, SEED_OUTLETS);
-  await seedIfEmpty(db.paymentModes,    SEED_PAYMENT_MODES);
-  await seedPerStoreIfMissing(db.orderTypes as never, SEED_ORDER_TYPES);
-  await seedIfEmpty(db.taxSlabs,        SEED_TAX_SLABS);
-  await seedIfEmpty(db.discounts,       SEED_DISCOUNTS);
-  await seedIfEmpty(db.addlCharges,     SEED_ADDL_CHARGES);
-  await seedIfEmpty(db.reasons,         SEED_REASONS);
+  // Outlet-scoped config: fan out across every outlet of each store.
+  await seedFannedIfEmpty(db.paymentModes as never,    SEED_PAYMENT_MODES as never);
+  await seedFannedPerStoreIfMissing(db.orderTypes as never, SEED_ORDER_TYPES as never);
+  await seedFannedIfEmpty(db.taxSlabs as never,        SEED_TAX_SLABS as never);
+  await seedFannedIfEmpty(db.discounts as never,       SEED_DISCOUNTS as never);
+  await seedFannedIfEmpty(db.addlCharges as never,     SEED_ADDL_CHARGES as never);
+  await seedFannedIfEmpty(db.reasons as never,         SEED_REASONS as never);
   await seedIfEmpty(db.outletSettings,  SEED_OUTLET_SETTINGS);
-  await seedIfEmpty(db.menuCategories,  SEED_MENU_CATEGORIES);
-  await seedIfEmpty(db.modifiers,       SEED_MODIFIERS);
-  await seedIfEmpty(db.combos,          SEED_COMBOS);
-  await seedIfEmpty(db.variants,        SEED_VARIANTS);
-  await seedIfEmpty(db.sections,        SEED_SECTIONS);
-  await seedIfEmpty(db.diningTables,    SEED_TABLES);
-  await seedIfEmpty(db.kotStations,     SEED_KOT_STATIONS);
-  await seedIfEmpty(db.aggregators,     SEED_AGGREGATORS);
-  await seedIfEmpty(db.deliveryZones,   SEED_DELIVERY_ZONES);
-  await seedIfEmpty(db.ingredients,     SEED_INGREDIENTS);
-  await seedIfEmpty(db.recipes,         SEED_RECIPES);
-  await seedIfEmpty(db.suppliers,       SEED_SUPPLIERS);
+  await seedFannedIfEmpty(db.menuCategories as never,  SEED_MENU_CATEGORIES as never);
+  await seedFannedIfEmpty(db.modifiers as never,       SEED_MODIFIERS as never);
+  await seedFannedIfEmpty(db.combos as never,          SEED_COMBOS as never);
+  await seedFannedIfEmpty(db.variants as never,        SEED_VARIANTS as never);
+  await seedFannedIfEmpty(db.sections as never,        SEED_SECTIONS as never);
+  await seedFannedIfEmpty(db.diningTables as never,    SEED_TABLES as never);
+  await seedFannedIfEmpty(db.kotStations as never,     SEED_KOT_STATIONS as never);
+  await seedFannedIfEmpty(db.aggregators as never,     SEED_AGGREGATORS as never);
+  await seedFannedIfEmpty(db.deliveryZones as never,   SEED_DELIVERY_ZONES as never);
+  await seedFannedIfEmpty(db.ingredients as never,     SEED_INGREDIENTS as never);
+  await seedFannedIfEmpty(db.recipes as never,         SEED_RECIPES as never);
+  await seedFannedIfEmpty(db.suppliers as never,       SEED_SUPPLIERS as never);
+  // Transactional / historical - just bulkPut as-is (backfill to primary).
   await seedIfEmpty(db.purchaseOrders,  SEED_PURCHASE_ORDERS);
   await seedIfEmpty(db.wastage,         SEED_WASTAGE);
-  await seedIfEmpty(db.customerGroups,  SEED_CUSTOMER_GROUPS);
-  await seedIfEmpty(db.loyaltyTiers,    SEED_LOYALTY_TIERS);
-  await seedIfEmpty(db.coupons,         SEED_COUPONS);
+  await seedFannedIfEmpty(db.customerGroups as never,  SEED_CUSTOMER_GROUPS as never);
+  await seedFannedIfEmpty(db.loyaltyTiers as never,    SEED_LOYALTY_TIERS as never);
+  await seedFannedIfEmpty(db.coupons as never,         SEED_COUPONS as never);
   await seedIfEmpty(db.feedback,        SEED_FEEDBACK);
-  // v6 seeds
-  await seedIfEmpty(db.warehouses,        SEED_WAREHOUSES);
-  await seedIfEmpty(db.rmCategories,      SEED_RM_CATEGORIES);
-  await seedIfEmpty(db.uom,               SEED_UOM);
+  // v6 seeds - fan config, keep txn history flat.
+  await seedFannedIfEmpty(db.warehouses as never,        SEED_WAREHOUSES as never);
+  await seedFannedIfEmpty(db.rmCategories as never,      SEED_RM_CATEGORIES as never);
+  await seedFannedIfEmpty(db.uom as never,               SEED_UOM as never);
   await seedIfEmpty(db.stockAdjustments,  SEED_STOCK_ADJUSTMENTS);
   await seedIfEmpty(db.grns,              SEED_GRNS);
   await seedIfEmpty(db.stockTransfers,    SEED_STOCK_TRANSFERS);
   await seedIfEmpty(db.indents,           SEED_INDENTS);
   await seedIfEmpty(db.productionBatches, SEED_PRODUCTION_BATCHES);
-  await seedIfEmpty(db.accounts,          SEED_ACCOUNTS);
-  await seedIfEmpty(db.expenseCategories, SEED_EXP_CATEGORIES);
+  await seedFannedIfEmpty(db.accounts as never,          SEED_ACCOUNTS as never);
+  await seedFannedIfEmpty(db.expenseCategories as never, SEED_EXP_CATEGORIES as never);
   await seedIfEmpty(db.expenses,          SEED_EXPENSES);
   await seedIfEmpty(db.vendorBills,       SEED_VENDOR_BILLS);
-  await seedIfEmpty(db.waTemplates,       SEED_WA_TEMPLATES);
-  await seedIfEmpty(db.segments,          SEED_SEGMENTS);
+  await seedFannedIfEmpty(db.waTemplates as never,       SEED_WA_TEMPLATES as never);
+  await seedFannedIfEmpty(db.segments as never,          SEED_SEGMENTS as never);
   await seedIfEmpty(db.campaigns,         SEED_CAMPAIGNS);
 };
 

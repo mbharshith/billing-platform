@@ -316,6 +316,123 @@ class AppDB extends Dexie {
         if (!c.outletId) c.outletId = primaryFor(c.storeId);
       });
     });
+
+    // v9 - EVERY tenant table becomes outlet-scoped. Same reasoning as v8
+    // but applied uniformly: kitchen (kotStations, sections, diningTables),
+    // recipes + ingredients, financials (expenses, POs, GRNs, stock ops),
+    // CRM (groups, tiers, coupons, campaigns), lending (customerPayments)
+    // - each outlet manages its own book.
+    //
+    // Fan-out policy: CONFIG tables (menu structure, tables, kitchen setup,
+    // recipes, taxes, order types, etc.) are duplicated across every outlet
+    // so each outlet inherits the chain's launch configuration and can then
+    // diverge. TRANSACTIONAL tables (sales, POs, expenses, GRNs, wastage,
+    // stock ops, feedback) are just backfilled to the primary outlet - they
+    // don't need cloning because each historical row already belonged to a
+    // specific outlet's operations.
+    this.version(9).stores({
+      customerPayments:  'id, customerId, storeId, outletId, [storeId+outletId], receivedAt',
+      paymentModes:      'id, storeId, outletId, [storeId+outletId], code, active',
+      orderTypes:        'id, storeId, outletId, [storeId+outletId], code, active',
+      taxSlabs:          'id, storeId, outletId, [storeId+outletId], appliesTo, active',
+      discounts:         'id, storeId, outletId, [storeId+outletId], type, active',
+      addlCharges:       'id, storeId, outletId, [storeId+outletId], active',
+      reasons:           'id, storeId, outletId, [storeId+outletId], category, active',
+      menuCategories:    'id, storeId, outletId, [storeId+outletId], sortOrder, active',
+      modifiers:         'id, storeId, outletId, [storeId+outletId], active',
+      combos:            'id, storeId, outletId, [storeId+outletId], active',
+      variants:          'id, storeId, outletId, [storeId+outletId], menuItemId, active',
+      sections:          'id, storeId, outletId, [storeId+outletId], sortOrder, active',
+      diningTables:      'id, storeId, outletId, [storeId+outletId], sectionId, status, active',
+      kotStations:       'id, storeId, outletId, [storeId+outletId], active',
+      aggregators:       'id, storeId, outletId, [storeId+outletId], provider, enabled',
+      deliveryZones:     'id, storeId, outletId, [storeId+outletId], active',
+      ingredients:       'id, storeId, outletId, [storeId+outletId], active',
+      recipes:           'id, storeId, outletId, [storeId+outletId], menuItemId',
+      suppliers:         'id, storeId, outletId, [storeId+outletId], active',
+      purchaseOrders:    'id, storeId, outletId, [storeId+outletId], status, orderedAt',
+      wastage:           'id, storeId, outletId, [storeId+outletId], reportedAt',
+      customerGroups:    'id, storeId, outletId, [storeId+outletId], active',
+      loyaltyTiers:      'id, storeId, outletId, [storeId+outletId], active',
+      coupons:           'id, storeId, outletId, [storeId+outletId], code, active',
+      feedback:          'id, storeId, outletId, [storeId+outletId], at, resolved',
+      warehouses:        'id, storeId, outletId, [storeId+outletId], type, active',
+      rmCategories:      'id, storeId, outletId, [storeId+outletId], sortOrder, active',
+      uom:               'id, storeId, outletId, [storeId+outletId], code, active',
+      stockAdjustments:  'id, storeId, outletId, [storeId+outletId], warehouseId, ingredientId, performedAt',
+      grns:              'id, storeId, outletId, [storeId+outletId], grnNumber, supplierId, status, receivedAt',
+      stockTransfers:    'id, storeId, outletId, [storeId+outletId], transferNumber, status, requestedAt',
+      indents:           'id, storeId, outletId, [storeId+outletId], indentNumber, status, requestedAt',
+      productionBatches: 'id, storeId, outletId, [storeId+outletId], batchNumber, status, producedAt',
+      accounts:          'id, storeId, outletId, [storeId+outletId], code, type, active',
+      expenseCategories: 'id, storeId, outletId, [storeId+outletId], active',
+      expenses:          'id, storeId, outletId, [storeId+outletId], voucherNumber, categoryId, incurredAt',
+      vendorBills:       'id, storeId, outletId, [storeId+outletId], billNumber, supplierId, status, dueDate',
+      waTemplates:       'id, storeId, outletId, [storeId+outletId], category, active',
+      segments:          'id, storeId, outletId, [storeId+outletId], active',
+      campaigns:         'id, storeId, outletId, [storeId+outletId], channel, status, scheduledAt',
+    }).upgrade(async (tx) => {
+      // Rebuild primary-outlet map (upgrade blocks don't share scope).
+      const outletTable = tx.table<{ id: string; storeId: string }>('outlets');
+      const outlets = await outletTable.toArray();
+      const outletsByStore = new Map<string, string[]>();
+      const primaryByStore = new Map<string, string>();
+      for (const o of outlets) {
+        const list = outletsByStore.get(o.storeId) ?? [];
+        list.push(o.id);
+        outletsByStore.set(o.storeId, list);
+        if (o.id === o.storeId) primaryByStore.set(o.storeId, o.id);
+        else if (!primaryByStore.has(o.storeId)) primaryByStore.set(o.storeId, o.id);
+      }
+      const primaryFor = (storeId: string): string => primaryByStore.get(storeId) ?? storeId;
+
+      // Tables that should FAN OUT: each row gets copied to every outlet of
+      // its store (config that every branch inherits at launch). Exclusive
+      // rows already tagged with a real non-primary outletId are left alone.
+      const FAN_OUT = [
+        'paymentModes', 'orderTypes', 'taxSlabs', 'discounts', 'addlCharges', 'reasons',
+        'menuCategories', 'modifiers', 'combos', 'variants',
+        'sections', 'diningTables', 'kotStations',
+        'aggregators', 'deliveryZones',
+        'ingredients', 'recipes', 'suppliers',
+        'customerGroups', 'loyaltyTiers', 'coupons',
+        'warehouses', 'rmCategories', 'uom',
+        'accounts', 'expenseCategories', 'waTemplates', 'segments',
+      ] as const;
+
+      // Tables that just BACKFILL outletId=primary (historical/txn data).
+      const BACKFILL_ONLY = [
+        'purchaseOrders', 'wastage', 'feedback',
+        'stockAdjustments', 'grns', 'stockTransfers', 'indents', 'productionBatches',
+        'expenses', 'vendorBills', 'campaigns', 'customerPayments',
+      ] as const;
+
+      const isRealOutlet = new Set(outlets.map((o) => o.id));
+
+      for (const name of FAN_OUT) {
+        const t = tx.table<{ id: string; storeId: string; outletId?: string }>(name);
+        const rows = await t.toArray();
+        const dupes: typeof rows = [];
+        for (const r of rows) {
+          // Row already exclusive to a non-primary outlet? Leave alone.
+          if (r.outletId && r.outletId !== r.storeId && isRealOutlet.has(r.outletId)) continue;
+          if (!r.outletId) await t.update(r.id, { outletId: primaryFor(r.storeId) });
+          const targets = outletsByStore.get(r.storeId) ?? [r.storeId];
+          for (const outletId of targets) {
+            if (outletId === primaryFor(r.storeId)) continue;
+            dupes.push({ ...r, id: `${r.id}::${outletId}`, outletId });
+          }
+        }
+        if (dupes.length > 0) await t.bulkAdd(dupes as never);
+      }
+
+      for (const name of BACKFILL_ONLY) {
+        const t = tx.table<{ id: string; storeId: string; outletId?: string }>(name);
+        await t.toCollection().modify((r) => {
+          if (!r.outletId) r.outletId = primaryFor(r.storeId);
+        });
+      }
+    });
   }
 }
 

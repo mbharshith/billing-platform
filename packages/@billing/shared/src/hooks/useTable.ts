@@ -25,6 +25,7 @@ import { useAuth } from '@billing/shared/store/AuthContext';
 export interface TenantRow {
   readonly id: string;
   readonly storeId?: string;
+  readonly outletId?: string;
   readonly active?: boolean;
   readonly createdAt: string;
 }
@@ -32,7 +33,7 @@ export interface TenantRow {
 export interface CrudApi<Row extends TenantRow> {
   readonly rows: readonly Row[];
   readonly loading: boolean;
-  readonly create: (partial: Omit<Row, 'id' | 'createdAt' | 'storeId'>) => Promise<Row>;
+  readonly create: (partial: Omit<Row, 'id' | 'createdAt' | 'storeId' | 'outletId'>) => Promise<Row>;
   readonly update: (id: string, patch: Partial<Row>) => Promise<void>;
   readonly remove: (id: string) => Promise<void>;
   readonly setActive: (id: string, active: boolean) => Promise<void>;
@@ -48,17 +49,24 @@ export const useTable = <Row extends TenantRow>(
   tableName: DbKey,
   scopeStore = true,
 ): CrudApi<Row> => {
-  const { currentStoreId } = useAuth();
+  const { currentStoreId, currentOutletId } = useAuth();
   const table = db[tableName] as unknown as Table<Row, string>;
 
-  // Live-query. When scopeStore=true, filter by storeId; else return all.
-  // Dexie treats a returned undefined as "still loading"; we normalise to [].
+  // Live-query. When scopeStore=true, filter by [storeId+outletId] whenever
+  // the table indexes outletId (v9+); otherwise fall back to storeId-only
+  // (cross-tenant tables like markets / brands or old shape).
   const rows = useLiveQuery(async () => {
     if (scopeStore) {
-      // Not every table indexes storeId — fall back to a scan when needed.
-      const hasStoreIdIndex = (table.schema.indexes ?? [])
-        .some((ix) => ix.keyPath === 'storeId')
+      const indexes = table.schema.indexes ?? [];
+      const hasOutletCompound = indexes.some((ix) =>
+        Array.isArray(ix.keyPath) && ix.keyPath[0] === 'storeId' && ix.keyPath[1] === 'outletId',
+      );
+      const hasStoreIdIndex = indexes.some((ix) => ix.keyPath === 'storeId')
         || table.schema.primKey.keyPath === 'storeId';
+
+      if (hasOutletCompound && currentStoreId && currentOutletId) {
+        return await table.where('[storeId+outletId]').equals([currentStoreId, currentOutletId]).toArray();
+      }
       if (hasStoreIdIndex && currentStoreId) {
         return await table.where('storeId').equals(currentStoreId).toArray();
       }
@@ -66,20 +74,24 @@ export const useTable = <Row extends TenantRow>(
       return await table.toArray();
     }
     return await table.toArray();
-  }, [tableName, currentStoreId, scopeStore]);
+  }, [tableName, currentStoreId, currentOutletId, scopeStore]);
 
   const create = useCallback(
-    async (partial: Omit<Row, 'id' | 'createdAt' | 'storeId'>): Promise<Row> => {
+    async (partial: Omit<Row, 'id' | 'createdAt' | 'storeId' | 'outletId'>): Promise<Row> => {
       const row = {
         ...partial,
         id: `${tableName}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
         createdAt: new Date().toISOString(),
         ...(scopeStore && currentStoreId ? { storeId: currentStoreId } : {}),
+        // Auto-stamp outletId too when the table supports it and we're in
+        // an outlet context. Consumers can always override in the update()
+        // step if they need cross-outlet writes.
+        ...(scopeStore && currentOutletId ? { outletId: currentOutletId } : {}),
       } as unknown as Row;
       await table.put(row);
       return row;
     },
-    [table, tableName, scopeStore, currentStoreId],
+    [table, tableName, scopeStore, currentStoreId, currentOutletId],
   );
 
   const update = useCallback(

@@ -117,7 +117,7 @@ export const CrudPage = <Row extends TenantRow>({
         await api.update(editingId, form);
         toast.success(`${title} updated.`);
       } else {
-        await api.create(form as Omit<Row, 'id' | 'createdAt' | 'storeId'>);
+        await api.create(form as Omit<Row, 'id' | 'createdAt' | 'storeId' | 'outletId'>);
         toast.success(`${title} added.`);
       }
       setForm(null); setEditingId(null);
