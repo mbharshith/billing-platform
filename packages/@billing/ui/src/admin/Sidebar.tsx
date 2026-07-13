@@ -1,19 +1,4 @@
 // AdminSidebar - live-search + collapsible groups + tinted per-group icons.
-//
-// UX design:
-//   1. Search input at the top filters links in-place. Groups with zero
-//      matches hide entirely. Empty state message when no matches.
-//   2. Each group header is a button with a rotating chevron. Toggle state
-//      is persisted per-group in localStorage. Smart initial defaults:
-//      only Overview + POS + Menu open on first visit.
-//   3. Icons take the group's accent color (subtle) - dramatically improves
-//      scan-ability even though many icons are generic.
-//   4. When collapsed to icon rail: no search, no chevrons, all groups
-//      always show all links (compact icon stack). Flyout tooltip on hover.
-//   5. Auto-expand a group when a search finds matches inside it.
-//
-// This file lives outside index.tsx to keep index under 600 lines
-// (project convention).
 
 import { useEffect, useMemo, useState, type FC } from 'react';
 import { NavLink } from 'react-router-dom';

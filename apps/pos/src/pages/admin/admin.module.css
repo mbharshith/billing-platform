@@ -75,7 +75,35 @@
 .kanbanCol__title { font-weight: 600; font-size: 13px; letter-spacing: 0.02em; text-transform: uppercase; color: var(--app-text); }
 .kanbanCol__count { font-size: 12px; padding: 2px 8px; border-radius: 999px; background: var(--app-border); color: var(--app-text-subtle); }
 
-.kanbanCol__empty { color: var(--app-text-mute, var(--app-text-subtle)); font-size: 12px; padding: 12px 4px; text-align: center; font-style: italic; }
+.kanbanCol__empty {
+  color: var(--app-text-mute, var(--app-text-subtle));
+  font-size: 12px;
+  padding: 12px 4px;
+  text-align: center;
+  font-style: italic;
+  /* Match .orderCard min-height so empty columns don't look shorter than
+     columns with a card. Flex-center the label vertically. */
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed var(--app-border);
+  border-radius: 10px;
+  background: transparent;
+}
+
+/* Drag-over affordance for kanban columns. Kicks in when a card is
+   hovered over a droppable column - dashed accent border + subtle bg. */
+.kanbanCol--dropTarget {
+  outline: 2px dashed var(--app-primary);
+  outline-offset: -6px;
+  background: color-mix(in srgb, var(--app-primary) 6%, var(--app-surface));
+}
+.orderCard {
+  cursor: grab;
+}
+.orderCard:active { cursor: grabbing; }
+.orderCard--dragging { opacity: 0.4; }
 
 /* Order/KOT card - uniform height across all columns so the kanban reads as
    an even grid regardless of item count / presence of notes. The card is a

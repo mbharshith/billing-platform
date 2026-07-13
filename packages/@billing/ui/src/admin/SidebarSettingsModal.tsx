@@ -1,13 +1,4 @@
 // SidebarSettingsModal - lets the user hide sidebar groups / individual links.
-//
-// UX (per planning-agent recommendation):
-//   - Nested checkbox tree. Each group header is a tri-state checkbox
-//     (all/some/none), each link a leaf checkbox.
-//   - Overview group + its Dashboard link are pinned - checkbox disabled
-//     with a small 'Pinned' badge so the user knows why.
-//   - Reset to defaults button in the footer (with inline confirm).
-//   - Modal shell mirrors the cashier modals for visual consistency.
-//   - Hidden routes remain reachable by URL - filtering is chrome-only.
 
 import { useState, type FC } from 'react';
 import cls from './admin.module.css';
