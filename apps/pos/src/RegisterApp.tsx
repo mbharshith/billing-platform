@@ -45,7 +45,7 @@ const TaxSlabsPage           = named('TaxSlabsPage');
 const DiscountsPage          = named('DiscountsPage');
 const ChargesPage            = named('ChargesPage');
 const ReasonsPage            = named('ReasonsPage');
-const OutletSettingsPage     = named('OutletSettingsPage');
+const OutletSettingsPage     = namedFrom(() => import('./pages/admin/outlet-settings'), 'OutletSettingsPage');
 const MenuCategoriesPage     = named('MenuCategoriesPage');
 const ModifiersPage          = named('ModifiersPage');
 const CombosPage             = named('CombosPage');

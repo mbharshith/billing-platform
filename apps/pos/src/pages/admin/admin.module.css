@@ -135,3 +135,30 @@
 .lineEditor__empty { color: var(--app-text-subtle); font-size: 12px; font-style: italic; padding: 8px 0; }
 .lineEditor__addBtn { align-self: flex-start; margin-top: 4px; }
 
+/* -------------------------------------------------------------------------- */
+/* Settings form (Outlet Settings, single-row edit)                            */
+/* -------------------------------------------------------------------------- */
+
+.settingsForm { display: flex; flex-direction: column; gap: 16px; max-width: 720px; }
+
+.settingsRow { display: flex; flex-direction: column; gap: 4px; }
+.settingsRow__label { font-size: 13px; font-weight: 600; color: var(--app-text); }
+.settingsRow__hint  { font-size: 12px; color: var(--app-text-subtle); margin-bottom: 4px; }
+.settingsRow input, .settingsRow textarea, .settingsRow select {
+  padding: 8px 10px;
+  border: 1px solid var(--app-border);
+  border-radius: 8px;
+  background: var(--app-surface);
+  color: var(--app-text);
+  font: inherit;
+  font-size: 13px;
+}
+.settingsRow input:focus, .settingsRow textarea:focus, .settingsRow select:focus {
+  outline: none;
+  border-color: var(--app-primary);
+  box-shadow: 0 0 0 3px var(--app-primary-glow);
+}
+.settingsRow textarea { resize: vertical; min-height: 60px; font-family: inherit; }
+
+.settingsGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+

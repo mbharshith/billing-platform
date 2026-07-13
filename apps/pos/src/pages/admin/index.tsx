@@ -309,10 +309,6 @@ export const ReasonsPage: FC = () => {
   );
 };
 
-export const OutletSettingsPage: FC = () =>
-  <StubPage title="Print & Terminal Settings" phase="Phase 1" icon="print"
-    hint="Global print header/footer, bill/KOT prefix, round-off rules per outlet. Single-row edit form is in the works." />;
-
 /* ========================================================================== */
 /* PHASE 2  Menu Management                                                   */
 /* ========================================================================== */
