@@ -4,6 +4,7 @@ import { NavLink, Outlet, useNavigate, useParams } from 'react-router-dom';
 import cls from './layout.module.css';
 import { Icon, Text, ThemeToggle } from '@billing/ui/atoms';
 import { ToastStack } from '@billing/ui/feedback';
+import { OutletPicker } from '@billing/ui/organisms';
 import { STRINGS } from '@billing/shared/domain/strings';
 import { monogramFor } from '@billing/shared/domain/format';
 import { useAuth } from '@billing/shared/store/AuthContext';
@@ -178,6 +179,7 @@ const Header: FC = () => {
         <div className={cls.brandSeparator} aria-hidden="true" />
 
         <TenantBadge />
+        <OutletPicker />
 
         <nav className={cls.nav} aria-label={STRINGS.ariaLabels.navigate}>
           <NavItem to={`/${slug}/cashier`}   icon="store"   label={STRINGS.nav.cashier}>{STRINGS.nav.cashier}</NavItem>

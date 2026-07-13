@@ -187,6 +187,9 @@ export interface Sale {
   readonly voidedReason: string | null;
   // Store where the sale happened.
   readonly storeId: string;
+  /** Physical outlet within storeId. Optional for back-compat with sales
+   *  written before multi-outlet support landed — those default to storeId. */
+  readonly outletId?: string;
 
   // -- Online-order fields (all null for counter sales) --------------------
   readonly channel: SaleChannel;

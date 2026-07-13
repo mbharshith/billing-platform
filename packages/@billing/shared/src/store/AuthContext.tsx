@@ -11,6 +11,7 @@ import { VENDOR_SCOPE } from '@billing/shared/domain/types';
 import { toSessionUser, useUsers } from './UsersContext';
 
 const SESSION_KEY = 'session';
+const OUTLET_KEY_PREFIX = 'active-outlet:';   // per-user active outlet id
 
 export type LoginResult =
   | { readonly ok: true; readonly user: SessionUser }
@@ -20,6 +21,10 @@ interface AuthContextValue {
   readonly currentUser: SessionUser | null;
   // The tenant id this session is bound to. Null iff not logged in.
   readonly currentStoreId: string | null;
+  /** Physical outlet the user is operating at. Defaults to their storeId if
+   *  no outlet has been explicitly picked yet. Null iff not logged in. */
+  readonly currentOutletId: string | null;
+  readonly setCurrentOutletId: (outletId: string) => void;
   readonly isAdmin: boolean;
   readonly isVendor: boolean;
   readonly login: (username: string, password: string) => Promise<LoginResult>;
@@ -31,12 +36,39 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+/** Read the persisted outlet id for a user, defaulting to their storeId. */
+const readOutletFor = (user: SessionUser | null): string | null => {
+  if (!user) return null;
+  try {
+    return localStorage.getItem(OUTLET_KEY_PREFIX + user.id) ?? user.storeId;
+  } catch { return user.storeId; }
+};
+
 export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const { users, findByUsername } = useUsers();
 
   const [currentUser, setCurrentUser] = useState<SessionUser | null>(
     () => storage.load<SessionUser | null>(SESSION_KEY, null),
   );
+
+  /* -- Active outlet ---------------------------------------------------- *
+   * Persisted per-user under 'active-outlet:<userId>' so switching users
+   * doesn't leak outlet state. Defaults to the user's storeId (which is
+   * always guaranteed to have a matching outlet row via seed). */
+  const [currentOutletId, setCurrentOutletIdState] =
+    useState<string | null>(() => readOutletFor(currentUser));
+
+  const setCurrentOutletId = useCallback((outletId: string) => {
+    if (!currentUser) return;
+    try { localStorage.setItem(OUTLET_KEY_PREFIX + currentUser.id, outletId); }
+    catch { /* quota */ }
+    setCurrentOutletIdState(outletId);
+  }, [currentUser]);
+
+  // Re-hydrate active outlet whenever the current user changes (login/logout).
+  useEffect(() => {
+    setCurrentOutletIdState(readOutletFor(currentUser));
+  }, [currentUser]);
 
   // Reconcile the persisted session against the live users list, guarded to run once after first non-empty load.
   const reconciledRef = useRef(false);
@@ -83,13 +115,15 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const value = useMemo<AuthContextValue>(() => ({
     currentUser,
     currentStoreId: currentUser?.storeId ?? null,
+    currentOutletId,
+    setCurrentOutletId,
     isAdmin: isAdmin(currentUser),
     isVendor: isVendor(currentUser),
     login,
     loginAs,
     logout,
     can: (action) => can(currentUser, action),
-  }), [currentUser, login, loginAs, logout]);
+  }), [currentUser, currentOutletId, setCurrentOutletId, login, loginAs, logout]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
@@ -100,5 +134,9 @@ export const useAuth = (): AuthContextValue => {
   return ctx;
 };
 
-// Helper — the tenant id this session is bound to.
+// Helper - the tenant id this session is bound to.
 export const useCurrentStoreId = (): string | null => useAuth().currentStoreId;
+
+// Helper - the physical outlet the cashier is operating at right now.
+// Falls back to the tenant id if no outlet has been explicitly chosen yet.
+export const useCurrentOutletId = (): string | null => useAuth().currentOutletId;

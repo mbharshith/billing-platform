@@ -39,9 +39,14 @@ export interface Brand {
   readonly createdAt: Iso8601;
 }
 
-/** Physical outlet (renamed from "Store" for restaurant vertical). */
+/** Physical outlet (renamed from "Store" for restaurant vertical).
+ *
+ *  storeId scopes the outlet to a tenant. A brand may host many outlets
+ *  across a tenant — the cashier picks which outlet a sale belongs to via
+ *  the top-bar OutletPicker (see AuthContext.currentOutletId). */
 export interface Outlet {
   readonly id: string;              // aliased to legacy Store.id for compat
+  readonly storeId: string;         // tenant scope (matches Store.id)
   readonly name: string;
   readonly brandId: string;
   readonly marketId: string;

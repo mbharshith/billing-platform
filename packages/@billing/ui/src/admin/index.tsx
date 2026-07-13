@@ -6,6 +6,7 @@ import { Link, Outlet, useLocation, useNavigate, useParams } from 'react-router-
 import cls from './admin.module.css';
 import { Icon, Text, ThemeToggle } from '@billing/ui/atoms';
 import { ToastStack } from '@billing/ui/feedback';
+import { OutletPicker } from '@billing/ui/organisms';
 import { AdminSidebar, type SidebarGroup, type SidebarLink } from './Sidebar';
 
 export type { SidebarLink, SidebarGroup };
@@ -167,8 +168,6 @@ export const SIDEBAR_GROUPS: readonly SidebarGroup[] = [
 /* -------------------------------------------------------------------------- */
 
 interface TopBarProps {
-  readonly outletName: string;
-  readonly outletTag?: string;         // e.g. "BENGALURU / DINE-IN"
   readonly collapsed: boolean;
   readonly onToggleSidebar: () => void;
   readonly onQuickAdd?: () => void;
@@ -176,8 +175,7 @@ interface TopBarProps {
 }
 
 export const TopBar: FC<TopBarProps> = ({
-  outletName, outletTag, collapsed, onToggleSidebar, onQuickAdd,
-  extra,
+  collapsed, onToggleSidebar, onQuickAdd, extra,
 }) => (
   <header className={cls.topbar}>
     <button
@@ -190,11 +188,7 @@ export const TopBar: FC<TopBarProps> = ({
       <Icon name={collapsed ? 'arrow' : 'menu'} size={18} />
     </button>
 
-    <div className={cls.topbar__outlet} title={outletName}>
-      <span className={cls['topbar__outlet-dot']} aria-hidden />
-      <span className={cls['topbar__outlet-name']}>{outletName}</span>
-      {outletTag && <span className={cls['topbar__outlet-tag']}>{outletTag}</span>}
-    </div>
+    <OutletPicker />
 
     <div className={cls.topbar__search}>
       <span className={cls['topbar__search-icon']}>
@@ -233,14 +227,12 @@ const COLLAPSED_KEY = 'admin-sidebar-collapsed';
 
 interface AdminShellProps {
   readonly slug: string;
-  readonly outletName: string;
-  readonly outletTag?: string;
   readonly onQuickAdd?: () => void;
   readonly topbar?: ReactNode;  // user-menu + any tenant-specific chip
 }
 
 export const AdminShell: FC<AdminShellProps> = ({
-  slug, outletName, outletTag, onQuickAdd, topbar,
+  slug, onQuickAdd, topbar,
 }) => {
   const [collapsed, setCollapsed] = useState<boolean>(() => {
     try { return localStorage.getItem(COLLAPSED_KEY) === '1'; } catch { return false; }
@@ -254,8 +246,6 @@ export const AdminShell: FC<AdminShellProps> = ({
             <AdminSidebar slug={slug} collapsed={collapsed} groups={SIDEBAR_GROUPS} />
       <div className={cls.adminShell__main}>
         <TopBar
-          outletName={outletName}
-          outletTag={outletTag}
           collapsed={collapsed}
           onToggleSidebar={() => setCollapsed((v) => !v)}
           onQuickAdd={onQuickAdd}

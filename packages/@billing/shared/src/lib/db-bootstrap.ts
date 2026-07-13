@@ -143,7 +143,7 @@ const seedRestaurantTables = async (): Promise<void> => {
   };
   await seedIfEmpty(db.markets,         SEED_MARKETS);
   await seedIfEmpty(db.brands,          SEED_BRANDS);
-  await seedIfEmpty(db.outlets,         SEED_OUTLETS);
+  await seedPerStoreIfMissing(db.outlets as never, SEED_OUTLETS);
   await seedIfEmpty(db.paymentModes,    SEED_PAYMENT_MODES);
   await seedPerStoreIfMissing(db.orderTypes as never, SEED_ORDER_TYPES);
   await seedIfEmpty(db.taxSlabs,        SEED_TAX_SLABS);

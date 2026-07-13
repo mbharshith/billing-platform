@@ -14,11 +14,12 @@ import type {
   OrderType, Outlet, OutletSettings, PaymentMode, PurchaseOrder, Reason,
   Recipe, Supplier, TaxSlab, Variant, WastageEntry,
 } from '@billing/shared/domain/restaurant';
-import { SEED_STORE_BRANCH_ID, SEED_STORE_MAIN_ID } from './stores';
+import { SEED_STORE_BRANCH_ID, SEED_STORE_MAIN_ID, SEED_STORE_THIRD_ID } from './stores';
 
 const NOW = new Date().toISOString();
 const S = SEED_STORE_BRANCH_ID;   // Spice Route Kitchen (restaurant)
 const V = SEED_STORE_MAIN_ID;     // Velvet Mumbai Flagship (fashion retail)
+const L = SEED_STORE_THIRD_ID;    // La Maison Boutique (SoHo NYC)
 
 /* -------------------------------------------------------------------------- */
 /* PHASE 1  POS Config                                                        */
@@ -37,25 +38,49 @@ export const SEED_BRANDS: readonly Brand[] = [
 ];
 
 export const SEED_OUTLETS: readonly Outlet[] = [
+  /* -- Spice Route Kitchen (Bengaluru, 3 outlets) ----------------------- */
   {
-    id: S, name: 'Spice Route - Indiranagar', brandId: 'brand-spice',
+    id: S, storeId: S, name: 'Spice Route - Indiranagar', brandId: 'brand-spice',
     marketId: 'mkt-in-s', city: 'Bengaluru', phone: '+91 80 4700 2000',
     address: 'Indiranagar 100 Feet Road, Bengaluru 560038',
     taxRate: 0.05, currency: 'INR', seatCapacity: 60,
     active: true, status: 'active', createdAt: NOW,
   },
   {
-    id: 'outlet-koram', name: 'Al Adams - Koramangala', brandId: 'brand-aladams',
+    id: 'outlet-spice-koram', storeId: S, name: 'Spice Route - Koramangala', brandId: 'brand-spice',
     marketId: 'mkt-in-s', city: 'Bengaluru', phone: '+91 80 4700 2001',
     address: '80 Feet Road, Koramangala 4th Block, Bengaluru 560034',
     taxRate: 0.05, currency: 'INR', seatCapacity: 45,
     active: true, status: 'active', createdAt: NOW,
   },
   {
-    id: 'outlet-hsr', name: 'Al Adams - HSR Layout', brandId: 'brand-aladams',
+    id: 'outlet-spice-hsr', storeId: S, name: 'Spice Route - HSR Layout', brandId: 'brand-spice',
     marketId: 'mkt-in-s', city: 'Bengaluru', phone: '+91 80 4700 2002',
     address: '27th Main, HSR Layout Sector 1, Bengaluru 560102',
     taxRate: 0.05, currency: 'INR', seatCapacity: 50,
+    active: true, status: 'active', createdAt: NOW,
+  },
+  /* -- Velvet Mumbai (2 outlets) ---------------------------------------- */
+  {
+    id: V, storeId: V, name: 'Velvet - Lower Parel', brandId: 'brand-velvet',
+    marketId: 'mkt-in-s', city: 'Mumbai', phone: '+91 22 6100 4000',
+    address: 'Kamala Mills, Lower Parel, Mumbai 400013',
+    taxRate: 0.12, currency: 'INR', seatCapacity: 0,
+    active: true, status: 'active', createdAt: NOW,
+  },
+  {
+    id: 'outlet-velvet-bandra', storeId: V, name: 'Velvet - Bandra Linking Rd', brandId: 'brand-velvet',
+    marketId: 'mkt-in-s', city: 'Mumbai', phone: '+91 22 6100 4001',
+    address: 'Linking Road, Bandra West, Mumbai 400050',
+    taxRate: 0.12, currency: 'INR', seatCapacity: 0,
+    active: true, status: 'active', createdAt: NOW,
+  },
+  /* -- La Maison Boutique (SoHo) ---------------------------------------- */
+  {
+    id: L, storeId: L, name: 'La Maison - SoHo', brandId: 'brand-lamaison',
+    marketId: 'mkt-uae', city: 'New York', phone: '+1 212 555 4000',
+    address: '157 Spring St, SoHo, New York, NY 10012',
+    taxRate: 0.08875, currency: 'USD', seatCapacity: 0,
     active: true, status: 'active', createdAt: NOW,
   },
 ];

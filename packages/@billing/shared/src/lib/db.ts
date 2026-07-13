@@ -254,6 +254,14 @@ class AppDB extends Dexie {
       segments:          'id, storeId, active',
       campaigns:         'id, storeId, channel, status, scheduledAt',
     });
+
+    // v7 - Multi-outlet support: outlets get a storeId index, sales get an
+    // outletId index. No data migration needed - outletId is optional on
+    // legacy sales and defaults to storeId on read.
+    this.version(7).stores({
+      outlets: 'id, storeId, brandId, marketId, active',
+      sales:   'id, storeId, outletId, completedAt, customerId, cashierId, voided, channel, orderStatus, [storeId+channel], [storeId+orderStatus], [storeId+outletId]',
+    });
   }
 }
 

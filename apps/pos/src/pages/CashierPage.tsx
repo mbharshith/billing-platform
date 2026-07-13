@@ -53,7 +53,7 @@ export const CashierPage: FC = () => {
   const { activeProducts, decrementStock } = useProducts();
   const { customers, addLending, create: createCustomer } = useCustomers();
   const { recordSale, sales } = useSales();
-  const { currentUser, currentStoreId } = useAuth();
+  const { currentUser, currentStoreId, currentOutletId } = useAuth();
   const { settings } = useSettings();
   const toast = useToast();
 
@@ -229,6 +229,7 @@ export const CashierPage: FC = () => {
       customerId:     customerId ?? null,
       customerName:   customerName ?? null,
       cashierId: currentUser.id, cashierName: currentUser.name, storeId: currentStoreId,
+      outletId: currentOutletId ?? currentStoreId,
       orderTypeCode: orderTypeCode ?? undefined,
       ...(tableId ? { tableId } : {}),
       ...(tableCode ? { tableCode } : {}),

@@ -99,7 +99,9 @@ export const BrandsPage: FC = () => {
 };
 
 export const OutletsPage: FC = () => {
-  const api = useTable<Outlet>('outlets', false);
+  // Tenant-scoped: outlets belong to a store. useTable auto-stamps storeId
+  // on create and filters the list by the current tenant.
+  const api = useTable<Outlet>('outlets', true);
   const brands = useTable<Brand>('brands', false);
   return (
     <CrudPage<Outlet>

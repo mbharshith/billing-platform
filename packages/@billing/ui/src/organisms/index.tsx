@@ -793,6 +793,8 @@ export interface BuildSaleInput {
   readonly cashierId: string;
   readonly cashierName: string;
   readonly storeId: string;
+  /** Physical outlet the sale belongs to. Defaults to storeId when omitted. */
+  readonly outletId?: string;
 
   /* -- Optional cashier extensions - passed through when present ---------- */
   readonly orderTypeCode?: string;
@@ -826,6 +828,7 @@ export const buildSale = (input: BuildSaleInput): Sale => ({
   voidedAt: null,
   voidedReason: null,
   storeId: input.storeId,
+  outletId: input.outletId ?? input.storeId,
   channel: 'counter',
   orderStatus: null,
   customerName: input.customerName ?? null,
@@ -879,3 +882,5 @@ export type {
 
 export { CheckoutModal } from './cashier-checkout';
 export type { CheckoutModalProps, CheckoutPayload } from './cashier-checkout';
+
+export { OutletPicker } from './outlet-picker';
