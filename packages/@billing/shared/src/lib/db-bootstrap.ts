@@ -26,7 +26,7 @@ import type {
   Customer, CustomerPayment, Product, Sale, Store, User, UserRole,
 } from '@billing/shared/domain/types';
 
-const MIGRATION_FLAG = 'db-bootstrap::v8b';
+const MIGRATION_FLAG = 'db-bootstrap::v8c';
 
 // Normalise legacy user roles: drop 'super_admin' rows (that surface moved to the
 // dedicated vendor account), rename 'master' -> 'admin' (v1 schema). Idempotent.
@@ -95,19 +95,26 @@ export const bootstrapDb = async (): Promise<void> => {
 
   // v8 - fan-out the base menu across every outlet of each store. Real
   // chains launch with the same menu at every branch but track stock and
-  // pricing PER OUTLET. Rather than repeat 40+ product rows per outlet in
-  // the fixtures, we duplicate the base SEED_PRODUCTS here: each product
-  // ends up as N rows (one per outlet of its storeId), each with its own
-  // stable id + outletId. The primary outlet keeps the original id so any
-  // hard-coded references in seed sales / demo orders still resolve.
+  // pricing PER OUTLET. A product whose outletId already matches a real
+  // (non-primary) outlet is OUTLET-EXCLUSIVE - it stays where it is,
+  // skipping the fan-out (used for per-branch specials like Koramangala's
+  // fusion menu vs HSR's health menu).
   const outletsByStore = new Map<string, readonly string[]>();
+  const isRealOutlet = new Set<string>();
   for (const o of SEED_OUTLETS) {
     const list = outletsByStore.get(o.storeId) ?? [];
     outletsByStore.set(o.storeId, [...list, o.id]);
+    isRealOutlet.add(o.id);
   }
   const fanOutProducts = <T extends { readonly id: string; readonly storeId: string; readonly outletId?: string }>(rows: readonly T[]): T[] => {
     const out: T[] = [];
     for (const row of rows) {
+      // Exclusive product: outletId points at a real non-primary outlet.
+      // Ship as-is, don't fan.
+      if (row.outletId && row.outletId !== row.storeId && isRealOutlet.has(row.outletId)) {
+        out.push(row);
+        continue;
+      }
       const outlets = outletsByStore.get(row.storeId) ?? [row.storeId];
       for (const outletId of outlets) {
         // Primary outlet (id === storeId) keeps original row id so legacy

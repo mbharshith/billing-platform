@@ -12,15 +12,22 @@ const p = (
   id: string, sku: string, name: string, price: number,
   category: Product['category'], tone: Product['tone'], stock: number,
   storeId: string, image?: string,
+  outletId?: string,
 ): Product => ({
   id, sku, name, price, category, tone, stock, active: true, createdAt: NOW,
   storeId,
-  // Seed catalog belongs to the store's primary outlet (same id as the
-  // store for our fixtures). v8 migration backfills the same value for
-  // any upgraded install.
-  outletId: storeId,
+  // If no outletId is supplied, the fan-out in db-bootstrap will duplicate
+  // this row across every outlet of its storeId (shared/base menu). If
+  // outletId IS supplied, this product is EXCLUSIVE to that outlet - the
+  // fan-out skips it.
+  outletId: outletId ?? storeId,
   ...(image && { image }),
 });
+
+// Outlet ids (matches SEED_OUTLETS in restaurant.ts). Only exclusives
+// hard-code these - everything else fans out via the primary storeId.
+const SPICE_KORAM = 'outlet-spice-koram';
+const SPICE_HSR   = 'outlet-spice-hsr';
 
 // Velvet Mumbai - luxury Indian fashion
 const VELVET: readonly Product[] = [
@@ -36,7 +43,7 @@ const VELVET: readonly Product[] = [
   p('v10', 'FTW-0002', 'Embellished Heels',           4499, 'Other',    'rose',   14, SEED_STORE_MAIN_ID, 'https://images.unsplash.com/photo-1596703263926-eb0762ee17e4?w=400&q=80'),
 ];
 
-// Spice Route Kitchen - Indian non-veg restaurant menu
+// Spice Route Kitchen - Indian non-veg restaurant menu (SHARED across every outlet)
 const SPICE_ROUTE: readonly Product[] = [
   p('r01', 'MNU-0001', 'Chicken Tikka',              380, 'Snacks',    'red',    999, SEED_STORE_BRANCH_ID, 'https://images.unsplash.com/photo-1599487488170-d11ec9c172f0?w=400&q=80'),
   p('r02', 'MNU-0002', 'Mutton Seekh Kebab',         420, 'Snacks',    'brown',  999, SEED_STORE_BRANCH_ID, 'https://images.unsplash.com/photo-1544025162-d76694265947?w=400&q=80'),
@@ -50,6 +57,24 @@ const SPICE_ROUTE: readonly Product[] = [
   p('r10', 'MNU-0010', 'Dal Makhani',                280, 'Other',     'brown',  999, SEED_STORE_BRANCH_ID, 'https://images.unsplash.com/photo-1626500155159-cbfb9a5661a3?w=400&q=80'),
   p('r11', 'BEV-0001', 'Mango Lassi',                120, 'Beverages', 'yellow', 999, SEED_STORE_BRANCH_ID, 'https://images.unsplash.com/photo-1553361371-9b22f78e8b1d?w=400&q=80'),
   p('r12', 'BEV-0002', 'Masala Chai',                 60, 'Beverages', 'amber',  999, SEED_STORE_BRANCH_ID, 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=400&q=80'),
+];
+
+// Koramangala EXCLUSIVES - trendy fusion menu targeting the tech crowd
+const SPICE_KORAM_EXCL: readonly Product[] = [
+  p('r-km-01', 'KRM-0001', 'Butter Chicken Pizza',     520, 'Meat',      'red',    999, SEED_STORE_BRANCH_ID, 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&q=80', SPICE_KORAM),
+  p('r-km-02', 'KRM-0002', 'Korean Gochujang Wings',   440, 'Snacks',    'orange', 999, SEED_STORE_BRANCH_ID, 'https://images.unsplash.com/photo-1527477396000-e27163b481c2?w=400&q=80', SPICE_KORAM),
+  p('r-km-03', 'KRM-0003', 'Kimchi Fried Rice',        380, 'Other',     'amber',  999, SEED_STORE_BRANCH_ID, 'https://images.unsplash.com/photo-1585032226651-759b368d7246?w=400&q=80', SPICE_KORAM),
+  p('r-km-04', 'KRM-0004', 'Chai Cheesecake',          240, 'Other',     'brown',  999, SEED_STORE_BRANCH_ID, 'https://images.unsplash.com/photo-1533134242443-d4fd215305ad?w=400&q=80', SPICE_KORAM),
+  p('r-km-05', 'KRM-0005', 'Cold Brew Coffee',         180, 'Beverages', 'stone',  999, SEED_STORE_BRANCH_ID, 'https://images.unsplash.com/photo-1517701550927-30cf4ba1dba5?w=400&q=80', SPICE_KORAM),
+];
+
+// HSR Layout EXCLUSIVES - health-first menu with millets and grain bowls
+const SPICE_HSR_EXCL: readonly Product[] = [
+  p('r-hs-01', 'HSR-0001', 'Millet Chicken Biryani',   480, 'Other',     'yellow', 999, SEED_STORE_BRANCH_ID, 'https://images.unsplash.com/photo-1596797038530-2c107229654b?w=400&q=80', SPICE_HSR),
+  p('r-hs-02', 'HSR-0002', 'Ragi Roti Thali',          340, 'Other',     'brown',  999, SEED_STORE_BRANCH_ID, 'https://images.unsplash.com/photo-1567337710282-00832b415979?w=400&q=80', SPICE_HSR),
+  p('r-hs-03', 'HSR-0003', 'Quinoa Prawn Bowl',        520, 'Meat',      'sky',    999, SEED_STORE_BRANCH_ID, 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400&q=80', SPICE_HSR),
+  p('r-hs-04', 'HSR-0004', 'Beetroot Kebab Platter',   360, 'Snacks',    'rose',   999, SEED_STORE_BRANCH_ID, 'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=400&q=80', SPICE_HSR),
+  p('r-hs-05', 'HSR-0005', 'Turmeric Almond Latte',    160, 'Beverages', 'amber',  999, SEED_STORE_BRANCH_ID, 'https://images.unsplash.com/photo-1541167760496-1628856ab772?w=400&q=80', SPICE_HSR),
 ];
 
 // La Maison Boutique - luxury fashion, SoHo New York
@@ -66,4 +91,8 @@ const LA_MAISON: readonly Product[] = [
   p('b10', 'BTQ-0010', 'Structured Wool Coat',        549, 'Personal', 'slate',   6, SEED_STORE_THIRD_ID, 'https://images.unsplash.com/photo-1539533018447-63fcce2678e3?w=400&q=80'),
 ];
 
-export const SEED_PRODUCTS: readonly Product[] = [...VELVET, ...SPICE_ROUTE, ...LA_MAISON];
+export const SEED_PRODUCTS: readonly Product[] = [
+  ...VELVET,
+  ...SPICE_ROUTE, ...SPICE_KORAM_EXCL, ...SPICE_HSR_EXCL,
+  ...LA_MAISON,
+];
