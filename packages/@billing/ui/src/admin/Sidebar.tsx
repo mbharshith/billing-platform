@@ -256,9 +256,6 @@ export const AdminSidebar: FC<AdminSidebarProps> = ({ slug, collapsed, groups })
           <Icon name="settings" size={14} />
           {!collapsed && <span>Customize</span>}
         </button>
-        {!collapsed && (
-          <span className={cls['sidebar__footer-hint']}>v11.7</span>
-        )}
       </div>
 
       <SidebarSettingsModal

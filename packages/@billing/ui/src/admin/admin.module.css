@@ -326,15 +326,6 @@
   background: var(--app-surface, #ffffff);
 }
 .sidebar[data-collapsed='true'] .sidebar__footer { justify-content: center; padding: 12px 0; }
-.sidebar__footer-hint {
-  font-size: 11px;
-  color: var(--app-text-subtle, #64748b);
-  flex: 1;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.sidebar[data-collapsed='true'] .sidebar__footer-hint { display: none; }
 
 /* -------------------------------------------------------------------------- */
 /* AdminShell layout                                                          */
