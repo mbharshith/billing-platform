@@ -122,11 +122,30 @@ const seedRestaurantTables = async (): Promise<void> => {
   ): Promise<void> => {
     if ((await table.count()) === 0) await table.bulkPut([...rows]);
   };
+
+  // Per-store seeder: bulkPut ONLY the rows for stores that have zero rows
+  // in this table today. Lets us ship new seed data for a store that was
+  // added later (e.g. Velvet retail order types) without wiping user edits
+  // to another store's rows.
+  const seedPerStoreIfMissing = async <T extends { storeId: string }>(
+    table: {
+      where: (key: string) => { equals: (v: string) => { count: () => Promise<number> } };
+      bulkPut: (rows: T[]) => Promise<unknown>;
+    },
+    rows: readonly T[],
+  ): Promise<void> => {
+    const byStore: Record<string, T[]> = {};
+    rows.forEach((r) => { (byStore[r.storeId] ??= []).push(r); });
+    for (const [storeId, storeRows] of Object.entries(byStore)) {
+      const existing = await table.where('storeId').equals(storeId).count();
+      if (existing === 0) await table.bulkPut(storeRows);
+    }
+  };
   await seedIfEmpty(db.markets,         SEED_MARKETS);
   await seedIfEmpty(db.brands,          SEED_BRANDS);
   await seedIfEmpty(db.outlets,         SEED_OUTLETS);
   await seedIfEmpty(db.paymentModes,    SEED_PAYMENT_MODES);
-  await seedIfEmpty(db.orderTypes,      SEED_ORDER_TYPES);
+  await seedPerStoreIfMissing(db.orderTypes as never, SEED_ORDER_TYPES);
   await seedIfEmpty(db.taxSlabs,        SEED_TAX_SLABS);
   await seedIfEmpty(db.discounts,       SEED_DISCOUNTS);
   await seedIfEmpty(db.addlCharges,     SEED_ADDL_CHARGES);

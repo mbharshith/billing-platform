@@ -14,10 +14,11 @@ import type {
   OrderType, Outlet, OutletSettings, PaymentMode, PurchaseOrder, Reason,
   Recipe, Supplier, TaxSlab, Variant, WastageEntry,
 } from '@billing/shared/domain/restaurant';
-import { SEED_STORE_BRANCH_ID } from './stores';
+import { SEED_STORE_BRANCH_ID, SEED_STORE_MAIN_ID } from './stores';
 
 const NOW = new Date().toISOString();
-const S = SEED_STORE_BRANCH_ID;
+const S = SEED_STORE_BRANCH_ID;   // Spice Route Kitchen (restaurant)
+const V = SEED_STORE_MAIN_ID;     // Velvet Mumbai Flagship (fashion retail)
 
 /* -------------------------------------------------------------------------- */
 /* PHASE 1  POS Config                                                        */
@@ -70,11 +71,21 @@ export const SEED_PAYMENT_MODES: readonly PaymentMode[] = [
 ];
 
 export const SEED_ORDER_TYPES: readonly OrderType[] = [
+  // -- Spice Route Kitchen (restaurant) -----------------------------------
   { id: 'ot-din', storeId: S, name: 'Dine-in',    code: 'DIN', icon: 'store',   kotPrefix: 'D', chargeExtra: false, extraChargePercent: 0,  active: true,  createdAt: NOW },
   { id: 'ot-tka', storeId: S, name: 'Takeaway',   code: 'TKA', icon: 'bag',     kotPrefix: 'T', chargeExtra: false, extraChargePercent: 0,  active: true,  createdAt: NOW },
   { id: 'ot-del', storeId: S, name: 'Delivery',   code: 'DEL', icon: 'send',    kotPrefix: 'L', chargeExtra: true,  extraChargePercent: 5,  active: true,  createdAt: NOW },
   { id: 'ot-zom', storeId: S, name: 'Zomato',     code: 'ZOM', icon: 'send',    kotPrefix: 'Z', chargeExtra: false, extraChargePercent: 0,  active: true,  createdAt: NOW },
   { id: 'ot-swg', storeId: S, name: 'Swiggy',     code: 'SWG', icon: 'send',    kotPrefix: 'S', chargeExtra: false, extraChargePercent: 0,  active: true,  createdAt: NOW },
+  // -- Velvet Mumbai (fashion retail) -------------------------------------
+  // In-store = walk-in counter; Home Delivery = own courier; the 4 named
+  // marketplaces flow through the aggregator tab in the checkout modal.
+  { id: 'ot-v-in',  storeId: V, name: 'In-store',        code: 'V-INS', icon: 'store', kotPrefix: '', chargeExtra: false, extraChargePercent: 0, active: true, createdAt: NOW },
+  { id: 'ot-v-del', storeId: V, name: 'Home Delivery',   code: 'V-DEL', icon: 'send',  kotPrefix: '', chargeExtra: false, extraChargePercent: 0, active: true, createdAt: NOW },
+  { id: 'ot-v-myn', storeId: V, name: 'Myntra',          code: 'V-MYN', icon: 'send',  kotPrefix: '', chargeExtra: false, extraChargePercent: 0, active: true, createdAt: NOW },
+  { id: 'ot-v-nyk', storeId: V, name: 'Nykaa Fashion',   code: 'V-NYK', icon: 'send',  kotPrefix: '', chargeExtra: false, extraChargePercent: 0, active: true, createdAt: NOW },
+  { id: 'ot-v-amz', storeId: V, name: 'Amazon Fashion',  code: 'V-AMZ', icon: 'send',  kotPrefix: '', chargeExtra: false, extraChargePercent: 0, active: true, createdAt: NOW },
+  { id: 'ot-v-flp', storeId: V, name: 'Flipkart',        code: 'V-FLP', icon: 'send',  kotPrefix: '', chargeExtra: false, extraChargePercent: 0, active: true, createdAt: NOW },
 ];
 
 export const SEED_TAX_SLABS: readonly TaxSlab[] = [

@@ -44,7 +44,14 @@ const PAYMENT_METHOD_OPTS: readonly { code: PaymentMethod; label: string }[] = [
 /* -------------------------------------------------------------------------- */
 type Mode = 'counter' | 'dine-in' | 'delivery' | 'aggregator';
 
-const AGGREGATOR_KEYWORDS = ['swig', 'zom', 'uber', 'door', 'aggreg'];
+const AGGREGATOR_KEYWORDS = [
+  // Restaurant aggregators
+  'swig', 'zom', 'uber', 'door',
+  // Retail marketplaces
+  'myntra', 'nykaa', 'amazon', 'flipkart', 'ajio', 'meesho', 'tata cliq',
+  // Generic
+  'aggreg', 'marketplace',
+];
 
 const detectMode = (t: OrderType): Mode => {
   const hay = `${t.code} ${t.name}`.toLowerCase();
