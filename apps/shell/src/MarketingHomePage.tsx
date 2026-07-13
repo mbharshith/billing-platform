@@ -85,10 +85,10 @@ interface Credential {
 }
 
 const DEMO_CREDS: readonly Credential[] = [
-  { role: 'SaaS owner',    user: 'vendor',              pass: 'vendor123',     lands: '/dashboard' },
+  { role: 'SaaS owner',    user: 'vendor',              pass: 'vendor123',     lands: '/dashboard (multi-tenant console)' },
   { role: 'Tenant admin',  user: 'velvet',              pass: 'velvet123',     lands: '/velvet/admin' },
-  { role: 'Cashier',       user: 'velvet.cashier',      pass: 'cashier123',    lands: '/velvet/cashier' },
-  { role: 'Shopper',       user: '—',                   pass: '—',             lands: '/velvet (public)' },
+  { role: 'Register staff',user: 'velvet.cashier',      pass: 'cashier123',    lands: '/velvet/cashier (Sales Register)' },
+  { role: 'Shopper',       user: '—',                   pass: '—',             lands: '/velvet (public storefront)' },
 ];
 
 /* -------------------------------------------------------------------------- */
@@ -171,9 +171,10 @@ export const MarketingHomePage: FC = () => {
                 {BRAND.heroHeadline.lead}<br /><em>{BRAND.heroHeadline.accent}</em>
               </h1>
               <p className={`${cls.leadCopy} ${cls.hero__sub}`}>
-                One platform for the counter, the storefront, and the ledger.
-                Sell in-store or online, on any device, in any currency &mdash;
-                without stitching four vendors together.
+                An honest full-stack retail platform in one repo. Sell
+                in-store at the Sales Register, sell online through the
+                storefront, and manage everything from one Admin &mdash; all
+                writing to the same offline-first ledger.
               </p>
               <div className={cls.hero__ctas}>
                 <a href="#demo" className={`${cls.btn} ${cls.btnPrimary}`}>Explore the demo</a>
@@ -199,15 +200,15 @@ export const MarketingHomePage: FC = () => {
             </div>
             <div>
               <div className={cls.metric__value}><em>4</em> surfaces</div>
-              <div className={cls.metric__label}>Storefront · POS · Admin · Ops</div>
+              <div className={cls.metric__label}>Register · Storefront · Admin · SaaS</div>
             </div>
             <div>
-              <div className={cls.metric__value}><em>&lt;3</em>s</div>
-              <div className={cls.metric__label}>Median checkout</div>
+              <div className={cls.metric__value}><em>1</em> ledger</div>
+              <div className={cls.metric__label}>Dexie / IndexedDB, offline-first</div>
             </div>
             <div>
-              <div className={cls.metric__value}><em>2</em> min</div>
-              <div className={cls.metric__label}>To onboard a new tenant</div>
+              <div className={cls.metric__value}><em>0</em> servers</div>
+              <div className={cls.metric__label}>Runs entirely in your browser</div>
             </div>
           </div>
         </div>
@@ -217,42 +218,53 @@ export const MarketingHomePage: FC = () => {
       <section id="product" className={cls.section}>
         <div className={cls.shell}>
           <SectionHead
-            eyebrow="What we ship"
+            eyebrow="What's inside"
             title={<>Four surfaces,<br /><em>one source of truth.</em></>}
-            lead="Every sale, every product, every customer flows through one Dexie-backed ledger. Add a channel without adding a database."
+            lead="Every sale, every product, every customer flows through one Dexie-backed ledger. The same Sales table is written by the in-store Register, the online Storefront, and the marketplace ingest — so revenue reconciles without an ETL job."
           />
           <div className={cls.pillarGrid}>
             <Pillar
               num="01"
-              title={<>Cashier <em>POS</em></>}
-              lead="A single-screen counter built for busy floors: search, scan, split, discount, print."
+              title={<>Sales <em>Register</em></>}
+              lead="The in-store terminal. Search, ring up, split-tender, and print — with modes for walk-in, dine-in, delivery, and marketplace orders."
               bullets={[
-                'Barcode + SKU search in one field',
-                'Split cash / UPI / card / lending',
-                'Guest sale or attached customer',
-                'Receipt print & void with reason',
+                'Product search by name, SKU, or barcode',
+                'Split cash / UPI / card / lending / COD',
+                'Guest sale or attach a registered customer',
+                'Receipt print, refund, void with reason',
               ]}
             />
             <Pillar
               num="02"
-              title={<><em>Online</em> storefront</>}
-              lead="A boutique-grade shop your customers reach at /your-tenant. Public, mobile-first, editorial."
+              title={<><em>Online</em> Storefront</>}
+              lead="A public shop your customers reach at /your-tenant. Mobile-first, tenant-branded, and every checkout lands in the same Sales table the Register writes."
               bullets={[
                 'Browse, filter, product detail, cart',
-                'Checkout writes to the same Sales table',
-                'Multi-currency, tenant-branded',
-                'No app install required',
+                'Guest checkout — no account required',
+                'Multi-currency, per-tenant theming',
+                'Order tracking page for shoppers',
               ]}
             />
             <Pillar
               num="03"
-              title={<>Tenant <em>admin</em></>}
-              lead="For the shop owner. KPIs, inventory, staff, and the settings you change once and forget."
+              title={<>Tenant <em>Admin</em></>}
+              lead="For the shop owner. KPIs, catalog, staff, discounts, taxes, receipt template, and everything else you configure once and forget."
               bullets={[
                 'Live dashboard: today · month · all-time',
                 'Products with photos, stock, categories',
-                'Users with role-based permissions',
-                'Store profile & receipt template',
+                'Staff with role-based permissions',
+                '10+ sales / product / staff reports',
+              ]}
+            />
+            <Pillar
+              num="04"
+              title={<>SaaS <em>Console</em></>}
+              lead="The vendor view. See every tenant on the platform, provision new ones, suspend misbehaving stores, and watch the fleet as a whole."
+              bullets={[
+                'Multi-tenant overview + cross-store KPIs',
+                'Provision a new tenant in seconds',
+                'Suspend / reactivate any store',
+                'Global staff directory across tenants',
               ]}
             />
           </div>
@@ -321,10 +333,12 @@ export const MarketingHomePage: FC = () => {
       {/* -------------------- Big CTA -------------------------------- */}
       <section className={cls.ctaBanner}>
         <div className={cls.shell}>
-          <h2 className={`${cls.serifHead} ${cls.ctaBanner__title}`}>Ready when<br /><em>you are.</em></h2>
+          <h2 className={`${cls.serifHead} ${cls.ctaBanner__title}`}>See it,<br /><em>then poke it.</em></h2>
           <p className={`${cls.leadCopy} ${cls.ctaBanner__sub}`}>
-            Open a demo tenant, or sign in and start selling. Our team can
-            have you provisioned in a working week.
+            Open a demo tenant as a shopper, sign in as staff to ring up a
+            sale, then land in the Admin to watch the KPI move in real time.
+            Everything lives in your browser — nothing to install, nothing to
+            deploy.
           </p>
           <div className={cls.ctaBanner__ctas}>
             <Link to="/velvet" className={`${cls.btn} ${cls.btnPrimary}`}>Explore a live shop</Link>
@@ -344,12 +358,13 @@ export const MarketingHomePage: FC = () => {
         <div className={cls.shell}>
           <div className={cls.contact}>
             <div>
-              <div className={`${cls.eyebrow} ${cls['eyebrow--sm']}`}>Contact {BRAND.parentOrg.split(' ')[0]}</div>
-              <h2 className={`${cls.serifHead} ${cls.contact__title}`}>Sell it in<br /><em>your store.</em></h2>
+              <div className={`${cls.eyebrow} ${cls['eyebrow--sm']}`}>About the project</div>
+              <h2 className={`${cls.serifHead} ${cls.contact__title}`}>Built to<br /><em>be studied.</em></h2>
               <p className={`${cls.leadCopy} ${cls.contact__lead}`}>
-                {BRAND.name} is built and operated by {BRAND.parentOrg}.
-                Reach the team below to talk about onboarding your fleet,
-                white-label branding, or a custom domain.
+                {BRAND.name} is a demo retail platform by {BRAND.parentOrg}.
+                The whole stack — four apps, two shared packages, one Dexie
+                ledger — lives in a single monorepo. Poke around, fork it,
+                or reach out via the addresses below.
               </p>
             </div>
             <div className={cls.contactCards}>
@@ -358,14 +373,14 @@ export const MarketingHomePage: FC = () => {
                 <a href={`mailto:${BRAND.contact.salesEmail}`} className={cls.contactCard__val}>
                   {BRAND.contact.salesEmail.split('@')[0]}<em>@{BRAND.contact.salesEmail.split('@')[1]}</em>
                 </a>
-                <div className={cls.contactCard__sub}>Enterprise onboarding, custom domains, SLA discussions.</div>
+                <div className={cls.contactCard__sub}>Questions, feedback, or interest in using this in production.</div>
               </div>
               <div className={cls.contactCard}>
                 <div className={cls.contactCard__label}>Support</div>
                 <a href={`mailto:${BRAND.contact.supportEmail}`} className={cls.contactCard__val}>
                   {BRAND.contact.supportEmail.split('@')[0]}<em>@{BRAND.contact.supportEmail.split('@')[1]}</em>
                 </a>
-                <div className={cls.contactCard__sub}>24×7 tenant admin support &middot; Slack #{BRAND.name.toLowerCase()}-help.</div>
+                <div className={cls.contactCard__sub}>Bug reports and “how did you build X?” welcome.</div>
               </div>
               {BRAND.contact.offices.map((o) => (
                 <div key={o.label} className={cls.contactCard}>
