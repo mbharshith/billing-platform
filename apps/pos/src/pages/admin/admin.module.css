@@ -172,3 +172,99 @@
 
 .settingsGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
 
+/* -------------------------------------------------------------------------- */
+/* KDS - big-screen kitchen cards                                             */
+/* -------------------------------------------------------------------------- */
+
+.kdsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.kdsCard {
+  background: var(--app-surface);
+  border: 2px solid var(--app-border);
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 220px;
+}
+.kdsCard--new     { border-color: var(--app-primary); box-shadow: 0 0 0 3px var(--app-primary-glow); }
+.kdsCard--cooking { border-color: #f59e0b; }
+
+.kdsCard__head { display: flex; justify-content: space-between; align-items: baseline; }
+.kdsCard__invoice { font-size: 18px; font-weight: 700; color: var(--app-text); }
+.kdsCard__time { font-size: 14px; font-weight: 600; color: var(--app-text-subtle); }
+.kdsCard__cust { font-size: 14px; color: var(--app-text-subtle); }
+
+.kdsCard__items { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+.kdsCard__items li { font-size: 15px; color: var(--app-text); line-height: 1.35; }
+.kdsCard__items li strong { font-weight: 700; margin-right: 4px; }
+.kdsCard__note { color: var(--app-text-subtle); font-style: italic; font-size: 13px; }
+
+.kdsCard__specialNote {
+  padding: 8px;
+  background: var(--app-primary-glow);
+  border-radius: 6px;
+  color: var(--app-text);
+  font-size: 13px;
+}
+
+.kds__empty { padding: 60px 20px; text-align: center; }
+
+/* -------------------------------------------------------------------------- */
+/* Kitchen Operations                                                          */
+/* -------------------------------------------------------------------------- */
+
+.opsKpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.kpiCard {
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+}
+.kpiCard__label { font-size: 12px; text-transform: uppercase; color: var(--app-text-subtle); letter-spacing: 0.04em; }
+.kpiCard__value { font-size: 36px; font-weight: 700; color: var(--app-text); line-height: 1; }
+
+.opsSection { margin-top: 24px; display: flex; flex-direction: column; gap: 8px; }
+
+.opsStationGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+.opsStation {
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: 10px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.opsStation__name { font-weight: 600; font-size: 15px; color: var(--app-text); }
+.opsStation__printer { font-size: 12px; color: var(--app-text-subtle); }
+
+.opsList {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.opsList li { font-size: 13px; color: var(--app-text); padding: 6px 10px; background: var(--app-surface); border: 1px solid var(--app-border); border-radius: 6px; }
+.opsList li em { color: var(--app-text-subtle); margin-left: 6px; }
+

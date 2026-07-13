@@ -53,7 +53,8 @@ const VariantsPage           = named('VariantsPage');
 const SectionsPage           = named('SectionsPage');
 const TablesPage             = named('TablesPage');
 const KotStationsPage        = named('KotStationsPage');
-const KdsPage                = named('KdsPage');
+const KdsPage                = namedFrom(() => import('./pages/admin/kds'),              'KdsPage');
+const OperationsPage         = namedFrom(() => import('./pages/admin/kitchen-ops'),      'OperationsPage');
 const AggregatorsPage        = named('AggregatorsPage');
 const DeliveryZonesPage      = named('DeliveryZonesPage');
 const OnlineOrdersPage       = namedFrom(() => import('./pages/admin/online-orders'),    'OnlineOrdersPage');
@@ -156,6 +157,7 @@ export const AdminApp: FC = () => (
         <Route path="tables"            element={R('tables',         <TablesPage />)} />
         <Route path="kot-stations"      element={R('kot-stations',   <KotStationsPage />)} />
         <Route path="kds"               element={R('kds',            <KdsPage />)} />
+        <Route path="kitchen-ops"       element={R('kitchen-ops',    <OperationsPage />)} />
 
         {/* ---- Online & Delivery (Phase 4) ---- */}
         <Route path="aggregators"       element={R('aggregators',    <AggregatorsPage />)} />

@@ -10,13 +10,12 @@
 //   PHASE 4 - Online & Delivery        (3 pages)
 //   PHASE 6 - Inventory                (5 pages)
 //   PHASE 7 - CRM & Loyalty            (5 pages)
-//   OVERVIEW - Dashboard placeholder + Live orders
-//   REPORTS - stub pages routed to StubPage
+//   OVERVIEW - Dashboard + Live orders
 //
 // All page components are named exports of pattern: <Entity>Page.
 
 import type { FC } from 'react';
-import { CrudPage, StubPage, boolField, numField, selectField, textField } from '@billing/ui/admin';
+import { CrudPage, boolField, numField, selectField, textField } from '@billing/ui/admin';
 import { useTable } from '@billing/shared/hooks/useTable';
 import type {
   Market, Brand, Outlet, PaymentMode, OrderType, TaxSlab, Discount,
@@ -496,10 +495,6 @@ export const KotStationsPage: FC = () => {
     />
   );
 };
-
-export const KdsPage: FC = () =>
-  <StubPage title="Kitchen Display System" phase="Phase 3" icon="zap"
-    hint="Live per-station kanban of pending KOTs. Awaiting Phase 3 real-time layer." />;
 
 /* ========================================================================== */
 /* PHASE 4  Online & Delivery                                                 */

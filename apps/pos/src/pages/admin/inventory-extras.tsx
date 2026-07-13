@@ -6,7 +6,7 @@
 // its own file.
 
 import type { FC } from 'react';
-import { CrudPage, StubPage, boolField, numField, selectField, textField } from '@billing/ui/admin';
+import { CrudPage, boolField, numField, selectField, textField } from '@billing/ui/admin';
 import { useTable } from '@billing/shared/hooks/useTable';
 import type {
   Warehouse, RawMaterialCategory, UnitOfMeasure, StockAdjustment,
@@ -319,10 +319,4 @@ export const ProductionBatchesPage: FC = () => {
   );
 };
 
-/* -------------------------------------------------------------------------- */
-/* Placeholder stubs for pages that need deeper UX than CrudPage              */
-/* -------------------------------------------------------------------------- */
-export const OperationsPage: FC = () => (
-  <StubPage title="Kitchen Operations" phase="Phase 12"
-            hint="Prep schedules, station load, real-time consumption." />
-);
+

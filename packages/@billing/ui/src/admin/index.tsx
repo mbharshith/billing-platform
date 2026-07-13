@@ -2,7 +2,7 @@
 // Sidebar itself lives in ./Sidebar.tsx (kept < 600-line convention).
 
 import { useEffect, useState, type FC, type ReactNode } from 'react';
-import { Link, Outlet, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { Link, Outlet, useLocation, useParams } from 'react-router-dom';
 import cls from './admin.module.css';
 import { Icon, Text, ThemeToggle } from '@billing/ui/atoms';
 import { ToastStack } from '@billing/ui/feedback';
@@ -64,6 +64,7 @@ export const SIDEBAR_GROUPS: readonly SidebarGroup[] = [
       { path: 'tables',       label: 'Tables',         icon: 'group' },
       { path: 'kot-stations', label: 'KOT Stations',   icon: 'print' },
       { path: 'kds',          label: 'Kitchen Display',icon: 'flame' },
+      { path: 'kitchen-ops',  label: 'Kitchen Ops',    icon: 'chart' },
     ],
   },
   {
@@ -350,40 +351,6 @@ export const AdminPage: FC<AdminPageProps> = ({
 };
 
 /* -------------------------------------------------------------------------- */
-/* StubPage - "coming in Phase X" placeholder                                 */
-/* Used by scaffolded screens that don't have real CRUD yet.                  */
-/* -------------------------------------------------------------------------- */
-
-interface StubPageProps {
-  readonly title: string;
-  readonly icon?: string;
-  readonly phase: string;
-  readonly hint?: string;
-}
-
-export const StubPage: FC<StubPageProps> = ({ title, icon = 'spark', phase, hint }) => {
-  const navigate = useNavigate();
-  return (
-    <AdminPage title={title} subtitle={`Placeholder screen - part of ${phase}.`}>
-      <div className={cls.adminPage__stub}>
-        <div className={cls['adminPage__stub-icon']}>
-          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-          <Icon name={icon as any} size={26} />
-        </div>
-        <Text as="h3" size="lg" weight="semibold">Coming soon</Text>
-        <Text tone="subtle">
-          {hint ?? `Table structure and seed data are in place. Detailed CRUD UI will land in ${phase}.`}
-        </Text>
-        <div className={cls['adminPage__stub-actions']}>
-          <button type="button" onClick={() => navigate(-1)} className={cls.topbar__iconbtn}>
-            <Icon name="arrow" size={14} flipX /> Back
-          </button>
-        </div>
-      </div>
-    </AdminPage>
-  );
-};
-
 // Re-export CrudPage helper so consumers only import from @billing/ui/admin.
 export * from './CrudPage';
 export * from './LineItemsEditor';
