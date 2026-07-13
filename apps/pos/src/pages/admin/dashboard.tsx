@@ -9,10 +9,11 @@ import {
 } from '@billing/ui/charts';
 import { db } from '@billing/shared/lib/db';
 import { useAuth } from '@billing/shared/store/AuthContext';
+import { formatMoney } from '@billing/shared/domain/format';
 import type { Sale } from '@billing/shared/domain/types';
 import cls from './admin.module.css';
 
-const money = (n: number): string => `Rs ${Math.round(n).toLocaleString('en-IN')}`;
+const money = (n: number): string => formatMoney(n, 'INR');
 
 interface DashboardData {
   readonly sales: readonly Sale[];

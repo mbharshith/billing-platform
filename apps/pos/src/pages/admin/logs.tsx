@@ -7,6 +7,15 @@ import { db } from '@billing/shared/lib/db';
 import { fmtDateTime } from '@billing/shared/domain/format';
 import cls from './admin.module.css';
 
+interface AuditRow {
+  id: string;
+  at: string;
+  actorUsername: string;
+  targetStoreId: string;
+  action: string;
+  details?: string;
+}
+
 const COLUMNS: DataTableColumn<AuditRow>[] = [
   { key: 'at',            label: 'When',    sortValue: (r) => r.at,              render: (r) => fmtDateTime(r.at) },
   { key: 'actorUsername', label: 'Actor',   sortValue: (r) => r.actorUsername,   render: (r) => r.actorUsername },

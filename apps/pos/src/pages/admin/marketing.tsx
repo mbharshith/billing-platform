@@ -5,11 +5,10 @@
 import type { FC } from 'react';
 import { CrudPage, boolField, numField, selectField, textField, textareaField } from '@billing/ui/admin';
 import { useTable } from '@billing/shared/hooks/useTable';
+import { fmtDate } from '@billing/shared/domain/format';
 import type {
   WhatsAppTemplate, CustomerSegment, MarketingCampaign,
 } from '@billing/shared/domain/tmbill-extras';
-
-const fmtDate = (iso: string): string => new Date(iso).toLocaleDateString();
 
 export const WATemplatesPage: FC = () => {
   const api = useTable<WhatsAppTemplate>('waTemplates');

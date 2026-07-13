@@ -10,46 +10,48 @@ export const BRAND = {
   // Product identity
 
   // Bare product name. Used in nav, footer, tab titles, email subjects.
-  name:         'Registro',
+  name:         'Outletly',
 
-  // The two halves of the wordmark. `accent` renders FIRST (in gold Fraunces *  italic via <em>), `neutral` renders after in ink sans. The 'R' takes the *  gold slot because it's the meaningful glyph — italic Fraunces stylises *  the R just enough to read as a mark while the rest sits in ink sans.
+  // The two halves of the wordmark. `accent` renders FIRST (in gold Fraunces *  italic via <em>), `neutral` renders after in ink sans. The 'O' takes the *  gold slot because it's the meaningful glyph — italic Fraunces stylises *  the O just enough to read as a mark while the rest sits in ink sans.
   wordmark: {
-    accent:     'R',
-    neutral:    'egistro',
+    accent:     'O',
+    neutral:    'utletly',
   },
 
   // Marketing suite/platform label. Sits above hero, in eyebrows, footer.
-  platformName: 'Registro Retail OS',
+  platformName: 'Outletly Commerce OS',
 
   // One-line pitch under the wordmark on auth / marketing surfaces.
-  tagline:      'One ledger. Every register. Every channel.',
+  // Every outlet is a first-class citizen — its own menu, kitchen,
+  // recipes, customers, lending book. That's the whole differentiator.
+  tagline:      'Every outlet, its own book.',
 
   // The editorial headline for the marketing hero. Two halves so the second *  half can render italic + gold in the serif.
   heroHeadline: {
-    lead:       'Retail commerce,',
-    accent:     'unified.',
+    lead:       'Every outlet,',
+    accent:     'its own book.',
   },
 
   // Product-descriptor for tab titles (`<Brand> · <Product Label>`).
-  productLabel: 'Sales Register',
+  productLabel: 'Commerce OS',
 
   // Combined title used in <title> tags.
-  fullTitle:    'Registro · Sales Register',
+  fullTitle:    'Outletly · Commerce OS',
 
   // Parent org + contact
-  // Registro is a demo project — the "parent org" fields here are * placeholder-y on purpose so the marketing page renders complete * without inventing a fake company footprint. Swap in real values * if this ever ships as a commercial product.
+  // Outletly is a demo project — the "parent org" fields here are * placeholder-y on purpose so the marketing page renders complete * without inventing a fake company footprint. Swap in real values * if this ever ships as a commercial product.
 
-  parentOrg:    'Registro Labs',
+  parentOrg:    'Outletly Labs',
 
   contact: {
-    salesEmail:   'hello@registro.dev',
-    supportEmail: 'support@registro.dev',
+    salesEmail:   'hello@outletly.app',
+    supportEmail: 'support@outletly.app',
     hqCity:       'Bengaluru',
     hqRegion:     'Karnataka',
     offices: [
       {
         label:   'Studio',
-        name:    'Registro Labs',
+        name:    'Outletly Labs',
         lines:   ['Bengaluru, Karnataka', 'India'],
       },
     ],
@@ -64,7 +66,7 @@ export const BRAND = {
   storagePrefix: 'quickbill',
 
   // Base domain for the storefront. Subdomains under this map to tenant slugs.
-  platformApex:  'registro.shop',
+  platformApex:  'outletly.app',
 } as const;
 
 export type Brand = typeof BRAND;
