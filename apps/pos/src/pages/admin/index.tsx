@@ -569,14 +569,6 @@ export const DeliveryZonesPage: FC = () => {
   );
 };
 
-export const OnlineOrdersPage: FC = () =>
-  <StubPage title="Online Orders" phase="Phase 4" icon="receipt"
-    hint="Live feed of orders coming in from aggregators. Existing counter Orders view already exists at /cashier/sales for now." />;
-
-export const LiveOrdersPage: FC = () =>
-  <StubPage title="Live Orders" phase="Phase 4" icon="receipt"
-    hint="Real-time in-flight order tracker across dine-in / takeaway / delivery. Wire-up pending." />;
-
 /* ========================================================================== */
 /* PHASE 6  Inventory                                                         */
 /* ========================================================================== */

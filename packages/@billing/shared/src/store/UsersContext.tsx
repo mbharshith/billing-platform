@@ -1,10 +1,6 @@
 // UsersContext — Dexie-backed staff CRUD.
-
-// Passwords still live plain-text in the browser because this is a
-// mock/frontend-only build. A real backend MUST hash them (§6).
-
-// Uniqueness on `username` is global (case-insensitive) — enforced
-// app-side so we can return a typed 'duplicate' error.
+// Passwords are SHA-256 hashed before storage. Legacy plaintext records are
+// migrated to hashes on first login (see AuthContext).
 import {
   createContext, useCallback, useContext, useMemo,
   type FC, type ReactNode,
@@ -12,6 +8,13 @@ import {
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@billing/shared/lib/db';
 import type { SessionUser, User, UserRole } from '@billing/shared/domain/types';
+
+/** SHA-256 — mirrors the helper in AuthContext. Keep in sync. */
+const sha256 = async (text: string): Promise<string> => {
+  const bytes = new TextEncoder().encode(text);
+  const buf   = await crypto.subtle.digest('SHA-256', bytes);
+  return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, '0')).join('');
+};
 
 interface UsersContextValue {
   readonly users: readonly User[];
@@ -42,7 +45,6 @@ export const UsersProvider: FC<{ children: ReactNode }> = ({ children }) => {
 
   const create: UsersContextValue['create'] = useCallback(async (input) => {
     if (input.password.length < 8) return { ok: false, error: 'weakPassword' };
-    // Case-insensitive uniqueness — index lookup + filter for case variants.
     const uname = input.username.trim();
     const dup = await db.users
       .filter((u) => u.username.toLowerCase() === uname.toLowerCase())
@@ -57,7 +59,7 @@ export const UsersProvider: FC<{ children: ReactNode }> = ({ children }) => {
       active: true,
       createdAt: new Date().toISOString(),
       storeId: input.storeId,
-      password: input.password,
+      password: await sha256(input.password),
     };
     await db.users.add(user);
     return { ok: true, user };

@@ -41,3 +41,97 @@
   font-family: ui-monospace, 'Cascadia Code', Menlo, monospace;
   font-size: 12px;
 }
+
+/* -------------------------------------------------------------------------- */
+/* Kanban board (Live Orders, KDS)                                            */
+/* -------------------------------------------------------------------------- */
+
+.kanban {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+
+.kanbanCol {
+  background: var(--app-surface-elev, var(--app-surface));
+  border: 1px solid var(--app-border);
+  border-radius: 12px;
+  padding: 12px;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.kanbanCol__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 4px 8px;
+  border-bottom: 1px solid var(--app-border);
+}
+.kanbanCol__title { font-weight: 600; font-size: 13px; letter-spacing: 0.02em; text-transform: uppercase; color: var(--app-text); }
+.kanbanCol__count { font-size: 12px; padding: 2px 8px; border-radius: 999px; background: var(--app-border); color: var(--app-text-subtle); }
+
+.kanbanCol__empty { color: var(--app-text-mute, var(--app-text-subtle)); font-size: 12px; padding: 12px 4px; text-align: center; font-style: italic; }
+
+/* Order/KOT card */
+.orderCard {
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: 10px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: border-color var(--app-motion-fast), transform var(--app-motion-fast);
+}
+.orderCard:hover { border-color: var(--app-primary); }
+
+.orderCard__row { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.orderCard__title { font-weight: 600; font-size: 13px; color: var(--app-text); }
+.orderCard__amount { font-weight: 700; font-size: 14px; color: var(--app-text); }
+.orderCard__meta { font-size: 12px; color: var(--app-text-subtle); line-height: 1.4; }
+.orderCard__addr { font-size: 11px; color: var(--app-text-subtle); line-height: 1.3; }
+
+.orderCard__actions { display: flex; gap: 6px; margin-top: 4px; }
+.orderCard__actions button { flex: 1; }
+
+/* -------------------------------------------------------------------------- */
+/* Detail drawer / inline expanded row                                        */
+/* -------------------------------------------------------------------------- */
+
+.detailPanel {
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 720px) {
+  .detailPanel { grid-template-columns: 1fr 1fr; }
+}
+
+.detailPanel__section { display: flex; flex-direction: column; gap: 4px; }
+.detailPanel__label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--app-text-subtle); }
+.detailPanel__value { font-size: 13px; color: var(--app-text); }
+
+.detailPanel__timeline { display: flex; flex-direction: column; gap: 4px; }
+.detailPanel__timelineRow { display: flex; gap: 8px; font-size: 12px; color: var(--app-text-subtle); }
+.detailPanel__timelineRow > strong { color: var(--app-text); min-width: 90px; }
+
+/* -------------------------------------------------------------------------- */
+/* Line-item editor (Recipes, Purchase Orders)                                */
+/* -------------------------------------------------------------------------- */
+
+.lineEditor { display: flex; flex-direction: column; gap: 8px; }
+.lineEditor__row { display: grid; grid-template-columns: 1fr 100px 100px 40px; gap: 8px; align-items: center; }
+.lineEditor__row select, .lineEditor__row input { width: 100%; }
+.lineEditor__empty { color: var(--app-text-subtle); font-size: 12px; font-style: italic; padding: 8px 0; }
+.lineEditor__addBtn { align-self: flex-start; margin-top: 4px; }
+

@@ -13,6 +13,13 @@ import { toSessionUser, useUsers } from './UsersContext';
 const SESSION_KEY = 'session';
 const OUTLET_KEY_PREFIX = 'active-outlet:';   // per-user active outlet id
 
+/** SHA-256 hash — used to avoid storing passwords in plaintext. */
+const sha256 = async (text: string): Promise<string> => {
+  const bytes = new TextEncoder().encode(text);
+  const buf   = await crypto.subtle.digest('SHA-256', bytes);
+  return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, '0')).join('');
+};
+
 export type LoginResult =
   | { readonly ok: true; readonly user: SessionUser }
   | { readonly ok: false; readonly reason: 'invalid' | 'inactive' | 'suspended' };
@@ -83,7 +90,7 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
       setCurrentUser(toSessionUser(fresh));
     }
 
-  }, [users]);  // eslint-disable-line react-hooks/exhaustive-deps -- findByUsername is stable; listing it re-runs on every users change
+  }, [users, findByUsername, currentUser]);  // reconciledRef prevents re-runs; all deps listed for correctness
 
   useEffect(() => {
     if (currentUser) storage.save(SESSION_KEY, currentUser);
@@ -92,8 +99,17 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
 
   const login = useCallback(async (username: string, password: string): Promise<LoginResult> => {
     const user = findByUsername(username.trim());
-    if (!user || user.password !== password) return { ok: false, reason: 'invalid' };
-    if (!user.active)                          return { ok: false, reason: 'inactive' };
+    if (!user) return { ok: false, reason: 'invalid' };
+    if (!user.active) return { ok: false, reason: 'inactive' };
+
+    const hash = await sha256(password);
+    // Accept both the hashed form and legacy plaintext (auto-upgrades on login).
+    const matches = user.password === hash || user.password === password;
+    if (!matches) return { ok: false, reason: 'invalid' };
+    // Upgrade legacy plaintext password to hash on first successful login.
+    if (user.password === password) {
+      await db.users.update(user.id, { password: hash } as Record<string, unknown>);
+    }
     // Tenant-suspended? Block non-vendor logins for that store.
     if (user.storeId !== VENDOR_SCOPE) {
       const store = await db.stores.get(user.storeId);
