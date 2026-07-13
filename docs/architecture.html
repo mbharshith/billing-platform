@@ -687,6 +687,162 @@ id "tbl-g-1::outlet-spice-hsr"
       </ul>
     </div>
 
+    <!-- SCALABILITY -->
+    <h3 class="text-lg font-bold mt-10 mb-3">Scalability: what happens at 10x, 100x, 1000x</h3>
+    <p class="text-sm text-slate-600 mb-4 max-w-4xl">
+      Numbers below assume a POS-shaped workload: bursty during meal hours, quiet in between; write:read roughly <strong>1:20</strong>; reports are the read hot-spot.
+    </p>
+    <div class="rounded-xl bg-white border border-slate-200 overflow-x-auto">
+      <table class="w-full text-sm min-w-[900px]">
+        <thead class="bg-slate-50 text-slate-600 text-xs uppercase">
+          <tr>
+            <th class="text-left px-4 py-2">Tier</th>
+            <th class="text-left px-4 py-2">Outlets</th>
+            <th class="text-left px-4 py-2">Orders/day</th>
+            <th class="text-left px-4 py-2">Peak orders/sec</th>
+            <th class="text-left px-4 py-2">Infra</th>
+            <th class="text-left px-4 py-2">Est. cost/mo (USD)</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          <tr>
+            <td class="px-4 py-3 align-top font-bold">Pilot</td>
+            <td class="px-4 py-3 align-top">1&ndash;10</td>
+            <td class="px-4 py-3 align-top">~1k</td>
+            <td class="px-4 py-3 align-top">2&ndash;5</td>
+            <td class="px-4 py-3 align-top">1&times; API pod, 1&times; managed PG (db.t3.small), 1&times; Redis (cache.t3.micro), 1&times; Celery worker</td>
+            <td class="px-4 py-3 align-top">$60&ndash;120</td>
+          </tr>
+          <tr>
+            <td class="px-4 py-3 align-top font-bold">Growth</td>
+            <td class="px-4 py-3 align-top">100</td>
+            <td class="px-4 py-3 align-top">~50k</td>
+            <td class="px-4 py-3 align-top">10&ndash;25</td>
+            <td class="px-4 py-3 align-top">3&times; API pods, PG r6g.large + 1 read replica, Redis m6g.large, 2 Celery workers</td>
+            <td class="px-4 py-3 align-top">$450&ndash;700</td>
+          </tr>
+          <tr>
+            <td class="px-4 py-3 align-top font-bold">Scale</td>
+            <td class="px-4 py-3 align-top">1,000</td>
+            <td class="px-4 py-3 align-top">~500k</td>
+            <td class="px-4 py-3 align-top">100&ndash;250</td>
+            <td class="px-4 py-3 align-top">10&ndash;20 API pods (autoscale), PG r6g.2xlarge + 3 read replicas, Redis m6g.xlarge cluster (3 shards), 6 Celery workers, 2 regions</td>
+            <td class="px-4 py-3 align-top">$3.5k&ndash;6k</td>
+          </tr>
+          <tr>
+            <td class="px-4 py-3 align-top font-bold">Chain</td>
+            <td class="px-4 py-3 align-top">10,000</td>
+            <td class="px-4 py-3 align-top">~5M</td>
+            <td class="px-4 py-3 align-top">1k&ndash;2.5k</td>
+            <td class="px-4 py-3 align-top">50&ndash;100 API pods, PG sharded by <code>store_id</code> hash (4&ndash;8 primaries) + read replicas per shard, Redis cluster (12+ shards), 20+ Celery workers, 3&ndash;4 regions, ClickHouse for reports</td>
+            <td class="px-4 py-3 align-top">$25k&ndash;60k</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h4 class="font-bold mt-8 mb-3">Where the bottlenecks bite (and how we push them out)</h4>
+    <div class="grid md:grid-cols-2 gap-4 text-sm">
+      <div class="rounded-xl bg-white border border-slate-200 p-5">
+        <div class="text-xs uppercase text-slate-500 font-semibold">1st bottleneck (Growth &rarr; Scale)</div>
+        <div class="font-bold mt-1">Report queries on the sales table</div>
+        <p class="text-slate-600 mt-2">Big date-range aggregations lock rows and starve write throughput. Push it out with: (a) route all <code>/reports/*</code> to a read replica, (b) materialised views refreshed every 5 min for chain-wide roll-ups, (c) column-store extension (<code>citus</code>) or ClickHouse mirror once Chain tier hits.</p>
+      </div>
+      <div class="rounded-xl bg-white border border-slate-200 p-5">
+        <div class="text-xs uppercase text-slate-500 font-semibold">2nd bottleneck (Scale &rarr; Chain)</div>
+        <div class="font-bold mt-1">Write throughput on sales</div>
+        <p class="text-slate-600 mt-2">Single Postgres primary caps around ~5&ndash;10k sustained writes/sec. Push out with: (a) monthly partitions already declared, (b) <strong>shard by <code>hash(store_id)</code></strong> so each shard owns a slice of stores &mdash; RLS still works, only the query planner sees the shard router. Vendor / chain-wide reports fan out through Citus.</p>
+      </div>
+      <div class="rounded-xl bg-white border border-slate-200 p-5">
+        <div class="text-xs uppercase text-slate-500 font-semibold">3rd bottleneck</div>
+        <div class="font-bold mt-1">WebSocket fan-out for KDS</div>
+        <p class="text-slate-600 mt-2">Each pod holds ~10k concurrent WS connections comfortably. At 100k+ outlets simultaneously connected, add a WS-only tier fronted by NLB; Redis pub/sub sharded per-outlet keeps fan-out local.</p>
+      </div>
+      <div class="rounded-xl bg-white border border-slate-200 p-5">
+        <div class="text-xs uppercase text-slate-500 font-semibold">4th bottleneck</div>
+        <div class="font-bold mt-1">Redis on Celery broker load</div>
+        <p class="text-slate-600 mt-2">If EOD roll-ups all fire at 23:59 UTC we burst-load Redis. Push out with: (a) Redis Cluster with 3+ shards, (b) stagger schedules across market timezones (they naturally spread across 24h), (c) migrate high-fan-out queues (WA campaigns) to SQS or a Kafka broker if per-message ordering demands it.</p>
+      </div>
+    </div>
+
+    <h4 class="font-bold mt-8 mb-3">Horizontal scaling story (in one paragraph)</h4>
+    <div class="rounded-xl bg-white border border-slate-200 p-5 text-sm">
+      <p class="text-slate-700 leading-relaxed">
+        FastAPI pods are <strong>stateless</strong> &mdash; every dependency (session, cache, queue, DB) is external, so autoscale is <code>replicas = ceil(rps / 500)</code>. Postgres scales vertically first (bigger instance) then horizontally via Citus sharding on <code>hash(store_id)</code>; because RLS filters on <code>(store_id, outlet_id)</code> and every query includes those, the shard key is always in the WHERE clause. Redis scales via Cluster mode with hash slots. WebSockets scale by adding pods behind an NLB; Redis pub/sub bridges message delivery across pods so a KDS bump from POS pod #7 reaches KDS screen on pod #23. Object storage (S3/R2) is horizontally scalable by definition. <strong>The <em>only</em> thing that ever needs a data migration is Postgres sharding</strong> &mdash; and that's a background job because <code>store_id</code> was in every row from day one.
+      </p>
+    </div>
+
+    <!-- Deep dive: Why not X -->
+    <h3 class="text-lg font-bold mt-10 mb-3">Why not the other popular stacks?</h3>
+    <div class="rounded-xl bg-white border border-slate-200 overflow-hidden">
+      <table class="w-full text-sm">
+        <thead class="bg-slate-50 text-slate-600 text-xs uppercase">
+          <tr>
+            <th class="text-left px-4 py-2">Alternative</th>
+            <th class="text-left px-4 py-2">What it does well</th>
+            <th class="text-left px-4 py-2">Why it loses <em>for our workload</em></th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          <tr>
+            <td class="px-4 py-3 align-top font-bold">Node.js + Express / NestJS</td>
+            <td class="px-4 py-3 align-top">Same TS on both ends; huge ecosystem; excellent WS story.</td>
+            <td class="px-4 py-3 align-top">Runtime schema validation needs Zod / class-validator bolted on. OpenAPI is a plugin, not a first-class citizen &mdash; contract drift shows up in prod. Reporting workloads (heavy joins, pandas-style transforms) push you back to a Python worker anyway; two languages, two ops stories.</td>
+          </tr>
+          <tr>
+            <td class="px-4 py-3 align-top font-bold">Go + Gin / Fiber / Echo</td>
+            <td class="px-4 py-3 align-top">Fastest and cheapest per RPS; single static binary; no GIL.</td>
+            <td class="px-4 py-3 align-top">3&ndash;5&times; the code for our CRUD-dominant surface (122 endpoints). No auto-OpenAPI. Reporting / ETL story is DIY. Local hire pool (Bengaluru, our home market) skews heavily Python/JS. Go is a great <em>second</em> service &mdash; e.g. the KDS ticket router &mdash; not the whole platform.</td>
+          </tr>
+          <tr>
+            <td class="px-4 py-3 align-top font-bold">Ruby on Rails</td>
+            <td class="px-4 py-3 align-top">Legendary developer velocity for CRUD; ActiveRecord is a joy.</td>
+            <td class="px-4 py-3 align-top">Sync request model + GIL + 1&ndash;2&times; the memory footprint per request; running WS + async jobs means AnyCable + Sidekiq add-ons. Overall throughput per dollar sits well below FastAPI on the same box.</td>
+          </tr>
+          <tr>
+            <td class="px-4 py-3 align-top font-bold">Django REST Framework</td>
+            <td class="px-4 py-3 align-top">Batteries-included admin, ORM, auth, migrations.</td>
+            <td class="px-4 py-3 align-top">Sync-first; WebSockets need Channels + Daphne (extra process); DRF serializers duplicate what Pydantic already gives us for free. We'd pay the batteries tax without using half of them.</td>
+          </tr>
+          <tr>
+            <td class="px-4 py-3 align-top font-bold">Java / Spring Boot</td>
+            <td class="px-4 py-3 align-top">Enterprise-grade; famously scalable; strongly typed.</td>
+            <td class="px-4 py-3 align-top">JVM cold-start + memory footprint on autoscale pods hurts. 3&ndash;5&times; the LOC for equivalent surface. Team ramp-up steep. Correct fit for a huge enterprise; overkill for us.</td>
+          </tr>
+          <tr>
+            <td class="px-4 py-3 align-top font-bold">Serverless (Lambda + API Gateway)</td>
+            <td class="px-4 py-3 align-top">Zero idle cost; auto-scale to zero.</td>
+            <td class="px-4 py-3 align-top">Cold-start latency (200&ndash;800 ms) is unacceptable at the POS counter. WebSockets on API Gateway are quirky and expensive. Long-running Celery-like jobs need Step Functions gymnastics. Costs cross over above ~1 rps sustained.</td>
+          </tr>
+          <tr>
+            <td class="px-4 py-3 align-top font-bold">MongoDB</td>
+            <td class="px-4 py-3 align-top">Flexible schema; sharding built in; great local dev story.</td>
+            <td class="px-4 py-3 align-top">No true row-level security. Multi-document ACID landed only in 4.2 and comes with a perf tax. Reports (SUM/GROUP BY across joined collections) are painful &mdash; the aggregation pipeline is Turing-complete but writing a 5-way join in it is not fun. Money should not be eventually-consistent.</td>
+          </tr>
+          <tr>
+            <td class="px-4 py-3 align-top font-bold">DynamoDB</td>
+            <td class="px-4 py-3 align-top">Fully managed; single-digit-ms reads; scales infinitely on a good partition key.</td>
+            <td class="px-4 py-3 align-top">400 KB item limit trips on sales with many line items + modifiers. No ad-hoc reporting queries (need Athena / OpenSearch mirror). Cross-region strong consistency isn't native. Cost gets ugly on read-heavy report loads.</td>
+          </tr>
+          <tr>
+            <td class="px-4 py-3 align-top font-bold">MySQL / MariaDB</td>
+            <td class="px-4 py-3 align-top">Universally understood; every hire knows it; every hoster runs it.</td>
+            <td class="px-4 py-3 align-top">No true RLS &mdash; you fake it with views + <code>@current_tenant</code> variables; one careless raw query and the tenant boundary vanishes. JSONB is second-class. Partial and expression indexes are weaker. It'd work &mdash; but every dollar we save on hiring we'd pay back in security audits.</td>
+          </tr>
+          <tr>
+            <td class="px-4 py-3 align-top font-bold">Kafka (as event bus)</td>
+            <td class="px-4 py-3 align-top">Ordered, durable, replayable event log; industry standard.</td>
+            <td class="px-4 py-3 align-top">Operational complexity: ZooKeeper (or KRaft), broker sizing, partition planning, exactly-once semantics. Overkill until we're firing millions of events/day. Redis pub/sub covers us up to Scale tier; we'd swap in Kafka only when the analytics pipeline demands replay.</td>
+          </tr>
+          <tr>
+            <td class="px-4 py-3 align-top font-bold">GraphQL (Apollo / Hasura)</td>
+            <td class="px-4 py-3 align-top">Client picks exactly the fields it needs; strongly-typed schema.</td>
+            <td class="px-4 py-3 align-top">Cache invalidation and query cost analysis are non-trivial. N+1 query risk on multi-outlet reports. Our clients are first-party &mdash; the flexibility we'd pay for isn't a payoff we'd cash in.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
     <!-- Deployment -->
     <h3 class="text-lg font-bold mt-10 mb-3">Deployment</h3>
     <div class="grid md:grid-cols-2 gap-4 text-sm">
