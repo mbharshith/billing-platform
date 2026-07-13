@@ -575,6 +575,15 @@
 .dataTable :global(td.numeric) { text-align: right; font-variant-numeric: tabular-nums; }
 .dataTable :global(th.actions),
 .dataTable :global(td.actions) { text-align: right; white-space: nowrap; }
+/* Each action button gets a shared minimum width so the visual COLUMNS stay
+   aligned row-to-row even when a label changes (e.g. 'Deactivate' vs
+   'Activate'). Without this the right-aligned flow pushes buttons around
+   by a few pixels per row. Buttons still grow if their label is longer
+   than the minimum. */
+.dataTable :global(td.actions > *) {
+  min-width: 88px;
+  justify-content: center;
+}
 .dataTable :global(td.actions > * + *) { margin-left: var(--app-space-2); }
 .dataTable :global(th.numeric) .dtThInner,
 .dataTable :global(th.actions) .dtThInner {
