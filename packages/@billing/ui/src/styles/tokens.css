@@ -1,21 +1,4 @@
-/* =========================================================================
-   TOKENS — semantic aliases + spacing/typography/motion scales.
-
-   These are the ONLY variables components should reference. Never reach
-   past --app-* into the raw brand primitives (--brand-*) from a component
-   — the whole point is that a rebrand can swap theme.css without touching
-   this file OR any component.
-
-   Layer hierarchy:
-     theme.css       (--brand-*)  raw primitives, THE swap point
-        ↓
-     tokens.css      (--app-*)    semantic aliases, this file
-        ↓
-     components/**   var(--app-*) consumers
-
-   Anything not colour or font (spacing, radii, shadow depths, motion,
-   z-index) is intentionally brand-agnostic and stays here.
-   ========================================================================= */
+/* ========================================================================= TOKENS — semantic aliases + spacing/typography/motion scales. These are the ONLY variables components should reference. Never reach past --app-* into the raw brand primitives (--brand-*) from a component — the whole point is that a rebrand can swap theme.css without touching this file OR any component. Layer hierarchy: theme.css       (--brand-*)  raw primitives, THE swap point ↓ tokens.css      (--app-*)    semantic aliases, this file ↓ components/**   var(--app-*) consumers Anything not colour or font (spacing, radii, shadow depths, motion, z-index) is intentionally brand-agnostic and stays here. ========================================================================= */
 
 :root {
   /* --- Semantic colour aliases (prefer these in components) --------------- */
@@ -155,11 +138,7 @@
   --app-z-modal:   1000;
   --app-z-toast:   1100;
 
-  /* -----------------------------------------------------------------------
-   * Legacy short-name shims. Some older files still reference --radius-*,
-   * --shadow-*, --fs-*. Kept as aliases so we don't break existing markup.
-   * New code should always use the fully-qualified --app-* names above.
-   * ----------------------------------------------------------------------- */
+  /* ----------------------------------------------------------------------- Legacy short-name shims. Some older files still reference --radius-*, --shadow-*, --fs-*. Kept as aliases so we don't break existing markup. New code should always use the fully-qualified --app-* names above. ----------------------------------------------------------------------- */
   --radius-sm:  var(--app-radius-sm);
   --radius-md:  var(--app-radius-md);
   --radius-lg:  var(--app-radius-lg);

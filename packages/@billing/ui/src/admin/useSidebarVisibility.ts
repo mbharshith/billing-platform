@@ -26,7 +26,7 @@ export interface VisibilityPrefs {
 
 const EMPTY: VisibilityPrefs = { hiddenGroups: [], hiddenLinks: [] };
 
-// * Composite key so link paths don't have to be globally unique.
+// Composite key so link paths don't have to be globally unique.
 export const linkKey = (groupId: string, link: SidebarLink): string =>
   `${groupId}::${link.path}`;
 
@@ -149,8 +149,8 @@ export const useSidebarVisibility = (): UseSidebarVisibility => {
   return { prefs, isGroupHidden, isLinkHidden, toggleGroup, toggleLink, reset, filter };
 };
 
-// * Small helper: whether the given group is the pinned/non-toggleable one.
+// Small helper: whether the given group is the pinned/non-toggleable one.
 export const isPinnedGroup = (id: string): boolean => id === PINNED_GROUP_ID;
-// * Small helper: whether the given link within a group is pinned.
+// Small helper: whether the given link within a group is pinned.
 export const isPinnedLink = (groupId: string, link: SidebarLink): boolean =>
   groupId === PINNED_GROUP_ID && link.path === '';

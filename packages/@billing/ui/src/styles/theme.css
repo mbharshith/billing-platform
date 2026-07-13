@@ -1,31 +1,7 @@
-/* =========================================================================
-   THEME — brand primitives (colors + fonts). THE swap point for rebrand.
-
-   Nothing in this file is semantic. It just declares the raw palette and
-   type stack. Semantic aliases (--app-bg, --app-primary, --app-text ...)
-   live in tokens.css and REFERENCE these primitives.
-
-   To rebrand:
-     1. Swap the palette below.
-     2. Swap the font family below (and update the <link rel=preconnect>
-        in index.html if you change the font provider).
-     3. That's it. Rebuild. No component code changes needed.
-
-   Convention: primitives use the `--brand-*` prefix so it's obvious from
-   any consumer's point of view that they are theme-swappable.
-   ========================================================================= */
+/* ========================================================================= THEME — brand primitives (colors + fonts). THE swap point for rebrand. Nothing in this file is semantic. It just declares the raw palette and type stack. Semantic aliases (--app-bg, --app-primary, --app-text ...) live in tokens.css and REFERENCE these primitives. To rebrand: 1. Swap the palette below. 2. Swap the font family below (and update the <link rel=preconnect> in index.html if you change the font provider). 3. That's it. Rebuild. No component code changes needed. Convention: primitives use the `--brand-*` prefix so it's obvious from any consumer's point of view that they are theme-swappable. ========================================================================= */
 
 :root {
-  /* --- Brand palette (currently: neutral SaaS blue) -----------------------
-   * Scale reads:
-   *   -5   very light tint    (backgrounds, subtle surfaces)
-   *   -10  light tint         (hover backgrounds)
-   *   -30  soft outline
-   *   -100 base               (primary buttons, links)
-   *   -110 hover              (button:hover)
-   *   -130 pressed            (button:active)
-   *   -160 deep ink           (large-type on light bg for max contrast)
-   * ---------------------------------------------------------------------- */
+  /* --- Brand palette (currently: neutral SaaS blue) ----------------------- Scale reads: -5   very light tint    (backgrounds, subtle surfaces) -10  light tint         (hover backgrounds) -30  soft outline -100 base               (primary buttons, links) -110 hover              (button:hover) -130 pressed            (button:active) -160 deep ink           (large-type on light bg for max contrast) ---------------------------------------------------------------------- */
   --brand-primary-5:   #eef4ff;
   --brand-primary-10:  #dbe7ff;
   --brand-primary-30:  #a9c1f4;
@@ -97,11 +73,7 @@
   --brand-font-mono:   'JetBrains Mono', ui-monospace, monospace;
 }
 
-/* -------------------------------------------------------------------------
-   Dark-mode overrides — invert grays, dim the palette a touch.
-   Only PRIMITIVES change here; semantic aliases in tokens.css automatically
-   adapt because they reference these vars.
-   ------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------------- Dark-mode overrides — invert grays, dim the palette a touch. Only PRIMITIVES change here; semantic aliases in tokens.css automatically adapt because they reference these vars. ------------------------------------------------------------------------- */
 [data-theme='dark'] {
   --brand-gray-0:      #0b1220;
   --brand-gray-5:      #0f172a;

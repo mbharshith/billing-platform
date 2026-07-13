@@ -7,7 +7,7 @@ import { useTheme } from '@billing/shared/lib/theme';
 import cls from './atoms.module.css';
 
 interface Props {
-  /** Icon px size. Defaults to 18 (matches counter shell). */
+  // Icon px size. Defaults to 18 (matches counter shell).
   size?: number;
 }
 

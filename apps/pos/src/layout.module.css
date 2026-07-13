@@ -68,9 +68,7 @@
 }
 @media (max-width: 900px) {
   .bottomNav { display: flex; }
-  /* Hide the top-header nav pills below 900px — the mobile BottomNav takes over.
-     Cramming 5 labeled pills into a tablet-portrait header just doesn't fit,
-     and thumb-reachable bottom tabs are the right pattern for touch anyway. */
+  /* Hide the top-header nav pills below 900px — the mobile BottomNav takes over. Cramming 5 labeled pills into a tablet-portrait header just doesn't fit, and thumb-reachable bottom tabs are the right pattern for touch anyway. */
   .header .nav { display: none; }
 }
 
@@ -79,8 +77,7 @@
   background: var(--app-surface);
   color: var(--app-text);
   border-bottom: 1px solid var(--app-border);
-  /* 3px accent strip identifies the console: tenant = brand blue.
-     Vendor console overrides this in its own module. (L-02) */
+  /* 3px accent strip identifies the console: tenant = brand blue. Vendor console overrides this in its own module. (L-02) */
   border-top: 3px solid var(--app-primary);
   box-shadow: var(--app-shadow-xs);
   position: sticky;
@@ -116,10 +113,7 @@
 }
 .brand__text { display: flex; flex-direction: column; line-height: 1; gap: 3px; }
 
-/* Responsive collapse:
-   * >900px — brand text + full nav labels visible
-   * 768-900px — brand text hidden, nav labels remain (fits comfortably)
-   * <768px    — top nav hidden, mobile BottomNav takes over */
+/* Responsive collapse: >900px — brand text + full nav labels visible 768-900px — brand text hidden, nav labels remain (fits comfortably) <768px    — top nav hidden, mobile BottomNav takes over */
 @media (max-width: 900px) {
   .header__inner { padding: var(--app-space-3) var(--app-space-4); gap: var(--app-space-2); }
   .brand__text { display: none; }
@@ -199,8 +193,7 @@
 }
 @media (min-width: 640px) { .userName { display: inline; } }
 @media (max-width: 1180px) { .userName { max-width: 100px; } }
-/* Tablet portrait (768-900px): hide the user-chip label so 5 nav pills fit
-   comfortably in the header. Avatar remains as the identity cue. (H-02) */
+/* Tablet portrait (768-900px): hide the user-chip label so 5 nav pills fit comfortably in the header. Avatar remains as the identity cue. (H-02) */
 @media (min-width: 768px) and (max-width: 900px) {
   .userName { display: none; }
 }

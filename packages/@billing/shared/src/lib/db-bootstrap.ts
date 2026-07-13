@@ -26,7 +26,7 @@ import type {
   Customer, CustomerPayment, Product, Sale, Store, User, UserRole,
 } from '@billing/shared/domain/types';
 
-const MIGRATION_FLAG = 'db-bootstrap::v9';
+const MIGRATION_FLAG = 'db-bootstrap::v9b';
 
 // Normalise legacy user roles: drop 'super_admin' rows (that surface moved to the
 // dedicated vendor account), rename 'master' -> 'admin' (v1 schema). Idempotent.
@@ -188,6 +188,12 @@ const seedRestaurantTables = async (): Promise<void> => {
   // PER OUTLET. Rather than repeat rows in each fixture file, wrap the seed
   // insert to fan a base row across all outlets of its storeId. Rows already
   // stamped with a real non-primary outletId are left alone (exclusives).
+  //
+  // FK REWRITE: when cloning a row to outlet 'outlet-spice-koram', any FK
+  // field ending in 'Id' (e.g. sectionId, menuItemId, supplierId,
+  // ingredientId, categoryId, warehouseId) is suffixed the same way so it
+  // points at the sibling row in the same outlet. Structural / cross-tenant
+  // ids are on a denylist so they stay flat.
   const outletsByStore = new Map<string, readonly string[]>();
   const isRealOutlet = new Set<string>();
   for (const o of SEED_OUTLETS) {
@@ -195,6 +201,29 @@ const seedRestaurantTables = async (): Promise<void> => {
     outletsByStore.set(o.storeId, [...list, o.id]);
     isRealOutlet.add(o.id);
   }
+  const FK_DENYLIST = new Set([
+    'id', 'storeId', 'outletId',
+    'brandId', 'marketId',
+    'cashierId', 'currentSaleId', 'customerId',
+  ]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const suffixFks = (value: any, outletId: string): any => {
+    if (value === null || value === undefined) return value;
+    if (Array.isArray(value)) return value.map((v) => suffixFks(v, outletId));
+    if (typeof value !== 'object') return value;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const out: any = {};
+    for (const [k, v] of Object.entries(value)) {
+      if (typeof v === 'string' && k.endsWith('Id') && !FK_DENYLIST.has(k) && v.length > 0 && !v.includes('::')) {
+        out[k] = `${v}::${outletId}`;
+      } else if (v && typeof v === 'object') {
+        out[k] = suffixFks(v, outletId);
+      } else {
+        out[k] = v;
+      }
+    }
+    return out;
+  };
   const fanOut = <T extends { id: string; storeId: string; outletId?: string }>(rows: readonly T[]): T[] => {
     const out: T[] = [];
     for (const row of rows) {
@@ -204,8 +233,15 @@ const seedRestaurantTables = async (): Promise<void> => {
       }
       const targets = outletsByStore.get(row.storeId) ?? [row.storeId];
       for (const outletId of targets) {
-        const id = outletId === row.storeId ? row.id : `${row.id}::${outletId}`;
-        out.push({ ...row, id, outletId });
+        if (outletId === row.storeId) {
+          // Primary outlet: original id + no FK rewrite (FKs already point at primary rows).
+          out.push({ ...row, outletId });
+        } else {
+          // Non-primary: suffix id + rewrite every FK in the row so they
+          // point at the sibling rows already suffixed at this outlet.
+          const rewritten = suffixFks(row, outletId);
+          out.push({ ...rewritten, id: `${row.id}::${outletId}`, outletId });
+        }
       }
     }
     return out;

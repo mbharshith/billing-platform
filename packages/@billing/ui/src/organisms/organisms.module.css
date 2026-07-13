@@ -95,8 +95,7 @@
   position: sticky;
   top: calc(var(--app-header-height) + var(--app-space-6));
 }
-/* Hide the inline sidebar cart on tablet/mobile — mobile uses the sticky
-   bottom bar + bottom-sheet modal instead. */
+/* Hide the inline sidebar cart on tablet/mobile — mobile uses the sticky bottom bar + bottom-sheet modal instead. */
 @media (max-width: 1023px) {
   .cartPanel { display: none; }
 }
@@ -111,10 +110,7 @@
   height: 100%;
 }
 .cartPanel__header {
-  /* Editorial header: hairline top-border in gold, quiet surface behind
-     the title. Replaces the previous bright blue gradient slab so the
-     cart panel feels like a receipt, not a banner. Font stays sans-serif
-     (inherit) for POS readability. */
+  /* Editorial header: hairline top-border in gold, quiet surface behind the title. Replaces the previous bright blue gradient slab so the cart panel feels like a receipt, not a banner. Font stays sans-serif (inherit) for POS readability. */
   background: var(--app-surface);
   color: var(--app-text);
   padding: var(--app-space-4) var(--app-space-5);
@@ -350,9 +346,7 @@
 @media (max-width: 1023px) {
   .mobileCartBar { display: flex; }
 }
-/* On phone + tablet-portrait the bottom tab nav (~64px + safe-area) lives at
-   bottom:0, so the cart bar must float above it. Above 900px the bar sits
-   flush at bottom:0 (no bottom nav in the way). */
+/* On phone + tablet-portrait the bottom tab nav (~64px + safe-area) lives at bottom:0, so the cart bar must float above it. Above 900px the bar sits flush at bottom:0 (no bottom nav in the way). */
 @media (max-width: 900px) {
   .mobileCartBar { bottom: calc(64px + env(safe-area-inset-bottom, 0)); }
 }
@@ -455,8 +449,7 @@
   border-bottom: 1px dashed var(--app-border, #e5e7eb);
 }
 
-/* PaymentModal - attached customer summary shown when Lending is picked
- * and a customer is already on the sale. Small card, high signal. */
+/* PaymentModal - attached customer summary shown when Lending is picked and a customer is already on the sale. Small card, high signal. */
 .paymentCustomerCard {
   display: flex;
   align-items: center;
@@ -486,9 +479,7 @@
   min-width: 0;
 }
 
-/* PaymentModal - one-tap prompt to attach a customer when Lending is
- * selected and no customer is on the sale yet. Delegates to the parent's
- * CustomerPickerModal (which handles pick-existing + add-new). */
+/* PaymentModal - one-tap prompt to attach a customer when Lending is selected and no customer is on the sale yet. Delegates to the parent's CustomerPickerModal (which handles pick-existing + add-new). */
 .paymentCustomerPrompt {
   display: flex;
   flex-direction: column;

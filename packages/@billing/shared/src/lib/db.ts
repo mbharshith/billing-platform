@@ -408,19 +408,41 @@ class AppDB extends Dexie {
       ] as const;
 
       const isRealOutlet = new Set(outlets.map((o) => o.id));
+      const FK_DENYLIST = new Set([
+        'id', 'storeId', 'outletId', 'brandId', 'marketId',
+        'cashierId', 'currentSaleId', 'customerId',
+      ]);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const suffixFks = (value: any, outletId: string): any => {
+        if (value === null || value === undefined) return value;
+        if (Array.isArray(value)) return value.map((v) => suffixFks(v, outletId));
+        if (typeof value !== 'object') return value;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const out: any = {};
+        for (const [k, v] of Object.entries(value)) {
+          if (typeof v === 'string' && k.endsWith('Id') && !FK_DENYLIST.has(k) && v.length > 0 && !v.includes('::')) {
+            out[k] = `${v}::${outletId}`;
+          } else if (v && typeof v === 'object') {
+            out[k] = suffixFks(v, outletId);
+          } else {
+            out[k] = v;
+          }
+        }
+        return out;
+      };
 
       for (const name of FAN_OUT) {
         const t = tx.table<{ id: string; storeId: string; outletId?: string }>(name);
         const rows = await t.toArray();
         const dupes: typeof rows = [];
         for (const r of rows) {
-          // Row already exclusive to a non-primary outlet? Leave alone.
           if (r.outletId && r.outletId !== r.storeId && isRealOutlet.has(r.outletId)) continue;
           if (!r.outletId) await t.update(r.id, { outletId: primaryFor(r.storeId) });
           const targets = outletsByStore.get(r.storeId) ?? [r.storeId];
           for (const outletId of targets) {
             if (outletId === primaryFor(r.storeId)) continue;
-            dupes.push({ ...r, id: `${r.id}::${outletId}`, outletId });
+            const rewritten = suffixFks(r, outletId);
+            dupes.push({ ...rewritten, id: `${r.id}::${outletId}`, outletId });
           }
         }
         if (dupes.length > 0) await t.bulkAdd(dupes as never);

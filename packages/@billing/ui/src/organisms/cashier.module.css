@@ -1,5 +1,4 @@
-/* Cashier organism styles - modals + toggles + pickers.
-   Shared by cashier-context.tsx, cashier-money.tsx, cashier-depth.tsx. */
+/* Cashier organism styles - modals + toggles + pickers. Shared by cashier-context.tsx, cashier-money.tsx, cashier-depth.tsx. */
 
 /* -------------------------------------------------------------------------- */
 /* Order type toggle                                                          */
@@ -272,9 +271,7 @@
 }
 .customerCreateRow {
   display: grid;
-  /* Name flexes, mobile is fixed-width monospace-ish, Add button hugs.
-   * align-items: stretch keeps input + button at the SAME height so the
-   * baselines line up visually. */
+  /* Name flexes, mobile is fixed-width monospace-ish, Add button hugs. align-items: stretch keeps input + button at the SAME height so the baselines line up visually. */
   grid-template-columns: 1fr 170px auto;
   gap: 10px;
   align-items: stretch;
@@ -302,8 +299,7 @@
 }
 .customerCreateRow input:focus { outline: 2px solid color-mix(in srgb, var(--app-primary, #3b82f6) 40%, transparent); outline-offset: 0; border-color: var(--app-primary, #3b82f6); }
 
-/* On narrow screens - or when the modal is squeezed - stack the fields so
- * they aren't cramped into a broken 3-column grid. */
+/* On narrow screens - or when the modal is squeezed - stack the fields so they aren't cramped into a broken 3-column grid. */
 @media (max-width: 560px) {
   .customerCreateRow {
     grid-template-columns: 1fr;
@@ -635,9 +631,7 @@
   padding: 2px 0;
 }
 
-/* Warning badge shown INSIDE the customer chip when the attached
- * customer has outstanding lending. Uses --app-danger so it screams
- * 'they already owe money' in both light + dark themes. */
+/* Warning badge shown INSIDE the customer chip when the attached customer has outstanding lending. Uses --app-danger so it screams 'they already owe money' in both light + dark themes. */
 .contextChipBadge {
   display: inline-flex;
   align-items: center;

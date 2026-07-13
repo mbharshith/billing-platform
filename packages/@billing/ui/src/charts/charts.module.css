@@ -1,9 +1,4 @@
-/* Chart wrappers - fixed-height containers because Chart.js's responsive
- * mode ignores canvas height attributes.
- *
- * Uses --app-* tokens exclusively so charts look native in both light
- * and dark themes.
- */
+/* Chart wrappers - fixed-height containers because Chart.js's responsive mode ignores canvas height attributes. Uses --app-* tokens exclusively so charts look native in both light and dark themes. */
 
 .chart {
   position: relative;

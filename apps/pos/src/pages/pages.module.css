@@ -63,9 +63,7 @@
 .toolbar__filters { display: inline-flex; gap: var(--app-space-2); flex-wrap: wrap; }
 
 /* --- Data table --- */
-/* On mobile the horizontal scroll gets a right-edge gradient hint so users
-   know more columns exist, and the .actions cell sticks to the right so
-   Edit/Delete/etc remain reachable without scrolling. */
+/* On mobile the horizontal scroll gets a right-edge gradient hint so users know more columns exist, and the .actions cell sticks to the right so Edit/Delete/etc remain reachable without scrolling. */
 .tableWrap {
   overflow-x: auto;
   position: relative;
@@ -119,8 +117,7 @@
 .table th.numeric { text-align: right; font-variant-numeric: tabular-nums; }
 .table td.actions { text-align: right; white-space: nowrap; }
 .table td.actions > * + * { margin-left: var(--app-space-2); }
-/* On mobile, pin the actions column to the right so Edit/Delete stay
-   reachable without horizontal scrolling. Header cell too, for alignment. */
+/* On mobile, pin the actions column to the right so Edit/Delete stay reachable without horizontal scrolling. Header cell too, for alignment. */
 @media (max-width: 767px) {
   .table td.actions,
   .table th.actions { text-align: right; }
@@ -210,8 +207,7 @@
   background: linear-gradient(135deg, var(--app-success) 0%, var(--app-success-deep) 100%);
 }
 
-/* Stacks two <Text> children vertically inside a table cell (or anywhere
-   the natural inline flow would jam them together). Reusable everywhere. */
+/* Stacks two <Text> children vertically inside a table cell (or anywhere the natural inline flow would jam them together). Reusable everywhere. */
 .stackedCell { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 
 /* --- StorePage --------------------------------------------------------- */
@@ -290,7 +286,6 @@
   margin-top: var(--app-space-2);
 }
 
-
 /* --- utility helpers to avoid inline styles in JSX ---------------------- */
 .kv--spanAll     { grid-column: 1 / -1; }
 .alignRight      { text-align: right; }
@@ -316,8 +311,7 @@
   border-bottom: 1px solid var(--app-border);
 }
 
-/* Lending ledger - two-up KPI strip above the debtors table.
- * Danger variant uses --app-danger tint so total-outstanding stands out. */
+/* Lending ledger - two-up KPI strip above the debtors table. Danger variant uses --app-danger tint so total-outstanding stands out. */
 .ledgerKpiRow {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -339,8 +333,7 @@
 }
 
 /* --- Customers page: outlet-vs-chain scope toggle ----------------------- */
-/* Segmented look for the two buttons - visually distinct from the primary
-   "Add customer" CTA next to it. */
+/* Segmented look for the two buttons - visually distinct from the primary "Add customer" CTA next to it. */
 .customerScopeToggle {
   display: inline-flex;
   border: 1px solid var(--app-border);

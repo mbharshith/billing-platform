@@ -1,5 +1,4 @@
-/* Error/splash/404 shared styles. All tokens come from tokens.css so they
-   respect dark mode + tenant theme colors automatically. */
+/* Error/splash/404 shared styles. All tokens come from tokens.css so they respect dark mode + tenant theme colors automatically. */
 
 /* -- Card used by ErrorBoundary + NotFoundPage ---------------------------- */
 .card {
