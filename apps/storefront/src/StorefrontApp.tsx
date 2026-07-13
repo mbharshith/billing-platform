@@ -52,3 +52,5 @@ export const StorefrontApp: FC = () => (
     </CartProvider>
   </StorefrontTenantProvider>
 );
+
+export default StorefrontApp;
