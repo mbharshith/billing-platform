@@ -176,11 +176,14 @@ export const UsersPage: FC = () => {
               const isSelf = u.id === currentUser?.id;
               return (
                 <>
-                  <Button variant="secondary" size="sm" leadingIcon="edit" onClick={() => openEdit(u)}>
+                  <Button variant="ghost" size="sm" leadingIcon="edit" onClick={() => openEdit(u)}>
                     {STRINGS.users.edit}
                   </Button>
+                  {/* variant stays 'ghost' - tone flips instead so the action
+                      column keeps its width regardless of user state. */}
                   <Button
-                    variant={u.active ? 'danger' : 'secondary'}
+                    variant="ghost"
+                    tone={u.active ? 'danger' : undefined}
                     size="sm"
                     onClick={() => void handleToggle(u)}
                     disabled={isSelf && u.active}

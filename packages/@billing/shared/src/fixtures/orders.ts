@@ -15,7 +15,10 @@ export interface OrderSeedContext {
 
 interface SeedRow {
   readonly storeId: string;
-  readonly hoursAgo: number;
+  /** Minutes ago the order was PLACED. Realistic values:
+   *  placed = 2-5m, confirmed = 8-12m, packing = 15-20m, out_for_delivery = 25-35m.
+   *  Anything older than an hour still 'in flight' is a red-flag scenario. */
+  readonly minutesAgo: number;
   readonly status: OrderStatus;
   readonly customerName: string;
   readonly customerMobile: string;
@@ -40,28 +43,28 @@ const ADDR = {
 const ROWS: readonly SeedRow[] = [
   // ---- Velvet Mumbai ----
   {
-    storeId: SEED_STORE_MAIN_ID, hoursAgo: 0.5, status: 'placed',
+    storeId: SEED_STORE_MAIN_ID, minutesAgo: 3, status: 'placed',
     customerName: 'Zara Khan', customerMobile: '9876500001',
     address: ADDR.mumbai('12 Palm Beach Rd', 'Opposite HDFC ATM'),
     notes: 'Please leave at doorstep', method: 'cod',
     pick: [{ categoryHint: 'apparel', qty: 1 }, { categoryHint: 'apparel', qty: 2 }],
   },
   {
-    storeId: SEED_STORE_MAIN_ID, hoursAgo: 2, status: 'confirmed',
+    storeId: SEED_STORE_MAIN_ID, minutesAgo: 8, status: 'confirmed',
     customerName: 'Ravi Kumar', customerMobile: '9876543210',
     address: ADDR.mumbai('5 Marina Heights', ''),
     notes: null, method: 'online',
     pick: [{ categoryHint: 'apparel', qty: 1 }],
   },
   {
-    storeId: SEED_STORE_MAIN_ID, hoursAgo: 4, status: 'packing',
+    storeId: SEED_STORE_MAIN_ID, minutesAgo: 18, status: 'packing',
     customerName: 'Priya Sharma', customerMobile: '9123456780',
     address: ADDR.mumbai('88 Sea View', 'Next to Cafe Coffee Day'),
     notes: 'Call before delivery', method: 'online',
     pick: [{ categoryHint: 'apparel', qty: 3 }],
   },
   {
-    storeId: SEED_STORE_MAIN_ID, hoursAgo: 6, status: 'out_for_delivery',
+    storeId: SEED_STORE_MAIN_ID, minutesAgo: 32, status: 'out_for_delivery',
     customerName: 'Neha Patel', customerMobile: '9876500002',
     address: ADDR.mumbai('7 Bandra East'),
     notes: null, method: 'cod',
@@ -70,21 +73,21 @@ const ROWS: readonly SeedRow[] = [
 
   // ---- Spice Route Kitchen ----
   {
-    storeId: SEED_STORE_BRANCH_ID, hoursAgo: 1, status: 'placed',
+    storeId: SEED_STORE_BRANCH_ID, minutesAgo: 2, status: 'placed',
     customerName: 'Karthik Menon', customerMobile: '9012345678',
     address: ADDR.bengaluru('221B Baker St', 'Near Sony World'),
     notes: null, method: 'online',
     pick: [{ categoryHint: 'food', qty: 2 }],
   },
   {
-    storeId: SEED_STORE_BRANCH_ID, hoursAgo: 3, status: 'confirmed',
+    storeId: SEED_STORE_BRANCH_ID, minutesAgo: 12, status: 'confirmed',
     customerName: 'Deepak Rao', customerMobile: '9012345612',
     address: ADDR.bengaluru('15 Indiranagar Main Rd'),
     notes: 'Ring the bell twice', method: 'cod',
     pick: [{ categoryHint: 'food', qty: 3 }],
   },
   {
-    storeId: SEED_STORE_BRANCH_ID, hoursAgo: 5, status: 'out_for_delivery',
+    storeId: SEED_STORE_BRANCH_ID, minutesAgo: 25, status: 'out_for_delivery',
     customerName: 'Sneha Iyer', customerMobile: '9834567890',
     address: ADDR.bengaluru('9 Whitefield Rd'),
     notes: null, method: 'online',
@@ -92,14 +95,14 @@ const ROWS: readonly SeedRow[] = [
   },
   // ---- La Maison Boutique ----
   {
-    storeId: SEED_STORE_THIRD_ID, hoursAgo: 0.8, status: 'placed',
+    storeId: SEED_STORE_THIRD_ID, minutesAgo: 4, status: 'placed',
     customerName: 'Emily Carter', customerMobile: '2125550101',
     address: ADDR.springfield('157 Spring St'),
     notes: 'Leave with concierge', method: 'cod',
     pick: [{ categoryHint: 'apparel', qty: 2 }],
   },
   {
-    storeId: SEED_STORE_THIRD_ID, hoursAgo: 2.5, status: 'packing',
+    storeId: SEED_STORE_THIRD_ID, minutesAgo: 15, status: 'packing',
     customerName: 'James Carter', customerMobile: '2125550188',
     address: ADDR.springfield('300 W Broadway', 'Apt 4B'),
     notes: null, method: 'online',
@@ -146,7 +149,7 @@ export const buildDemoOrders = (ctx: OrderSeedContext): readonly Sale[] => {
     const subtotal = lines.reduce((s, l) => s + l.lineTotal, 0);
     const tax = subtotal * taxRate;
     const unitCount = lines.reduce((s, l) => s + l.quantity, 0);
-    const placedAt = new Date(now - row.hoursAgo * 3600_000).toISOString();
+    const placedAt = new Date(now - row.minutesAgo * 60_000).toISOString();
 
     const customerId = ctx.customerIdByMobile.get(`${row.storeId}::${row.customerMobile}`) ?? null;
 
@@ -155,7 +158,9 @@ export const buildDemoOrders = (ctx: OrderSeedContext): readonly Sale[] => {
     const upto = statusOrder.indexOf(row.status);
     const statusHistory = statusOrder.slice(0, upto + 1).map((status, i) => ({
       status,
-      at: new Date(now - (row.hoursAgo - i * 0.3) * 3600_000).toISOString(),
+      // Statuses stepped through in 1/N of the elapsed time so history
+      // reads chronologically. Never in the future.
+      at: new Date(now - (row.minutesAgo * (1 - i / (upto + 1))) * 60_000).toISOString(),
       by: i === 0 ? 'customer' : 'staff',
       note: i === 0 ? 'Order placed via storefront' : '',
     }));

@@ -168,13 +168,15 @@ export const CrudPage = <Row extends TenantRow>({
             Edit
           </Button>
           {hasActiveToggle && (
-            <Button variant={row.active === false ? 'secondary' : 'ghost'} size="sm"
+            // NOTE: variant stays 'ghost' regardless of active state so the
+            // Actions column doesn't jump between rows. Only the LABEL flips.
+            <Button variant="ghost" size="sm"
                     onClick={(e) => { e.stopPropagation();
                       void api.setActive(row.id, row.active === false); }}>
               {row.active === false ? 'Activate' : 'Deactivate'}
             </Button>
           )}
-          <Button variant="danger" size="sm"
+          <Button variant="ghost" size="sm" tone="danger"
                   onClick={(e) => { e.stopPropagation(); setConfirming(row); }}>
             Delete
           </Button>

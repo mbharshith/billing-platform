@@ -52,6 +52,10 @@
 .button--lg { padding: var(--app-space-4) var(--app-space-6); min-height: 52px; font-size: var(--app-font-size-md); }
 .button--block { width: 100%; }
 
+/* Tone overrides - layer color hints on top of variants without changing size */
+.button--tone-danger { color: var(--app-danger); }
+.button--tone-danger:hover:not(:disabled) { background: color-mix(in srgb, var(--app-danger) 10%, transparent); color: var(--app-danger); }
+
 /* --- IconButton --------------------------------------------------------- */
 .iconButton {
   display: inline-grid;

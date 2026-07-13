@@ -132,6 +132,15 @@ export const monogramFor = (name: string): string => {
   return (head + second[0]).toUpperCase();
 };
 
-// Human-friendly invoice number.
-export const nextInvoiceNo = (): string =>
-  'WM-' + Date.now().toString().slice(-8);
+// Human-friendly invoice number. Uses a monotonically-increasing counter
+// (last 6 chars of the ms timestamp + a call-scoped tick) so back-to-back
+// invocations - like during seed inserts inside a single tick - can't collide.
+// Callers should pass a store/outlet-specific prefix; falls back to 'INV'
+// (was hardcoded 'WM-' which was Walmart cruft leaking into every receipt).
+let invoiceTick = 0;
+export const nextInvoiceNo = (prefix = 'INV'): string => {
+  invoiceTick = (invoiceTick + 1) % 1000;
+  const stamp = Date.now().toString().slice(-6);
+  const tick  = invoiceTick.toString().padStart(3, '0');
+  return `${prefix}-${stamp}${tick}`;
+};

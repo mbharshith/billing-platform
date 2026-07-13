@@ -144,8 +144,11 @@ export const ProductsPage: FC = () => {
                 <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); setForm(fromProduct(p)); }}>
                   {STRINGS.products.edit}
                 </Button>
+                {/* variant stays 'ghost' regardless of state so the action
+                    column doesn't jump between rows. Tone flips instead. */}
                 <Button
-                  variant={p.active ? 'danger' : 'secondary'}
+                  variant="ghost"
+                  tone={p.active ? 'danger' : undefined}
                   size="sm"
                   onClick={(e) => { e.stopPropagation(); void handleToggle(p); }}
                 >

@@ -12,10 +12,16 @@ import { Icon, type IconName } from './Icon';
 /* -------------------------------------------------------------------------- */
 type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
 type ButtonSize    = 'sm' | 'md' | 'lg';
+/** Optional tone override. Currently only 'danger' - tints the text/hover
+ *  red without changing the button's dimensions. Use with variant='ghost'
+ *  when you want a subtle destructive affordance (e.g. Delete row action)
+ *  that doesn't visually dominate the row. */
+type ButtonTone    = 'danger';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
   size?: ButtonSize;
+  tone?: ButtonTone;
   block?: boolean;
   loading?: boolean;
   leadingIcon?: IconName;
@@ -25,6 +31,7 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 export const Button: FC<ButtonProps> = ({
   variant = 'primary',
   size = 'md',
+  tone,
   block = false,
   loading = false,
   leadingIcon,
@@ -38,6 +45,7 @@ export const Button: FC<ButtonProps> = ({
     cls.button,
     cls[`button--${variant}`],
     size !== 'md' && cls[`button--${size}`],
+    tone && cls[`button--tone-${tone}`],
     block && cls['button--block'],
     className,
   ].filter(Boolean).join(' ');
