@@ -104,7 +104,6 @@ const Nav: FC = () => (
       <div className={cls.nav__links}>
         <a href="#product"  className={cls.nav__link}>Product</a>
         <a href="#demo"     className={cls.nav__link}>Live demo</a>
-        <a href="#contact"  className={cls.nav__link}>Contact</a>
       </div>
       <div className={cls.nav__actions}>
         <ThemeToggle />
@@ -348,52 +347,6 @@ export const MarketingHomePage: FC = () => {
                 onMouseEnter={() => { void import('./LoginPage').catch(() => {}); }}
                 onFocus={() => { void import('./LoginPage').catch(() => {}); }}
               >Sign in</Link>
-            <a href="#contact" className={`${cls.btn} ${cls.btnGhost}`}>Get in touch</a>
-          </div>
-        </div>
-      </section>
-
-      {/* -------------------- Contact -------------------------------- */}
-      <section id="contact" className={cls.section}>
-        <div className={cls.shell}>
-          <div className={cls.contact}>
-            <div>
-              <div className={`${cls.eyebrow} ${cls['eyebrow--sm']}`}>About the project</div>
-              <h2 className={`${cls.serifHead} ${cls.contact__title}`}>Built to<br /><em>be studied.</em></h2>
-              <p className={`${cls.leadCopy} ${cls.contact__lead}`}>
-                {BRAND.name} is a demo retail platform by {BRAND.parentOrg}.
-                The whole stack — four apps, two shared packages, one Dexie
-                ledger — lives in a single monorepo. Poke around, fork it,
-                or reach out via the addresses below.
-              </p>
-            </div>
-            <div className={cls.contactCards}>
-              <div className={cls.contactCard}>
-                <div className={cls.contactCard__label}>Sales</div>
-                <a href={`mailto:${BRAND.contact.salesEmail}`} className={cls.contactCard__val}>
-                  {BRAND.contact.salesEmail.split('@')[0]}<em>@{BRAND.contact.salesEmail.split('@')[1]}</em>
-                </a>
-                <div className={cls.contactCard__sub}>Questions, feedback, or interest in using this in production.</div>
-              </div>
-              <div className={cls.contactCard}>
-                <div className={cls.contactCard__label}>Support</div>
-                <a href={`mailto:${BRAND.contact.supportEmail}`} className={cls.contactCard__val}>
-                  {BRAND.contact.supportEmail.split('@')[0]}<em>@{BRAND.contact.supportEmail.split('@')[1]}</em>
-                </a>
-                <div className={cls.contactCard__sub}>Bug reports and “how did you build X?” welcome.</div>
-              </div>
-              {BRAND.contact.offices.map((o) => (
-                <div key={o.label} className={cls.contactCard}>
-                  <div className={cls.contactCard__label}>{o.label}</div>
-                  <div className={cls.contactCard__val}>{o.name}</div>
-                  <div className={cls.contactCard__sub}>
-                    {o.lines.map((l, i) => (
-                      <span key={l}>{l}{i < o.lines.length - 1 && <br />}</span>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
           </div>
         </div>
       </section>

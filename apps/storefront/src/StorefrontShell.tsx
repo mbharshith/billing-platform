@@ -26,7 +26,6 @@ export const StorefrontShell: FC<{ children: ReactNode }> = ({ children }) => {
   const slug = storeIdToSlug(tenant.id);
   const home = `/${slug}`;
   const theme = getTenantTheme(tenant.id);
-  const monogram = tenant.name.split(/\s+/).slice(0, 2).map((w) => w[0]).join('').toUpperCase();
   const showSearch = !HIDE_SEARCH_ON.some((re) => re.test(pathname));
 
   const [query, setQuery] = useState('');
@@ -42,12 +41,11 @@ export const StorefrontShell: FC<{ children: ReactNode }> = ({ children }) => {
       <header className={cls.header}>
         <div className={cls.headerInner}>
           <Link to={home} className={cls.brand} aria-label={`${tenant.name} home`}>
-            <span className={cls.brand__mark} aria-hidden="true">{monogram}</span>
             <div className={cls.brand__text}>
               <div className={cls.brand__name}>{tenant.name}</div>
               <div className={cls.brand__loc}>
                 <Icon name="store" size={11} />
-                {tenant.city} · <span className={cls.brand__locEta}>{theme.deliveryEtaShort}</span>
+                {tenant.address}
               </div>
             </div>
           </Link>
