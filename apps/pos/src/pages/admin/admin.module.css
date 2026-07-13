@@ -77,12 +77,16 @@
 
 .kanbanCol__empty { color: var(--app-text-mute, var(--app-text-subtle)); font-size: 12px; padding: 12px 4px; text-align: center; font-style: italic; }
 
-/* Order/KOT card */
+/* Order/KOT card - uniform height across all columns so the kanban reads as
+   an even grid regardless of item count / presence of notes. The card is a
+   flex column and .orderCard__actions gets margin-top:auto to pin the CTAs
+   to the bottom edge of every card. */
 .orderCard {
   background: var(--app-surface);
   border: 1px solid var(--app-border);
   border-radius: 10px;
   padding: 12px;
+  min-height: 200px;
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -98,8 +102,16 @@
 
 /* Grid instead of flex: 1 - guarantees equal-width buttons even when one
    label ('Mark delivered') is much longer than the other ('Cancel'). Flex
-   would let the longer label push its column wider. */
-.orderCard__actions { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 4px; }
+   would let the longer label push its column wider.
+   margin-top:auto pins the action row to the bottom of the card, which
+   (combined with .orderCard min-height) makes every card the same size. */
+.orderCard__actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-top: auto;
+  padding-top: 8px;
+}
 .orderCard__actions button { width: 100%; min-width: 0; }
 
 /* -------------------------------------------------------------------------- */
