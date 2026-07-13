@@ -456,6 +456,135 @@ id "tbl-g-1::outlet-spice-hsr"
       </div>
     </div>
 
+    <!-- Why these picks -->
+    <h3 class="text-lg font-bold mt-10 mb-3">Why these picks (and what we rejected)</h3>
+    <div class="rounded-xl bg-white border border-slate-200 overflow-hidden">
+      <table class="w-full text-sm">
+        <thead class="bg-slate-50 text-slate-600 text-xs uppercase">
+          <tr>
+            <th class="text-left px-4 py-2">Pick</th>
+            <th class="text-left px-4 py-2">Why (top 3)</th>
+            <th class="text-left px-4 py-2">Rejected &amp; why not</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          <tr>
+            <td class="px-4 py-3 align-top font-bold">FastAPI + Python 3.12</td>
+            <td class="px-4 py-3 align-top">
+              1. Type-hint &rarr; <strong>OpenAPI free</strong> &rarr; auto-generated TS client keeps Dexie schema and API contract in lock-step.<br>
+              2. Async by default &mdash; the WS layer for KDS / live-orders lives in the same process.<br>
+              3. Pydantic v2 validates in / out with the same field names our TS types use, so shape drift is caught at deploy time, not at runtime.
+            </td>
+            <td class="px-4 py-3 align-top">
+              <strong>Node/Express:</strong> would need Zod + tRPC to match Pydantic's ergonomics; still no free OpenAPI.<br>
+              <strong>Go:</strong> 3&times; the boilerplate for CRUD, no OpenAPI magic, smaller local hire pool.<br>
+              <strong>Django:</strong> sync-first, WS support is retrofitted, ORM fights async.
+            </td>
+          </tr>
+          <tr>
+            <td class="px-4 py-3 align-top font-bold">Postgres 16</td>
+            <td class="px-4 py-3 align-top">
+              1. <strong>Row-level security</strong> is the whole point &mdash; a SQL-injection escaping the ORM still cannot read another outlet's row.<br>
+              2. ACID transactions on sales + payments (money cannot be eventually-consistent).<br>
+              3. JSONB + partial indexes + <code>tsvector</code> + partitioning &mdash; one engine covers config, txn, search, and archival.
+            </td>
+            <td class="px-4 py-3 align-top">
+              <strong>MySQL:</strong> no true RLS; weaker JSONB and CTE story.<br>
+              <strong>MongoDB:</strong> cross-doc transactions are second-class; reports need joins the query planner will fight.<br>
+              <strong>DynamoDB:</strong> item size limits, no ad-hoc reporting queries, region lock-in.
+            </td>
+          </tr>
+          <tr>
+            <td class="px-4 py-3 align-top font-bold">Redis 7</td>
+            <td class="px-4 py-3 align-top">
+              1. One box does <strong>sessions, rate limits, pub/sub, and Celery broker</strong> &mdash; four services collapse to one.<br>
+              2. Built-in TTL means we do not write eviction logic.<br>
+              3. Pub/sub is the simplest thing that scales a WS layer across API pods.
+            </td>
+            <td class="px-4 py-3 align-top">
+              <strong>Memcached:</strong> no pub/sub, no persistence.<br>
+              <strong>Kafka:</strong> overkill for our order volume; adds an ops team of its own.<br>
+              <strong>Postgres LISTEN/NOTIFY:</strong> couples pub/sub to primary connection budget; painful to shard.
+            </td>
+          </tr>
+          <tr>
+            <td class="px-4 py-3 align-top font-bold">S3 / Cloudflare R2</td>
+            <td class="px-4 py-3 align-top">
+              1. Object storage that anyone can hire for.<br>
+              2. <strong>R2 zero-egress</strong> makes serving product images to millions of storefront visitors cheap.<br>
+              3. Presigned URLs mean the API stays out of the upload path.
+            </td>
+            <td class="px-4 py-3 align-top">
+              <strong>Local disk:</strong> loses when a pod dies.<br>
+              <strong>Azure Blob:</strong> fine but Cloudflare's CDN adjacency + R2 egress trumps it for our audience.
+            </td>
+          </tr>
+          <tr>
+            <td class="px-4 py-3 align-top font-bold">Celery + Beat</td>
+            <td class="px-4 py-3 align-top">
+              1. Battle-tested retries + exponential backoff &mdash; matter for payment webhooks &amp; aggregator polls.<br>
+              2. Beat gives us cron without a sidecar.<br>
+              3. Same Redis broker &mdash; one dependency, not two.
+            </td>
+            <td class="px-4 py-3 align-top">
+              <strong>RQ:</strong> too simple, no scheduling.<br>
+              <strong>Dramatiq:</strong> good but smaller community; harder to hire for.<br>
+              <strong>Cloud Tasks / SQS:</strong> vendor-lock, weaker local dev story.
+            </td>
+          </tr>
+          <tr>
+            <td class="px-4 py-3 align-top font-bold">Starlette WebSockets</td>
+            <td class="px-4 py-3 align-top">
+              1. Ships with FastAPI &mdash; <em>zero extra dependency</em>.<br>
+              2. Same auth middleware, same tenant scoping, same logging tags &mdash; consistency for free.<br>
+              3. Redis pub/sub between pods scales horizontally with no sticky sessions.
+            </td>
+            <td class="px-4 py-3 align-top">
+              <strong>Socket.IO:</strong> heavier client, custom protocol on top of WS &mdash; unnecessary.<br>
+              <strong>Server-Sent Events:</strong> one-way only; the KDS bump-back needs client-to-server messages.
+            </td>
+          </tr>
+          <tr>
+            <td class="px-4 py-3 align-top font-bold">JWT (RS256) + cashier PIN</td>
+            <td class="px-4 py-3 align-top">
+              1. Stateless verification &mdash; no DB round-trip per request.<br>
+              2. RS256 lets us <strong>rotate keys</strong> without downtime (JWKS endpoint).<br>
+              3. PIN is how cashiers actually work &mdash; 4 digits, 8-hour shift token, biometric-free floors.
+            </td>
+            <td class="px-4 py-3 align-top">
+              <strong>Session cookies:</strong> require sticky sessions &rarr; harder to scale across regions.<br>
+              <strong>Password every login:</strong> unusable at the counter.<br>
+              <strong>OAuth full flow:</strong> overkill for our first-party clients.
+            </td>
+          </tr>
+          <tr>
+            <td class="px-4 py-3 align-top font-bold">OpenTelemetry + Loki</td>
+            <td class="px-4 py-3 align-top">
+              1. <strong>Vendor-neutral</strong> &mdash; can swap Datadog/Honeycomb without rewriting instrumentation.<br>
+              2. Loki indexes labels only (cheap) &mdash; and <code>store_id</code>/<code>outlet_id</code> are natural labels.<br>
+              3. Traces make the outlet-scoping proof visible: every span carries the tenant tags.
+            </td>
+            <td class="px-4 py-3 align-top">
+              <strong>Datadog / New Relic exclusively:</strong> pricing per host, vendor lock.<br>
+              <strong>Sentry only:</strong> great for errors, not for traces + metrics + logs.
+            </td>
+          </tr>
+          <tr>
+            <td class="px-4 py-3 align-top font-bold">Fly.io regions <em>or</em> AWS EKS</td>
+            <td class="px-4 py-3 align-top">
+              1. <strong>Multi-region latency:</strong> keep the store's data in the store's geography (bom for India, sin for SEA, ord for US).<br>
+              2. Managed Postgres + object storage in both &mdash; no self-hosted etcd nightmares.<br>
+              3. Rolling deploys with zero downtime out of the box.
+            </td>
+            <td class="px-4 py-3 align-top">
+              <strong>Single-region VPS (Hetzner / DO):</strong> cheaper but adds 200 ms to every request for non-home markets.<br>
+              <strong>Heroku:</strong> pricing wall + no first-class Postgres partitioning.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
     <!-- Service topology diagram -->
     <h3 class="text-lg font-bold mt-10 mb-3">Service topology</h3>
     <div class="rounded-xl bg-white border border-slate-200 p-6">
