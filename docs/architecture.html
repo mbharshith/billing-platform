@@ -63,6 +63,8 @@
       <a href="#overview"     class="toc-link text-slate-600 hover:text-indigo-600">Overview</a>
       <a href="#schema"       class="toc-link text-slate-600 hover:text-indigo-600">Data model</a>
       <a href="#architecture" class="toc-link text-slate-600 hover:text-indigo-600">Architecture</a>
+      <a href="#backend"      class="toc-link text-slate-600 hover:text-indigo-600">Backend</a>
+      <a href="#api"          class="toc-link text-slate-600 hover:text-indigo-600">API</a>
       <a href="#dataflow"     class="toc-link text-slate-600 hover:text-indigo-600">Data flow</a>
       <a href="#howto"        class="toc-link text-slate-600 hover:text-indigo-600">How to use</a>
     </nav>
@@ -401,10 +403,492 @@ id "tbl-g-1::outlet-spice-hsr"
   </section>
 
   <!-- ============================================================ -->
+  <!-- BACKEND DESIGN -->
+  <!-- ============================================================ -->
+  <section id="backend" class="hash-target">
+    <h2 class="text-2xl font-bold mb-2">4. Backend design</h2>
+    <p class="text-sm text-slate-600 mb-6 max-w-3xl">
+      Today Outletly is <strong>local-first</strong> (Dexie / IndexedDB). The backend below is the target when we lift it to a shared server &mdash; it inherits the outlet-scoping model verbatim so the frontend contract barely changes.
+    </p>
+
+    <!-- Tech stack -->
+    <h3 class="text-lg font-bold mt-4 mb-3">Recommended stack</h3>
+    <div class="grid md:grid-cols-3 lg:grid-cols-4 gap-4">
+      <div class="rounded-xl bg-white border border-slate-200 p-4">
+        <div class="text-xs uppercase text-slate-500 font-semibold">API</div>
+        <div class="font-bold mt-1">FastAPI + Python 3.12</div>
+        <p class="text-xs text-slate-600 mt-2">Async, OpenAPI free, Pydantic v2 for schema-in / schema-out. Auto-generates the TS client the frontend consumes.</p>
+      </div>
+      <div class="rounded-xl bg-white border border-slate-200 p-4">
+        <div class="text-xs uppercase text-slate-500 font-semibold">Database</div>
+        <div class="font-bold mt-1">Postgres 16</div>
+        <p class="text-xs text-slate-600 mt-2">Row-level security on every tenant table (<code>store_id + outlet_id</code>). Logical replication for read replicas.</p>
+      </div>
+      <div class="rounded-xl bg-white border border-slate-200 p-4">
+        <div class="text-xs uppercase text-slate-500 font-semibold">Cache / Queue</div>
+        <div class="font-bold mt-1">Redis 7</div>
+        <p class="text-xs text-slate-600 mt-2">Session tokens, rate limits, KDS pub/sub, Celery broker + result backend.</p>
+      </div>
+      <div class="rounded-xl bg-white border border-slate-200 p-4">
+        <div class="text-xs uppercase text-slate-500 font-semibold">Object storage</div>
+        <div class="font-bold mt-1">S3 / R2</div>
+        <p class="text-xs text-slate-600 mt-2">Product images, GRN attachments, generated invoice PDFs, WhatsApp media.</p>
+      </div>
+      <div class="rounded-xl bg-white border border-slate-200 p-4">
+        <div class="text-xs uppercase text-slate-500 font-semibold">Background</div>
+        <div class="font-bold mt-1">Celery + Beat</div>
+        <p class="text-xs text-slate-600 mt-2">EOD roll-ups, WA campaign fan-out, GRN reconciliation, sync merge jobs.</p>
+      </div>
+      <div class="rounded-xl bg-white border border-slate-200 p-4">
+        <div class="text-xs uppercase text-slate-500 font-semibold">Realtime</div>
+        <div class="font-bold mt-1">WebSockets (Starlette)</div>
+        <p class="text-xs text-slate-600 mt-2">KDS ticket stream, live-orders kanban push, table-status sync per outlet.</p>
+      </div>
+      <div class="rounded-xl bg-white border border-slate-200 p-4">
+        <div class="text-xs uppercase text-slate-500 font-semibold">Auth</div>
+        <div class="font-bold mt-1">JWT (RS256) + PIN</div>
+        <p class="text-xs text-slate-600 mt-2">Access (15 m) + refresh (30 d) tokens. Cashiers login by 4-digit PIN scoped to their outlet.</p>
+      </div>
+      <div class="rounded-xl bg-white border border-slate-200 p-4">
+        <div class="text-xs uppercase text-slate-500 font-semibold">Observability</div>
+        <div class="font-bold mt-1">OTel + Grafana Loki</div>
+        <p class="text-xs text-slate-600 mt-2">Distributed traces per request, structured logs tagged with <code>store_id</code>/<code>outlet_id</code>.</p>
+      </div>
+    </div>
+
+    <!-- Service topology diagram -->
+    <h3 class="text-lg font-bold mt-10 mb-3">Service topology</h3>
+    <div class="rounded-xl bg-white border border-slate-200 p-6">
+      <div class="max-w-4xl mx-auto space-y-0">
+        <div class="rounded-lg border border-indigo-200 bg-indigo-50 p-4 text-center">
+          <div class="text-xs font-semibold text-indigo-700 uppercase">Clients</div>
+          <div class="font-bold">apps/shell &middot; apps/pos &middot; apps/storefront &middot; native (future)</div>
+          <div class="text-xs text-slate-600 mt-1">All send <code>Authorization: Bearer</code> + <code>X-Store-Id</code> + <code>X-Outlet-Id</code></div>
+        </div>
+        <div class="arrow-down"></div>
+        <div class="rounded-lg border border-purple-200 bg-purple-50 p-4 text-center">
+          <div class="text-xs font-semibold text-purple-700 uppercase">Edge</div>
+          <div class="font-bold text-sm">Cloudflare / CloudFront &middot; WAF &middot; rate limit</div>
+          <div class="text-xs text-slate-600 mt-1">TLS termination, DDoS shield, geo pinning per market</div>
+        </div>
+        <div class="arrow-down"></div>
+        <div class="rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-center">
+          <div class="text-xs font-semibold text-emerald-700 uppercase">API layer</div>
+          <div class="font-bold text-sm">FastAPI (Uvicorn workers) &middot; auth middleware &middot; tenant middleware &middot; RLS enforce</div>
+          <div class="text-xs text-slate-600 mt-1">Stateless. Horizontal scale behind an ALB. One image, all routes.</div>
+        </div>
+        <div class="arrow-down"></div>
+        <div class="grid md:grid-cols-3 gap-3">
+          <div class="rounded-lg border border-amber-200 bg-amber-50 p-3 text-center">
+            <div class="text-xs font-semibold text-amber-700 uppercase">Postgres 16</div>
+            <div class="text-xs text-slate-600 mt-1">Primary + 2 read replicas. RLS per outlet. Point-in-time recovery.</div>
+          </div>
+          <div class="rounded-lg border border-rose-200 bg-rose-50 p-3 text-center">
+            <div class="text-xs font-semibold text-rose-700 uppercase">Redis 7</div>
+            <div class="text-xs text-slate-600 mt-1">Sessions, rate, KDS pub/sub, Celery broker.</div>
+          </div>
+          <div class="rounded-lg border border-sky-200 bg-sky-50 p-3 text-center">
+            <div class="text-xs font-semibold text-sky-700 uppercase">S3 / R2</div>
+            <div class="text-xs text-slate-600 mt-1">Images, invoices, attachments, backups.</div>
+          </div>
+        </div>
+        <div class="arrow-down"></div>
+        <div class="rounded-lg border border-slate-300 bg-slate-100 p-4 text-center">
+          <div class="text-xs font-semibold text-slate-700 uppercase">Async workers</div>
+          <div class="font-bold text-sm">Celery workers &middot; Celery Beat &middot; WhatsApp Business API bridge &middot; Payment webhooks</div>
+          <div class="text-xs text-slate-600 mt-1">Sync merges, EOD reports, aggregator polling, printer jobs.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Auth flow -->
+    <h3 class="text-lg font-bold mt-10 mb-3">Authentication &amp; multi-tenant scoping</h3>
+    <div class="grid md:grid-cols-2 gap-4">
+      <div class="rounded-xl bg-white border border-slate-200 p-5">
+        <h4 class="font-bold mb-2">Token model</h4>
+        <ul class="text-sm text-slate-700 list-disc pl-5 space-y-1">
+          <li><strong>Access token</strong> (JWT, RS256, 15 min): subject <code>user_id</code>, claims <code>role</code>, <code>store_id</code>, <code>allowed_outlets[]</code>.</li>
+          <li><strong>Refresh token</strong> (opaque, 30 d): stored server-side in Redis, revokable per device.</li>
+          <li><strong>PIN mode</strong> for cashiers: POST <code>/auth/pin</code> with 4-digit PIN + <code>outlet_id</code> issues a scoped, short-lived (8 h) shift token.</li>
+          <li><strong>Vendor role</strong> gets a wildcard <code>allowed_outlets: ["*"]</code> for HQ reporting; every other role is bounded.</li>
+        </ul>
+      </div>
+      <div class="rounded-xl bg-white border border-slate-200 p-5">
+        <h4 class="font-bold mb-2">Request scoping</h4>
+        <ul class="text-sm text-slate-700 list-disc pl-5 space-y-1">
+          <li>Every mutating request MUST include <code>X-Store-Id</code> + <code>X-Outlet-Id</code> headers.</li>
+          <li>Middleware verifies both are in the token's <code>allowed_outlets</code> &mdash; else 403.</li>
+          <li>Middleware sets Postgres <code>SET app.store_id = ...; SET app.outlet_id = ...;</code> for the connection lifetime.</li>
+          <li>Every tenant table has RLS: <code>USING (store_id = current_setting('app.store_id') AND outlet_id = current_setting('app.outlet_id'))</code>.</li>
+          <li>Result: even a SQL-injection escaping the ORM cannot read another outlet's row.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Sync / offline strategy -->
+    <h3 class="text-lg font-bold mt-10 mb-3">Offline sync protocol</h3>
+    <div class="rounded-xl bg-white border border-slate-200 p-5">
+      <p class="text-sm text-slate-600 mb-3">The frontend stays Dexie-first. The backend adds a delta protocol so a laptop that lost wifi mid-service catches up cleanly when it reconnects.</p>
+      <div class="grid md:grid-cols-3 gap-4 text-sm">
+        <div class="rounded-lg border border-slate-200 p-4 bg-slate-50">
+          <div class="font-bold text-slate-800 mb-1">1. Push queue</div>
+          <p class="text-slate-600">Client stamps every mutation with a client-generated ULID + <code>client_seq</code>. Queue is a Dexie table <code>sync_outbox</code>. POST <code>/sync/push</code> flushes it; server returns per-op <code>{ok, canonical_id}</code>.</p>
+        </div>
+        <div class="rounded-lg border border-slate-200 p-4 bg-slate-50">
+          <div class="font-bold text-slate-800 mb-1">2. Delta pull</div>
+          <p class="text-slate-600">GET <code>/sync/pull?since=&lt;server_cursor&gt;</code> returns every row modified after cursor, grouped by table. Client upserts and advances the cursor.</p>
+        </div>
+        <div class="rounded-lg border border-slate-200 p-4 bg-slate-50">
+          <div class="font-bold text-slate-800 mb-1">3. Conflict rule</div>
+          <p class="text-slate-600">Last-write-wins by <code>updated_at</code> for config tables. Sales &amp; payments are <em>append-only</em> (voids are new rows) so they cannot conflict &mdash; deterministic merge.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Postgres schema notes -->
+    <h3 class="text-lg font-bold mt-10 mb-3">Postgres schema notes</h3>
+    <div class="rounded-xl bg-white border border-slate-200 p-5 text-sm">
+      <ul class="list-disc pl-6 space-y-2 text-slate-700">
+        <li>Every tenant table has <code>(store_id, outlet_id, id)</code> as the natural key; <code>id</code> is a ULID (sortable, collision-safe across offline clients).</li>
+        <li><code>sales</code> is partitioned monthly by <code>completed_at</code>. Old partitions detach to cold storage after 24 months.</li>
+        <li><code>audit_log</code> is append-only with a BRIN index on <code>at</code> and a partial index on <code>action</code> for hot filters.</li>
+        <li>Every <code>updated_at</code> column is maintained by a shared trigger; used by <code>/sync/pull</code> as the delta cursor.</li>
+        <li>Foreign keys use <code>ON DELETE RESTRICT</code> except audit_log which is <code>ON DELETE SET NULL</code> for the target_store_id (stores can be archived without shredding history).</li>
+        <li>All <code>*_id</code> columns are indexed. Compound index <code>(store_id, outlet_id, active)</code> covers 90% of admin list queries.</li>
+      </ul>
+    </div>
+
+    <!-- Deployment -->
+    <h3 class="text-lg font-bold mt-10 mb-3">Deployment</h3>
+    <div class="grid md:grid-cols-2 gap-4 text-sm">
+      <div class="rounded-xl bg-white border border-slate-200 p-5">
+        <h4 class="font-bold mb-2">Runtime</h4>
+        <ul class="list-disc pl-6 text-slate-700 space-y-1">
+          <li>Docker image, single Dockerfile (multi-stage: builder + runtime).</li>
+          <li>Deploy target: Fly.io regions per market (bom/sin/ord) OR AWS EKS.</li>
+          <li>Autoscale on <code>rps</code> + <code>p95_latency</code>. Zero-downtime deploys via rolling.</li>
+          <li>Migrations run via a one-shot job before the rolling update (Alembic).</li>
+        </ul>
+      </div>
+      <div class="rounded-xl bg-white border border-slate-200 p-5">
+        <h4 class="font-bold mb-2">Non-functional targets</h4>
+        <ul class="list-disc pl-6 text-slate-700 space-y-1">
+          <li><strong>Availability:</strong> 99.9% (43 min/month allowed). Multi-AZ Postgres.</li>
+          <li><strong>Latency:</strong> p95 &lt; 200 ms for reads, &lt; 400 ms for writes (in-region).</li>
+          <li><strong>Rate limit:</strong> 60 rps / outlet (soft), 5 rps / IP for auth endpoints (hard).</li>
+          <li><strong>Backups:</strong> Postgres continuous WAL to S3 + nightly logical dump. RPO 5 min, RTO 30 min.</li>
+          <li><strong>Secrets:</strong> AWS SSM / Vault. Never in env files. Rotated quarterly.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- API ENDPOINTS -->
+  <!-- ============================================================ -->
+  <section id="api" class="hash-target">
+    <h2 class="text-2xl font-bold mb-2">5. REST API endpoints</h2>
+    <p class="text-sm text-slate-600 mb-4 max-w-3xl">
+      All routes are versioned under <code>/api/v1/</code>. Every non-auth route requires <code>Authorization: Bearer &lt;jwt&gt;</code> + <code>X-Store-Id</code> + <code>X-Outlet-Id</code> (except vendor-wide reports which use <code>X-Outlet-Id: *</code>).
+    </p>
+
+    <details open class="rounded-xl bg-white border border-slate-200 mb-3">
+      <summary class="cursor-pointer px-5 py-3 font-bold flex items-center justify-between">Auth &amp; identity <span class="text-xs text-slate-500 font-normal">6 routes</span></summary>
+      <table class="w-full text-sm border-t border-slate-200">
+        <thead class="bg-slate-50 text-slate-600 text-xs uppercase">
+          <tr><th class="text-left px-4 py-2">Method</th><th class="text-left px-4 py-2">Path</th><th class="text-left px-4 py-2">Purpose</th></tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          <tr><td class="px-4 py-2 font-mono text-emerald-700">POST</td><td class="px-4 py-2 font-mono">/auth/login</td><td class="px-4 py-2">Email + password &rarr; access + refresh tokens.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-emerald-700">POST</td><td class="px-4 py-2 font-mono">/auth/pin</td><td class="px-4 py-2">Cashier PIN + outlet_id &rarr; shift-scoped token (8h).</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-emerald-700">POST</td><td class="px-4 py-2 font-mono">/auth/refresh</td><td class="px-4 py-2">Trade refresh token for a new access token.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-rose-700">POST</td><td class="px-4 py-2 font-mono">/auth/logout</td><td class="px-4 py-2">Revoke the refresh token (this device).</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-rose-700">POST</td><td class="px-4 py-2 font-mono">/auth/logout-all</td><td class="px-4 py-2">Revoke every refresh token for the user (panic).</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-sky-700">GET</td><td class="px-4 py-2 font-mono">/auth/me</td><td class="px-4 py-2">Current user + role + allowed_outlets.</td></tr>
+        </tbody>
+      </table>
+    </details>
+
+    <details class="rounded-xl bg-white border border-slate-200 mb-3">
+      <summary class="cursor-pointer px-5 py-3 font-bold flex items-center justify-between">Tenancy (markets / brands / stores / outlets) <span class="text-xs text-slate-500 font-normal">12 routes</span></summary>
+      <table class="w-full text-sm border-t border-slate-200">
+        <thead class="bg-slate-50 text-slate-600 text-xs uppercase"><tr><th class="text-left px-4 py-2">Method</th><th class="text-left px-4 py-2">Path</th><th class="text-left px-4 py-2">Purpose</th></tr></thead>
+        <tbody class="divide-y divide-slate-100">
+          <tr><td class="px-4 py-2 font-mono text-sky-700">GET</td><td class="px-4 py-2 font-mono">/markets</td><td class="px-4 py-2">All markets the current user can see.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-sky-700">GET</td><td class="px-4 py-2 font-mono">/brands?market_id=</td><td class="px-4 py-2">Brands in a market.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-sky-700">GET</td><td class="px-4 py-2 font-mono">/stores</td><td class="px-4 py-2">Stores in scope of the token.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-emerald-700">POST</td><td class="px-4 py-2 font-mono">/stores</td><td class="px-4 py-2">Create a new store (vendor only).</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-sky-700">GET</td><td class="px-4 py-2 font-mono">/stores/{id}</td><td class="px-4 py-2">Store detail.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-amber-700">PATCH</td><td class="px-4 py-2 font-mono">/stores/{id}</td><td class="px-4 py-2">Update store metadata.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-sky-700">GET</td><td class="px-4 py-2 font-mono">/outlets?store_id=</td><td class="px-4 py-2">Outlets under a store.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-emerald-700">POST</td><td class="px-4 py-2 font-mono">/outlets</td><td class="px-4 py-2">Create a new outlet (triggers fan-out of chain config).</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-sky-700">GET</td><td class="px-4 py-2 font-mono">/outlets/{id}</td><td class="px-4 py-2">Outlet detail + settings.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-amber-700">PATCH</td><td class="px-4 py-2 font-mono">/outlets/{id}</td><td class="px-4 py-2">Update outlet.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-sky-700">GET</td><td class="px-4 py-2 font-mono">/outlets/{id}/settings</td><td class="px-4 py-2">Currency, tax mode, printer, invoice sequence.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-amber-700">PUT</td><td class="px-4 py-2 font-mono">/outlets/{id}/settings</td><td class="px-4 py-2">Replace outlet settings blob.</td></tr>
+        </tbody>
+      </table>
+    </details>
+
+    <details class="rounded-xl bg-white border border-slate-200 mb-3">
+      <summary class="cursor-pointer px-5 py-3 font-bold flex items-center justify-between">Users &amp; roles <span class="text-xs text-slate-500 font-normal">5 routes</span></summary>
+      <table class="w-full text-sm border-t border-slate-200">
+        <thead class="bg-slate-50 text-slate-600 text-xs uppercase"><tr><th class="text-left px-4 py-2">Method</th><th class="text-left px-4 py-2">Path</th><th class="text-left px-4 py-2">Purpose</th></tr></thead>
+        <tbody class="divide-y divide-slate-100">
+          <tr><td class="px-4 py-2 font-mono text-sky-700">GET</td><td class="px-4 py-2 font-mono">/users</td><td class="px-4 py-2">List staff of the current store.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-emerald-700">POST</td><td class="px-4 py-2 font-mono">/users</td><td class="px-4 py-2">Create a user with role + allowed_outlets.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-amber-700">PATCH</td><td class="px-4 py-2 font-mono">/users/{id}</td><td class="px-4 py-2">Update role / outlets / active.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-amber-700">POST</td><td class="px-4 py-2 font-mono">/users/{id}/pin</td><td class="px-4 py-2">Rotate the cashier PIN.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-rose-700">DELETE</td><td class="px-4 py-2 font-mono">/users/{id}</td><td class="px-4 py-2">Deactivate a user (soft delete).</td></tr>
+        </tbody>
+      </table>
+    </details>
+
+    <details class="rounded-xl bg-white border border-slate-200 mb-3">
+      <summary class="cursor-pointer px-5 py-3 font-bold flex items-center justify-between">Catalog: products, menu, modifiers, combos, variants <span class="text-xs text-slate-500 font-normal">14 routes</span></summary>
+      <table class="w-full text-sm border-t border-slate-200">
+        <thead class="bg-slate-50 text-slate-600 text-xs uppercase"><tr><th class="text-left px-4 py-2">Method</th><th class="text-left px-4 py-2">Path</th><th class="text-left px-4 py-2">Purpose</th></tr></thead>
+        <tbody class="divide-y divide-slate-100">
+          <tr><td class="px-4 py-2 font-mono text-sky-700">GET</td><td class="px-4 py-2 font-mono">/catalog/products</td><td class="px-4 py-2">Outlet's product list. Supports <code>?search</code>, <code>?category</code>, <code>?active</code>, cursor pagination.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-emerald-700">POST</td><td class="px-4 py-2 font-mono">/catalog/products</td><td class="px-4 py-2">Add a product (this outlet).</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-amber-700">PATCH</td><td class="px-4 py-2 font-mono">/catalog/products/{id}</td><td class="px-4 py-2">Update.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-rose-700">DELETE</td><td class="px-4 py-2 font-mono">/catalog/products/{id}</td><td class="px-4 py-2">Soft-delete (active=false).</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-emerald-700">POST</td><td class="px-4 py-2 font-mono">/catalog/products/{id}/image</td><td class="px-4 py-2">Upload image; returns S3 URL.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-emerald-700">POST</td><td class="px-4 py-2 font-mono">/catalog/products/bulk-import</td><td class="px-4 py-2">CSV import; idempotent by <code>sku</code>.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-sky-700">GET</td><td class="px-4 py-2 font-mono">/catalog/menu-categories</td><td class="px-4 py-2">List / sort menu categories.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-emerald-700">POST</td><td class="px-4 py-2 font-mono">/catalog/menu-categories</td><td class="px-4 py-2">Create category.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-sky-700">GET</td><td class="px-4 py-2 font-mono">/catalog/modifiers</td><td class="px-4 py-2">Modifier groups (spice, size, add-ons).</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-sky-700">GET</td><td class="px-4 py-2 font-mono">/catalog/combos</td><td class="px-4 py-2">Combo bundles + prices.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-sky-700">GET</td><td class="px-4 py-2 font-mono">/catalog/variants</td><td class="px-4 py-2">Per-product size / half-full variants.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-sky-700">GET</td><td class="px-4 py-2 font-mono">/catalog/order-types</td><td class="px-4 py-2">Counter / Dine-in / Delivery / Aggregator modes.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-sky-700">GET</td><td class="px-4 py-2 font-mono">/catalog/tax-slabs</td><td class="px-4 py-2">GST slabs applicable this outlet.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-sky-700">GET</td><td class="px-4 py-2 font-mono">/catalog/discounts</td><td class="px-4 py-2">Percentage / flat discounts.</td></tr>
+        </tbody>
+      </table>
+    </details>
+
+    <details class="rounded-xl bg-white border border-slate-200 mb-3">
+      <summary class="cursor-pointer px-5 py-3 font-bold flex items-center justify-between">Sales, invoicing, refunds, KOT <span class="text-xs text-slate-500 font-normal">10 routes</span></summary>
+      <table class="w-full text-sm border-t border-slate-200">
+        <thead class="bg-slate-50 text-slate-600 text-xs uppercase"><tr><th class="text-left px-4 py-2">Method</th><th class="text-left px-4 py-2">Path</th><th class="text-left px-4 py-2">Purpose</th></tr></thead>
+        <tbody class="divide-y divide-slate-100">
+          <tr><td class="px-4 py-2 font-mono text-emerald-700">POST</td><td class="px-4 py-2 font-mono">/sales</td><td class="px-4 py-2">Record a sale. Body includes items[], payments[], customer_id?, order_type_code.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-sky-700">GET</td><td class="px-4 py-2 font-mono">/sales</td><td class="px-4 py-2">List sales. <code>?from</code>, <code>?to</code>, <code>?channel</code>, <code>?status</code>, cursor.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-sky-700">GET</td><td class="px-4 py-2 font-mono">/sales/{id}</td><td class="px-4 py-2">Full sale + payments + KOT trail.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-emerald-700">POST</td><td class="px-4 py-2 font-mono">/sales/{id}/void</td><td class="px-4 py-2">Void with reason (creates counter-entry, keeps original).</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-emerald-700">POST</td><td class="px-4 py-2 font-mono">/sales/{id}/refund</td><td class="px-4 py-2">Partial or full refund; creates a linked refund sale.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-emerald-700">POST</td><td class="px-4 py-2 font-mono">/sales/{id}/advance-status</td><td class="px-4 py-2">Move order kanban forward (placed &rarr; confirmed &rarr; packing &rarr; out).</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-sky-700">GET</td><td class="px-4 py-2 font-mono">/sales/{id}/invoice.pdf</td><td class="px-4 py-2">Rendered A4 / thermal PDF (cached on S3).</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-emerald-700">POST</td><td class="px-4 py-2 font-mono">/sales/{id}/kot</td><td class="px-4 py-2">Send Kitchen Order Ticket to KOT stations. Fires WS event.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-sky-700">GET</td><td class="px-4 py-2 font-mono">/sales/live-orders</td><td class="px-4 py-2">Kanban feed. Also available as WS <code>/ws/live-orders</code>.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-emerald-700">POST</td><td class="px-4 py-2 font-mono">/sales/online-order</td><td class="px-4 py-2">Public storefront endpoint (bearer optional; captcha-gated).</td></tr>
+        </tbody>
+      </table>
+    </details>
+
+    <details class="rounded-xl bg-white border border-slate-200 mb-3">
+      <summary class="cursor-pointer px-5 py-3 font-bold flex items-center justify-between">Kitchen: sections, tables, KOT stations, KDS <span class="text-xs text-slate-500 font-normal">9 routes</span></summary>
+      <table class="w-full text-sm border-t border-slate-200">
+        <thead class="bg-slate-50 text-slate-600 text-xs uppercase"><tr><th class="text-left px-4 py-2">Method</th><th class="text-left px-4 py-2">Path</th><th class="text-left px-4 py-2">Purpose</th></tr></thead>
+        <tbody class="divide-y divide-slate-100">
+          <tr><td class="px-4 py-2 font-mono text-sky-700">GET</td><td class="px-4 py-2 font-mono">/kitchen/sections</td><td class="px-4 py-2">Floor sections (Ground / Rooftop / Bar).</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-emerald-700">POST</td><td class="px-4 py-2 font-mono">/kitchen/sections</td><td class="px-4 py-2">Create section.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-sky-700">GET</td><td class="px-4 py-2 font-mono">/kitchen/tables</td><td class="px-4 py-2">Dining tables + live status.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-emerald-700">POST</td><td class="px-4 py-2 font-mono">/kitchen/tables/{id}/status</td><td class="px-4 py-2">Free / occupied / reserved / cleaning.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-sky-700">GET</td><td class="px-4 py-2 font-mono">/kitchen/kot-stations</td><td class="px-4 py-2">Categorised print/screen queues.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-sky-700">GET</td><td class="px-4 py-2 font-mono">/kitchen/kds/tickets</td><td class="px-4 py-2">Pending tickets grouped by station.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-emerald-700">POST</td><td class="px-4 py-2 font-mono">/kitchen/kds/tickets/{id}/bump</td><td class="px-4 py-2">Bump ticket state (received/cooking/ready).</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-sky-700">GET</td><td class="px-4 py-2 font-mono">/kitchen/kot-print</td><td class="px-4 py-2">Streaming ESC/POS payload for the printer bridge.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-sky-700">WS</td><td class="px-4 py-2 font-mono">/ws/kds?outlet_id=</td><td class="px-4 py-2">Realtime ticket stream, table-status pushes.</td></tr>
+        </tbody>
+      </table>
+    </details>
+
+    <details class="rounded-xl bg-white border border-slate-200 mb-3">
+      <summary class="cursor-pointer px-5 py-3 font-bold flex items-center justify-between">Inventory: ingredients, recipes, warehouses, stock ops <span class="text-xs text-slate-500 font-normal">14 routes</span></summary>
+      <table class="w-full text-sm border-t border-slate-200">
+        <thead class="bg-slate-50 text-slate-600 text-xs uppercase"><tr><th class="text-left px-4 py-2">Method</th><th class="text-left px-4 py-2">Path</th><th class="text-left px-4 py-2">Purpose</th></tr></thead>
+        <tbody class="divide-y divide-slate-100">
+          <tr><td class="px-4 py-2 font-mono text-sky-700">GET</td><td class="px-4 py-2 font-mono">/inventory/ingredients</td><td class="px-4 py-2">Raw materials + stock on hand.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-emerald-700">POST</td><td class="px-4 py-2 font-mono">/inventory/ingredients</td><td class="px-4 py-2">Add ingredient.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-sky-700">GET</td><td class="px-4 py-2 font-mono">/inventory/recipes</td><td class="px-4 py-2">Menu-item &rarr; ingredient lines.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-amber-700">PUT</td><td class="px-4 py-2 font-mono">/inventory/recipes/{menu_item_id}</td><td class="px-4 py-2">Replace recipe.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-sky-700">GET</td><td class="px-4 py-2 font-mono">/inventory/warehouses</td><td class="px-4 py-2">Locations that hold stock (main / cold / bar).</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-sky-700">GET</td><td class="px-4 py-2 font-mono">/inventory/uom</td><td class="px-4 py-2">Units of measure + conversions.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-sky-700">GET</td><td class="px-4 py-2 font-mono">/inventory/rm-categories</td><td class="px-4 py-2">Raw-material category tree.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-emerald-700">POST</td><td class="px-4 py-2 font-mono">/inventory/stock-adjustments</td><td class="px-4 py-2">Manual +/- with reason.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-emerald-700">POST</td><td class="px-4 py-2 font-mono">/inventory/wastage</td><td class="px-4 py-2">Log wastage + cost impact.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-emerald-700">POST</td><td class="px-4 py-2 font-mono">/inventory/production-batches</td><td class="px-4 py-2">Produce N units of an intermediate ingredient.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-emerald-700">POST</td><td class="px-4 py-2 font-mono">/inventory/stock-transfers</td><td class="px-4 py-2">Move stock between warehouses (2-phase commit).</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-emerald-700">POST</td><td class="px-4 py-2 font-mono">/inventory/indents</td><td class="px-4 py-2">Request stock from central warehouse.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-sky-700">GET</td><td class="px-4 py-2 font-mono">/inventory/stock-report</td><td class="px-4 py-2">Current on-hand + reorder alerts.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-sky-700">GET</td><td class="px-4 py-2 font-mono">/inventory/wastage-report</td><td class="px-4 py-2">Daily wastage KPIs.</td></tr>
+        </tbody>
+      </table>
+    </details>
+
+    <details class="rounded-xl bg-white border border-slate-200 mb-3">
+      <summary class="cursor-pointer px-5 py-3 font-bold flex items-center justify-between">Procurement: suppliers, POs, GRNs, vendor bills <span class="text-xs text-slate-500 font-normal">10 routes</span></summary>
+      <table class="w-full text-sm border-t border-slate-200">
+        <thead class="bg-slate-50 text-slate-600 text-xs uppercase"><tr><th class="text-left px-4 py-2">Method</th><th class="text-left px-4 py-2">Path</th><th class="text-left px-4 py-2">Purpose</th></tr></thead>
+        <tbody class="divide-y divide-slate-100">
+          <tr><td class="px-4 py-2 font-mono text-sky-700">GET</td><td class="px-4 py-2 font-mono">/procurement/suppliers</td><td class="px-4 py-2">Suppliers of this outlet.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-emerald-700">POST</td><td class="px-4 py-2 font-mono">/procurement/suppliers</td><td class="px-4 py-2">Onboard supplier.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-sky-700">GET</td><td class="px-4 py-2 font-mono">/procurement/purchase-orders</td><td class="px-4 py-2">POs + statuses.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-emerald-700">POST</td><td class="px-4 py-2 font-mono">/procurement/purchase-orders</td><td class="px-4 py-2">Raise PO.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-emerald-700">POST</td><td class="px-4 py-2 font-mono">/procurement/purchase-orders/{id}/approve</td><td class="px-4 py-2">Approve PO (transitions status).</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-sky-700">GET</td><td class="px-4 py-2 font-mono">/procurement/grns</td><td class="px-4 py-2">Goods-received notes.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-emerald-700">POST</td><td class="px-4 py-2 font-mono">/procurement/grns</td><td class="px-4 py-2">Record receipt against a PO (partial allowed).</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-sky-700">GET</td><td class="px-4 py-2 font-mono">/procurement/vendor-bills</td><td class="px-4 py-2">Payables + due dates.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-emerald-700">POST</td><td class="px-4 py-2 font-mono">/procurement/vendor-bills/{id}/pay</td><td class="px-4 py-2">Record a payment against a bill.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-sky-700">GET</td><td class="px-4 py-2 font-mono">/procurement/aging</td><td class="px-4 py-2">30/60/90 payables ageing.</td></tr>
+        </tbody>
+      </table>
+    </details>
+
+    <details class="rounded-xl bg-white border border-slate-200 mb-3">
+      <summary class="cursor-pointer px-5 py-3 font-bold flex items-center justify-between">CRM: customers, groups, tiers, lending <span class="text-xs text-slate-500 font-normal">10 routes</span></summary>
+      <table class="w-full text-sm border-t border-slate-200">
+        <thead class="bg-slate-50 text-slate-600 text-xs uppercase"><tr><th class="text-left px-4 py-2">Method</th><th class="text-left px-4 py-2">Path</th><th class="text-left px-4 py-2">Purpose</th></tr></thead>
+        <tbody class="divide-y divide-slate-100">
+          <tr><td class="px-4 py-2 font-mono text-sky-700">GET</td><td class="px-4 py-2 font-mono">/crm/customers</td><td class="px-4 py-2">Search + list. <code>?mobile</code>, <code>?q</code>.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-emerald-700">POST</td><td class="px-4 py-2 font-mono">/crm/customers</td><td class="px-4 py-2">Add customer at this outlet.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-sky-700">GET</td><td class="px-4 py-2 font-mono">/crm/customers/{id}</td><td class="px-4 py-2">Profile + sale history + lending ledger.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-amber-700">PATCH</td><td class="px-4 py-2 font-mono">/crm/customers/{id}</td><td class="px-4 py-2">Update.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-emerald-700">POST</td><td class="px-4 py-2 font-mono">/crm/customers/{id}/payments</td><td class="px-4 py-2">Record a lending payment against balance.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-sky-700">GET</td><td class="px-4 py-2 font-mono">/crm/customers/{id}/lending</td><td class="px-4 py-2">Full lending ledger.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-sky-700">GET</td><td class="px-4 py-2 font-mono">/crm/groups</td><td class="px-4 py-2">Customer groups (VIP, Corporate).</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-sky-700">GET</td><td class="px-4 py-2 font-mono">/crm/loyalty-tiers</td><td class="px-4 py-2">Tiers + point multipliers.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-sky-700">GET</td><td class="px-4 py-2 font-mono">/crm/coupons</td><td class="px-4 py-2">Active coupons.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-emerald-700">POST</td><td class="px-4 py-2 font-mono">/crm/coupons/{code}/redeem</td><td class="px-4 py-2">Redemption (called during checkout).</td></tr>
+        </tbody>
+      </table>
+    </details>
+
+    <details class="rounded-xl bg-white border border-slate-200 mb-3">
+      <summary class="cursor-pointer px-5 py-3 font-bold flex items-center justify-between">Accounting: accounts, expenses <span class="text-xs text-slate-500 font-normal">7 routes</span></summary>
+      <table class="w-full text-sm border-t border-slate-200">
+        <thead class="bg-slate-50 text-slate-600 text-xs uppercase"><tr><th class="text-left px-4 py-2">Method</th><th class="text-left px-4 py-2">Path</th><th class="text-left px-4 py-2">Purpose</th></tr></thead>
+        <tbody class="divide-y divide-slate-100">
+          <tr><td class="px-4 py-2 font-mono text-sky-700">GET</td><td class="px-4 py-2 font-mono">/accounting/accounts</td><td class="px-4 py-2">Chart of accounts (this outlet).</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-emerald-700">POST</td><td class="px-4 py-2 font-mono">/accounting/accounts</td><td class="px-4 py-2">Create account.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-sky-700">GET</td><td class="px-4 py-2 font-mono">/accounting/expense-categories</td><td class="px-4 py-2">Expense category tree.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-sky-700">GET</td><td class="px-4 py-2 font-mono">/accounting/expenses</td><td class="px-4 py-2">Expense voucher list.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-emerald-700">POST</td><td class="px-4 py-2 font-mono">/accounting/expenses</td><td class="px-4 py-2">Record voucher (auto-generates <code>voucher_number</code>).</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-sky-700">GET</td><td class="px-4 py-2 font-mono">/accounting/pnl</td><td class="px-4 py-2">P&amp;L for a date range.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-sky-700">GET</td><td class="px-4 py-2 font-mono">/accounting/cash-book</td><td class="px-4 py-2">Daily cash open/close reconciliation.</td></tr>
+        </tbody>
+      </table>
+    </details>
+
+    <details class="rounded-xl bg-white border border-slate-200 mb-3">
+      <summary class="cursor-pointer px-5 py-3 font-bold flex items-center justify-between">Marketing: templates, segments, campaigns <span class="text-xs text-slate-500 font-normal">6 routes</span></summary>
+      <table class="w-full text-sm border-t border-slate-200">
+        <thead class="bg-slate-50 text-slate-600 text-xs uppercase"><tr><th class="text-left px-4 py-2">Method</th><th class="text-left px-4 py-2">Path</th><th class="text-left px-4 py-2">Purpose</th></tr></thead>
+        <tbody class="divide-y divide-slate-100">
+          <tr><td class="px-4 py-2 font-mono text-sky-700">GET</td><td class="px-4 py-2 font-mono">/marketing/wa-templates</td><td class="px-4 py-2">WhatsApp Business templates (per outlet).</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-emerald-700">POST</td><td class="px-4 py-2 font-mono">/marketing/wa-templates/submit</td><td class="px-4 py-2">Submit for Meta approval.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-sky-700">GET</td><td class="px-4 py-2 font-mono">/marketing/segments</td><td class="px-4 py-2">Saved audience definitions.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-emerald-700">POST</td><td class="px-4 py-2 font-mono">/marketing/campaigns</td><td class="px-4 py-2">Schedule a WA / SMS campaign (Celery Beat).</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-emerald-700">POST</td><td class="px-4 py-2 font-mono">/marketing/campaigns/{id}/cancel</td><td class="px-4 py-2">Cancel scheduled campaign.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-sky-700">GET</td><td class="px-4 py-2 font-mono">/marketing/campaigns/{id}/stats</td><td class="px-4 py-2">Delivered / read / clicked / opt-out.</td></tr>
+        </tbody>
+      </table>
+    </details>
+
+    <details class="rounded-xl bg-white border border-slate-200 mb-3">
+      <summary class="cursor-pointer px-5 py-3 font-bold flex items-center justify-between">Reports &amp; dashboards <span class="text-xs text-slate-500 font-normal">8 routes</span></summary>
+      <table class="w-full text-sm border-t border-slate-200">
+        <thead class="bg-slate-50 text-slate-600 text-xs uppercase"><tr><th class="text-left px-4 py-2">Method</th><th class="text-left px-4 py-2">Path</th><th class="text-left px-4 py-2">Purpose</th></tr></thead>
+        <tbody class="divide-y divide-slate-100">
+          <tr><td class="px-4 py-2 font-mono text-sky-700">GET</td><td class="px-4 py-2 font-mono">/reports/dashboard</td><td class="px-4 py-2">Outlet KPIs: revenue, orders, AOV, channel split.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-sky-700">GET</td><td class="px-4 py-2 font-mono">/reports/sales</td><td class="px-4 py-2">Line/bar series, item-mix.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-sky-700">GET</td><td class="px-4 py-2 font-mono">/reports/collections</td><td class="px-4 py-2">Payment-mode breakdown.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-sky-700">GET</td><td class="px-4 py-2 font-mono">/reports/tax</td><td class="px-4 py-2">GST-ready summaries.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-sky-700">GET</td><td class="px-4 py-2 font-mono">/reports/inventory</td><td class="px-4 py-2">Stock valuation + ageing.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-sky-700">GET</td><td class="px-4 py-2 font-mono">/reports/hq/chain-wide</td><td class="px-4 py-2">Vendor-only roll-up across all outlets in scope.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-emerald-700">POST</td><td class="px-4 py-2 font-mono">/reports/export</td><td class="px-4 py-2">Queue a large report; returns job_id + S3 URL when ready.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-sky-700">GET</td><td class="px-4 py-2 font-mono">/reports/audit-log</td><td class="px-4 py-2">Filterable audit trail.</td></tr>
+        </tbody>
+      </table>
+    </details>
+
+    <details class="rounded-xl bg-white border border-slate-200 mb-3">
+      <summary class="cursor-pointer px-5 py-3 font-bold flex items-center justify-between">Sync (offline) &amp; system <span class="text-xs text-slate-500 font-normal">6 routes</span></summary>
+      <table class="w-full text-sm border-t border-slate-200">
+        <thead class="bg-slate-50 text-slate-600 text-xs uppercase"><tr><th class="text-left px-4 py-2">Method</th><th class="text-left px-4 py-2">Path</th><th class="text-left px-4 py-2">Purpose</th></tr></thead>
+        <tbody class="divide-y divide-slate-100">
+          <tr><td class="px-4 py-2 font-mono text-emerald-700">POST</td><td class="px-4 py-2 font-mono">/sync/push</td><td class="px-4 py-2">Batch of client mutations. Returns per-op ack.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-sky-700">GET</td><td class="px-4 py-2 font-mono">/sync/pull?since=</td><td class="px-4 py-2">Delta of every table modified after cursor.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-sky-700">GET</td><td class="px-4 py-2 font-mono">/sync/cursor</td><td class="px-4 py-2">Current server cursor (for bootstrapping a new device).</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-sky-700">GET</td><td class="px-4 py-2 font-mono">/health</td><td class="px-4 py-2">Liveness (no auth).</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-sky-700">GET</td><td class="px-4 py-2 font-mono">/ready</td><td class="px-4 py-2">Readiness: DB + Redis + S3 reachable.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-sky-700">GET</td><td class="px-4 py-2 font-mono">/version</td><td class="px-4 py-2">Build SHA + release tag.</td></tr>
+        </tbody>
+      </table>
+    </details>
+
+    <details class="rounded-xl bg-white border border-slate-200 mb-3">
+      <summary class="cursor-pointer px-5 py-3 font-bold flex items-center justify-between">Webhooks &amp; integrations <span class="text-xs text-slate-500 font-normal">5 routes</span></summary>
+      <table class="w-full text-sm border-t border-slate-200">
+        <thead class="bg-slate-50 text-slate-600 text-xs uppercase"><tr><th class="text-left px-4 py-2">Method</th><th class="text-left px-4 py-2">Path</th><th class="text-left px-4 py-2">Purpose</th></tr></thead>
+        <tbody class="divide-y divide-slate-100">
+          <tr><td class="px-4 py-2 font-mono text-emerald-700">POST</td><td class="px-4 py-2 font-mono">/webhooks/aggregator/{provider}</td><td class="px-4 py-2">Zomato / Swiggy order + status webhooks (HMAC-verified).</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-emerald-700">POST</td><td class="px-4 py-2 font-mono">/webhooks/payment/{provider}</td><td class="px-4 py-2">Razorpay / Stripe payment status.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-emerald-700">POST</td><td class="px-4 py-2 font-mono">/webhooks/wa/status</td><td class="px-4 py-2">Meta WA delivery / read receipts.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-emerald-700">POST</td><td class="px-4 py-2 font-mono">/integrations/tally/export</td><td class="px-4 py-2">Push accounting entries to Tally XML.</td></tr>
+          <tr><td class="px-4 py-2 font-mono text-sky-700">GET</td><td class="px-4 py-2 font-mono">/integrations/gstin/lookup?gstin=</td><td class="px-4 py-2">Validate + auto-fill supplier GSTIN.</td></tr>
+        </tbody>
+      </table>
+    </details>
+
+    <div class="rounded-xl bg-slate-900 text-slate-100 p-6 mt-6">
+      <h3 class="text-base font-bold mb-3 text-emerald-300">Standard request contract</h3>
+<pre><code>POST /api/v1/sales HTTP/1.1
+Host: api.outletly.app
+Authorization: Bearer &lt;jwt&gt;
+X-Store-Id: store-spiceroute
+X-Outlet-Id: outlet-spice-koram
+Content-Type: application/json
+Idempotency-Key: 01HXABC...   # optional; server dedupes for 24h
+
+{ "items": [...], "payments": [...], "customer_id": null,
+  "order_type_code": "delivery" }
+
+HTTP/1.1 201 Created
+X-Request-Id: 01HXREQ...
+{ "id": "01HXSALE...", "invoice_no": "INV-000123", ... }</code></pre>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-4 mt-6 text-sm">
+      <div class="rounded-xl bg-white border border-slate-200 p-5">
+        <h4 class="font-bold mb-2">Error envelope</h4>
+<pre class="!bg-slate-100 !text-slate-800 !text-xs !py-3"><code>{
+  "error": {
+    "code": "OUTLET_MISMATCH",
+    "message": "Product does not belong to X-Outlet-Id.",
+    "trace_id": "01HXREQ..."
+  }
+}</code></pre>
+      </div>
+      <div class="rounded-xl bg-white border border-slate-200 p-5">
+        <h4 class="font-bold mb-2">Pagination</h4>
+<pre class="!bg-slate-100 !text-slate-800 !text-xs !py-3"><code>GET /api/v1/sales?limit=50&amp;cursor=eyJhZnRlciI6...
+
+{
+  "data": [...],
+  "next_cursor": "eyJhZnRlciI6MTcxMj...",
+  "has_more": true
+}</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
   <!-- DATA FLOW -->
   <!-- ============================================================ -->
   <section id="dataflow" class="hash-target">
-    <h2 class="text-2xl font-bold mb-6">4. Data flow</h2>
+    <h2 class="text-2xl font-bold mb-6">6. Data flow</h2>
 
     <div class="grid md:grid-cols-2 gap-6">
       <div class="rounded-xl bg-white border border-slate-200 p-6">
@@ -461,7 +945,7 @@ if (hasOutletCompound &amp;&amp; currentStoreId &amp;&amp; currentOutletId) {
   <!-- HOW TO USE HTML -->
   <!-- ============================================================ -->
   <section id="howto" class="hash-target">
-    <h2 class="text-2xl font-bold mb-6">5. How to use this HTML</h2>
+    <h2 class="text-2xl font-bold mb-6">7. How to use this HTML</h2>
 
     <div class="grid md:grid-cols-3 gap-4">
       <div class="rounded-xl bg-white border border-slate-200 p-5">
@@ -524,7 +1008,7 @@ python3 -m http.server 8000
 <script>
   // Highlight the current section in the top-nav.
   const links = document.querySelectorAll('.toc-link');
-  const sections = ['overview','schema','architecture','dataflow','howto'].map(id => document.getElementById(id));
+  const sections = ['overview','schema','architecture','backend','api','dataflow','howto'].map(id => document.getElementById(id));
   const setActive = () => {
     const y = window.scrollY + 120;
     let currentIdx = 0;
