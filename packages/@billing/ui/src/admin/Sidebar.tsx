@@ -257,7 +257,7 @@ export const AdminSidebar: FC<AdminSidebarProps> = ({ slug, collapsed, groups })
           {!collapsed && <span>Customize</span>}
         </button>
         {!collapsed && (
-          <span className={cls['sidebar__footer-hint']}>KartWise v11.7</span>
+          <span className={cls['sidebar__footer-hint']}>v11.7</span>
         )}
       </div>
 
