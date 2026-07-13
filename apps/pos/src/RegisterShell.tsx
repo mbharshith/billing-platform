@@ -1,4 +1,4 @@
-// CounterShell — top-level layout: Header, nav, TenantBadge, and UserMenu. Renders pages via <Outlet />.
+// RegisterShell — top-level layout: Header, nav, TenantBadge, and UserMenu. Renders pages via <Outlet />.
 import { useEffect, useRef, useState, type FC, type ReactNode } from 'react';
 import { NavLink, Outlet, useNavigate, useParams } from 'react-router-dom';
 import cls from './layout.module.css';
@@ -264,8 +264,8 @@ const BottomNav: FC = () => {
   );
 };
 
-// CounterShell
-export const CounterShell: FC = () => {
+// RegisterShell
+export const RegisterShell: FC = () => {
   useEffect(() => {
     document.title = STRINGS.brand.fullTitle;
   }, []);

@@ -4,7 +4,7 @@ import { useParams } from 'react-router-dom';
 import cls from './pages.module.css';
 import { Badge, Icon, Text } from '@billing/ui/atoms';
 import { BRAND } from '@billing/shared/brand';
-import { PageHeader } from '../CounterShell';
+import { PageHeader } from '../RegisterShell';
 import { STRINGS } from '@billing/shared/domain/strings';
 import { fmtDate, formatNumberCompact, num } from '@billing/shared/domain/format';
 import { useMoney } from '@billing/shared/hooks/useMoney';

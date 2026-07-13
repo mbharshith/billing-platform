@@ -1,5 +1,5 @@
 // ThemeToggle - shared light/dark switcher used by every shell.
-// Extracted to atoms/ so CounterShell + StorefrontShell (and future shells)
+// Extracted to atoms/ so RegisterShell + StorefrontShell (and future shells)
 // don't each duplicate the 20-line component + CSS.
 import type { FC } from 'react';
 import { Icon } from './Icon';

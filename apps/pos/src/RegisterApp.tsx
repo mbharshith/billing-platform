@@ -1,10 +1,10 @@
-// CounterApp — exports CashierApp (/:slug/cashier/*) and AdminApp (/:slug/admin/*). All pages are React.lazy'd.
+// RegisterApp — exports CashierApp (/:slug/cashier/*) and AdminApp (/:slug/admin/*). All pages are React.lazy'd.
 
 import { lazy, Suspense, type FC, type JSX, type ReactNode } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import { AdminRoute, ProtectedRoute } from '@billing/ui/guards';
 import { AppSplash, ErrorBoundary, NotFoundPage } from '@billing/ui/errors';
-import { CounterShell } from './CounterShell';
+import { RegisterShell } from './RegisterShell';
 import { AdminShellRoute } from './AdminShellRoute';
 
 // Cashier-facing pages (top-nav shell)
@@ -111,7 +111,7 @@ const R = (label: string, node: ReactNode): JSX.Element => (
 export const CashierApp: FC = () => (
   <Routes>
     <Route element={<ProtectedRoute />}>
-      <Route element={<CounterShell />}>
+      <Route element={<RegisterShell />}>
         <Route index                    element={R('cashier',         <CashierPage />)} />
         <Route path="sales"             element={R('sales',           <SalesPage />)} />
         <Route path="sales/:id"         element={R('sale-detail',     <SaleDetailPage />)} />
@@ -221,4 +221,4 @@ export const AdminApp: FC = () => (
 );
 
 // Back-compat re-export.
-export const CounterApp = CashierApp;
+export const RegisterApp = CashierApp;

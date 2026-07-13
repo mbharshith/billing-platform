@@ -6,7 +6,7 @@
 import { type FC } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { AdminShell } from '@billing/ui/admin';
-import { UserMenu } from './CounterShell';
+import { UserMenu } from './RegisterShell';
 
 export const AdminShellRoute: FC = () => {
   const { slug = '' } = useParams<{ slug: string }>();

@@ -87,7 +87,7 @@ export const Shell: FC = () => (
         <Route path="/dashboard/*" element={<Navigate to="/login" replace />} />
 
         {/* ---------- tenant staff surfaces (/<slug>/cashier|admin/*) ----- */}
-        {/* Auth is enforced INSIDE CounterApp per-subtree (cashier=any staff,
+        {/* Auth is enforced INSIDE RegisterApp per-subtree (cashier=any staff,
             admin=admin only) rather than at the wrapper so the storefront
             below can still be public. */}
         <Route path="/:slug/cashier/*" element={SubApp('cashier', <CashierApp />)} />

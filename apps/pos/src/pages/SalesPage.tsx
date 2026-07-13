@@ -10,7 +10,7 @@ import {
   SearchBar,
   type DateRangeKey,
 } from '@billing/ui/molecules';
-import { PageHeader } from '../CounterShell';
+import { PageHeader } from '../RegisterShell';
 import { STRINGS } from '@billing/shared/domain/strings';
 import { fmtDateTime } from '@billing/shared/domain/format';
 import { useMoney } from '@billing/shared/hooks/useMoney';

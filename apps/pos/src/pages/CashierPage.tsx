@@ -27,7 +27,7 @@ import {
 import type { CheckoutPayload } from '@billing/ui/organisms';
 import contextCls from '@billing/ui/organisms/cashier.module.css';
 import { Icon, Text } from '@billing/ui/atoms';
-import { PageHeader } from '../CounterShell';
+import { PageHeader } from '../RegisterShell';
 import { STRINGS } from '@billing/shared/domain/strings';
 import { useAuth } from '@billing/shared/store/AuthContext';
 import { useCustomers } from '@billing/shared/store/CustomersContext';

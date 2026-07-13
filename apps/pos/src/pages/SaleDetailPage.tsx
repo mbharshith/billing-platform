@@ -5,7 +5,7 @@ import cls from './pages.module.css';
 import { Badge, Button, Field, Text, Textarea } from '@billing/ui/atoms';
 import { DataTable, PaymentBadge, ProductBadge } from '@billing/ui/molecules';
 import { Modal } from '@billing/ui/organisms';
-import { PageHeader } from '../CounterShell';
+import { PageHeader } from '../RegisterShell';
 import { STRINGS } from '@billing/shared/domain/strings';
 import { fmtDateTime, formatPhone } from '@billing/shared/domain/format';
 import { useMoney } from '@billing/shared/hooks/useMoney';

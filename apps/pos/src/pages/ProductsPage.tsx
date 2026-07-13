@@ -6,7 +6,7 @@ import { Badge, Button, Field, Input, Select, Text } from '@billing/ui/atoms';
 import { Modal } from '@billing/ui/organisms';
 import { DataTable, ProductBadge } from '@billing/ui/molecules';
 import { ConfirmDialog } from '@billing/ui/feedback';
-import { PageHeader } from '../CounterShell';
+import { PageHeader } from '../RegisterShell';
 import { STRINGS } from '@billing/shared/domain/strings';
 import { useMoney } from '@billing/shared/hooks/useMoney';
 import { ALL_CATEGORIES, ALL_TONES } from '@billing/shared/domain/catalog';
