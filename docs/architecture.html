@@ -773,6 +773,142 @@ id "tbl-g-1::outlet-spice-hsr"
       </p>
     </div>
 
+    <!-- COST BREAKDOWN -->
+    <h3 class="text-lg font-bold mt-10 mb-3">Cost breakdown &mdash; one-time setup + monthly running</h3>
+    <p class="text-sm text-slate-600 mb-6 max-w-3xl">
+      All numbers below are <strong>USD</strong>, exclude taxes, and assume India-based ops. Cloud pricing is AWS Mumbai / Cloudflare, quoted from public pricing pages. Payment-gateway + WhatsApp fees are pass-through and scale with volume.
+    </p>
+
+    <!-- One-time setup -->
+    <h4 class="font-bold mt-6 mb-3">One-time setup (day-zero) &mdash; approx $500&ndash;$2,500</h4>
+    <div class="rounded-xl bg-white border border-slate-200 overflow-hidden mb-8">
+      <table class="w-full text-sm">
+        <thead class="bg-slate-50 text-slate-600 text-xs uppercase">
+          <tr>
+            <th class="text-left px-4 py-2">Line item</th>
+            <th class="text-left px-4 py-2">Range (USD)</th>
+            <th class="text-left px-4 py-2">Notes</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          <tr><td class="px-4 py-2 font-bold align-top">Domain</td><td class="px-4 py-2">$10&ndash;$30/yr</td><td class="px-4 py-2"><code>.app</code>, <code>.shop</code>, or <code>.in</code>. Namecheap / Cloudflare Registrar.</td></tr>
+          <tr><td class="px-4 py-2 font-bold align-top">SSL / TLS</td><td class="px-4 py-2">$0</td><td class="px-4 py-2">Let's Encrypt via Cloudflare or Caddy. Auto-renew.</td></tr>
+          <tr><td class="px-4 py-2 font-bold align-top">Design / branding</td><td class="px-4 py-2">$0&ndash;$500</td><td class="px-4 py-2">Free if using our built-in theme; upsell if a boutique logo is needed.</td></tr>
+          <tr><td class="px-4 py-2 font-bold align-top">Legal (T&amp;C, privacy, DPA)</td><td class="px-4 py-2">$100&ndash;$500</td><td class="px-4 py-2">One-time lawyer engagement for India + EU boilerplate. Or Termageddon $10/mo alternative.</td></tr>
+          <tr><td class="px-4 py-2 font-bold align-top">Payment-gateway KYC</td><td class="px-4 py-2">$0</td><td class="px-4 py-2">Razorpay / Stripe free onboarding; 2&ndash;3 business days.</td></tr>
+          <tr><td class="px-4 py-2 font-bold align-top">GST + business registration</td><td class="px-4 py-2">$50&ndash;$200</td><td class="px-4 py-2">India: GSTIN + LLP/Pvt Ltd via IndiaFilings or ClearTax. Skip if already registered.</td></tr>
+          <tr><td class="px-4 py-2 font-bold align-top">PCI-DSS SAQ-A</td><td class="px-4 py-2">$0</td><td class="px-4 py-2">Self-assessment questionnaire; free because we never touch card data.</td></tr>
+          <tr><td class="px-4 py-2 font-bold align-top">WhatsApp Business API</td><td class="px-4 py-2">$0 setup</td><td class="px-4 py-2">Meta approval is free. Template categories: utility &lt;$0.005 each, marketing ~$0.02 each (India rates).</td></tr>
+          <tr><td class="px-4 py-2 font-bold align-top">Transactional email</td><td class="px-4 py-2">$0</td><td class="px-4 py-2">SES free tier: 62K emails/mo when sent from EC2 / Lambda.</td></tr>
+          <tr><td class="px-4 py-2 font-bold align-top">Cloud account setup</td><td class="px-4 py-2">$0</td><td class="px-4 py-2">AWS / GCP free-tier credits often cover the first year.</td></tr>
+          <tr><td class="px-4 py-2 font-bold align-top">Dev tools (GitHub / CI)</td><td class="px-4 py-2">$0</td><td class="px-4 py-2">GitHub Actions free minutes; Cloudflare Pages free.</td></tr>
+          <tr class="bg-emerald-50"><td class="px-4 py-2 font-bold align-top">Total realistic day-zero</td><td class="px-4 py-2 font-bold">$160&ndash;$1,230</td><td class="px-4 py-2">Bare bones: buy domain + legal boilerplate. Everything else stays $0 until first traffic.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Monthly running -->
+    <h4 class="font-bold mt-6 mb-3">Monthly running &mdash; line-item breakdown per tier</h4>
+    <div class="rounded-xl bg-white border border-slate-200 overflow-x-auto mb-4">
+      <table class="w-full text-sm min-w-[900px]">
+        <thead class="bg-slate-50 text-slate-600 text-xs uppercase">
+          <tr>
+            <th class="text-left px-4 py-2">Service</th>
+            <th class="text-left px-4 py-2">Pilot<br><span class="font-normal normal-case">1&ndash;10 outlets</span></th>
+            <th class="text-left px-4 py-2">Growth<br><span class="font-normal normal-case">100 outlets</span></th>
+            <th class="text-left px-4 py-2">Scale<br><span class="font-normal normal-case">1K outlets</span></th>
+            <th class="text-left px-4 py-2">Chain<br><span class="font-normal normal-case">10K outlets</span></th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          <tr><td class="px-4 py-2 font-bold">API compute (Fly / EC2)</td><td class="px-4 py-2">$15</td><td class="px-4 py-2">$90</td><td class="px-4 py-2">$800</td><td class="px-4 py-2">$6,000</td></tr>
+          <tr><td class="px-4 py-2 font-bold">Postgres (RDS)</td><td class="px-4 py-2">$25 (t3.small)</td><td class="px-4 py-2">$220 (r6g.large + replica)</td><td class="px-4 py-2">$1,800 (r6g.2xl + 3 replicas)</td><td class="px-4 py-2">$12,000 (Citus 4 shards)</td></tr>
+          <tr><td class="px-4 py-2 font-bold">Redis (ElastiCache)</td><td class="px-4 py-2">$12 (micro)</td><td class="px-4 py-2">$70 (m6g.large)</td><td class="px-4 py-2">$450 (cluster)</td><td class="px-4 py-2">$2,500 (12 shards)</td></tr>
+          <tr><td class="px-4 py-2 font-bold">Object storage (S3 / R2)</td><td class="px-4 py-2">$1</td><td class="px-4 py-2">$15</td><td class="px-4 py-2">$120</td><td class="px-4 py-2">$800</td></tr>
+          <tr><td class="px-4 py-2 font-bold">CDN / edge (Cloudflare)</td><td class="px-4 py-2">$0 (free)</td><td class="px-4 py-2">$20 (Pro)</td><td class="px-4 py-2">$200 (Business)</td><td class="px-4 py-2">$2,000 (Enterprise-lite)</td></tr>
+          <tr><td class="px-4 py-2 font-bold">Celery workers</td><td class="px-4 py-2">$8</td><td class="px-4 py-2">$40</td><td class="px-4 py-2">$250</td><td class="px-4 py-2">$1,500</td></tr>
+          <tr><td class="px-4 py-2 font-bold">Monitoring (Grafana Cloud)</td><td class="px-4 py-2">$0 (free)</td><td class="px-4 py-2">$29</td><td class="px-4 py-2">$300</td><td class="px-4 py-2">$1,500</td></tr>
+          <tr><td class="px-4 py-2 font-bold">Backups + DR (S3 versioned)</td><td class="px-4 py-2">$2</td><td class="px-4 py-2">$15</td><td class="px-4 py-2">$150</td><td class="px-4 py-2">$1,000</td></tr>
+          <tr><td class="px-4 py-2 font-bold">Transactional email (SES)</td><td class="px-4 py-2">$0 (free tier)</td><td class="px-4 py-2">$5</td><td class="px-4 py-2">$50</td><td class="px-4 py-2">$500</td></tr>
+          <tr><td class="px-4 py-2 font-bold">Domain + DNS</td><td class="px-4 py-2">$1</td><td class="px-4 py-2">$1</td><td class="px-4 py-2">$1</td><td class="px-4 py-2">$5</td></tr>
+          <tr><td class="px-4 py-2 font-bold">Error tracking (Sentry)</td><td class="px-4 py-2">$0 (free)</td><td class="px-4 py-2">$26</td><td class="px-4 py-2">$80</td><td class="px-4 py-2">$300</td></tr>
+          <tr class="bg-slate-50 font-bold"><td class="px-4 py-2">Infra subtotal</td><td class="px-4 py-2 text-indigo-700">~$64</td><td class="px-4 py-2 text-indigo-700">~$531</td><td class="px-4 py-2 text-indigo-700">~$4,200</td><td class="px-4 py-2 text-indigo-700">~$28,105</td></tr>
+          <tr><td class="px-4 py-2 font-bold pt-4" colspan="5">Pass-through (paid by tenant, quoted for reference)</td></tr>
+          <tr><td class="px-4 py-2">Payment gateway (Razorpay 2%)</td><td class="px-4 py-2">$50</td><td class="px-4 py-2">$2,500</td><td class="px-4 py-2">$25,000</td><td class="px-4 py-2">$250,000</td></tr>
+          <tr><td class="px-4 py-2">WhatsApp templates (~$0.008 avg)</td><td class="px-4 py-2">$4</td><td class="px-4 py-2">$200</td><td class="px-4 py-2">$2,000</td><td class="px-4 py-2">$20,000</td></tr>
+          <tr><td class="px-4 py-2">SMS (fallback, optional)</td><td class="px-4 py-2">$2</td><td class="px-4 py-2">$100</td><td class="px-4 py-2">$1,000</td><td class="px-4 py-2">$10,000</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Cost drivers -->
+    <h4 class="font-bold mt-8 mb-3">What drives the cost curve</h4>
+    <div class="grid md:grid-cols-2 gap-4 text-sm">
+      <div class="rounded-xl bg-white border border-slate-200 p-5">
+        <div class="text-xs uppercase text-slate-500 font-semibold">Fastest-growing line</div>
+        <div class="font-bold mt-1">Postgres (75% of the bill by Chain tier)</div>
+        <p class="text-slate-600 mt-2">Report-heavy workloads pin CPU; that's why we shard on <code>hash(store_id)</code> and eventually mirror to ClickHouse. Cost cliff is between Scale and Chain tier when the primary can't be scaled vertically any further.</p>
+      </div>
+      <div class="rounded-xl bg-white border border-slate-200 p-5">
+        <div class="text-xs uppercase text-slate-500 font-semibold">Cheapest to scale</div>
+        <div class="font-bold mt-1">Object storage &amp; CDN</div>
+        <p class="text-slate-600 mt-2">Cloudflare R2 has zero egress fees + Cloudflare free tier absorbs the storefront browsing traffic. This is why we picked it over Azure Blob / plain S3.</p>
+      </div>
+      <div class="rounded-xl bg-white border border-slate-200 p-5">
+        <div class="text-xs uppercase text-slate-500 font-semibold">Biggest wild card</div>
+        <div class="font-bold mt-1">WhatsApp marketing campaigns</div>
+        <p class="text-slate-600 mt-2">Utility notifications are cheap ($0.005/msg India) but marketing templates cost 3&ndash;4x. Set per-tenant caps in campaign config; alert at 80% of monthly budget.</p>
+      </div>
+      <div class="rounded-xl bg-white border border-slate-200 p-5">
+        <div class="text-xs uppercase text-slate-500 font-semibold">Non-obvious saver</div>
+        <div class="font-bold mt-1">Reserved instances after Growth</div>
+        <p class="text-slate-600 mt-2">1-year Reserved / Savings Plans cut EC2 + RDS by ~40%. Once we're past the pilot and infra shape is stable, the RI commitment pays for itself in 5&ndash;7 months.</p>
+      </div>
+    </div>
+
+    <!-- Launch nearly free -->
+    <h4 class="font-bold mt-8 mb-3">Launch cheaply &mdash; the &lt;$5/mo starter stack</h4>
+    <div class="rounded-xl bg-emerald-50 border border-emerald-200 p-5 text-sm">
+      <p class="text-slate-700 mb-3">Pilot with 1&ndash;2 outlets? Skip AWS. This all-free-tier setup can host the pilot for the cost of a domain:</p>
+      <ul class="list-disc pl-6 space-y-1 text-slate-700">
+        <li><strong>Frontend hosting:</strong> Cloudflare Pages or Vercel &mdash; <em>free</em>, unlimited requests.</li>
+        <li><strong>API:</strong> Fly.io free tier (3 shared-CPU 256MB machines) or Railway $5 credit &mdash; <em>free / $5</em>.</li>
+        <li><strong>Postgres:</strong> Neon free tier (0.5 GB storage, autoscaling) or Supabase free &mdash; <em>free</em>.</li>
+        <li><strong>Redis:</strong> Upstash serverless (10K commands/day) &mdash; <em>free</em>.</li>
+        <li><strong>Object storage:</strong> Cloudflare R2 (10 GB storage, no egress) &mdash; <em>free</em>.</li>
+        <li><strong>Email:</strong> Resend free (100/day) or Loops free &mdash; <em>free</em>.</li>
+        <li><strong>Monitoring:</strong> Grafana Cloud free (10K series, 50 GB logs) &mdash; <em>free</em>.</li>
+        <li><strong>Error tracking:</strong> Sentry free (5K events/mo) &mdash; <em>free</em>.</li>
+        <li><strong>Domain:</strong> $10/yr &mdash; the only line item you cannot avoid.</li>
+      </ul>
+      <p class="text-slate-700 mt-3"><strong>Realistic total for pilot: ~$1&ndash;5 / month.</strong> Once you outgrow any free-tier limit, migrate <em>that one service</em> to a paid tier without moving anything else. Every service above is standards-based (Postgres wire protocol, S3 API, Redis protocol) so lock-in is minimal.</p>
+    </div>
+
+    <!-- Cost per order -->
+    <h4 class="font-bold mt-8 mb-3">Cost per order &mdash; how the unit economics look</h4>
+    <div class="rounded-xl bg-white border border-slate-200 overflow-hidden mb-4">
+      <table class="w-full text-sm">
+        <thead class="bg-slate-50 text-slate-600 text-xs uppercase">
+          <tr>
+            <th class="text-left px-4 py-2">Tier</th>
+            <th class="text-left px-4 py-2">Orders / month</th>
+            <th class="text-left px-4 py-2">Infra $/mo</th>
+            <th class="text-left px-4 py-2">Infra $/order</th>
+            <th class="text-left px-4 py-2">Break-even at</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          <tr><td class="px-4 py-2 font-bold">Pilot</td><td class="px-4 py-2">~30K</td><td class="px-4 py-2">$64</td><td class="px-4 py-2 text-emerald-700 font-bold">$0.0021</td><td class="px-4 py-2">$2 SaaS / outlet</td></tr>
+          <tr><td class="px-4 py-2 font-bold">Growth</td><td class="px-4 py-2">~1.5M</td><td class="px-4 py-2">$531</td><td class="px-4 py-2 text-emerald-700 font-bold">$0.00035</td><td class="px-4 py-2">$6 SaaS / outlet</td></tr>
+          <tr><td class="px-4 py-2 font-bold">Scale</td><td class="px-4 py-2">~15M</td><td class="px-4 py-2">$4,200</td><td class="px-4 py-2 text-emerald-700 font-bold">$0.00028</td><td class="px-4 py-2">$5 SaaS / outlet</td></tr>
+          <tr><td class="px-4 py-2 font-bold">Chain</td><td class="px-4 py-2">~150M</td><td class="px-4 py-2">$28,105</td><td class="px-4 py-2 text-emerald-700 font-bold">$0.00019</td><td class="px-4 py-2">$3 SaaS / outlet</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="text-sm text-slate-600 max-w-3xl">
+      <strong>Read-out:</strong> beyond Pilot, infra is a rounding error against any reasonable SaaS price. At Chain tier we're paying under 2&cent; per 100 orders in raw infra &mdash; the margin lives in the platform fee, not in optimising bytes.
+    </p>
+
     <!-- Deep dive: Why not X -->
     <h3 class="text-lg font-bold mt-10 mb-3">Why not the other popular stacks?</h3>
     <div class="rounded-xl bg-white border border-slate-200 overflow-hidden">
