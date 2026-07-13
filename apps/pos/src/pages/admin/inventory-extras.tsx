@@ -6,25 +6,13 @@
 // its own file.
 
 import type { FC } from 'react';
-import { CrudPage, StubPage, type FormFieldDescriptor } from '@billing/ui/admin';
+import { CrudPage, StubPage, boolField, numField, selectField, textField } from '@billing/ui/admin';
 import { useTable } from '@billing/shared/hooks/useTable';
 import type {
   Warehouse, RawMaterialCategory, UnitOfMeasure, StockAdjustment,
   GRN, StockTransfer, IndentRequest, ProductionBatch,
 } from '@billing/shared/domain/tmbill-extras';
 import type { Ingredient, Supplier } from '@billing/shared/domain/restaurant';
-
-const T = <R,>(key: keyof R & string, label: string, required = false): FormFieldDescriptor<R> =>
-  ({ key, label, type: 'text', required });
-const N = <R,>(key: keyof R & string, label: string, step = 1): FormFieldDescriptor<R> =>
-  ({ key, label, type: 'number', min: 0, step });
-const B = <R,>(key: keyof R & string, label: string): FormFieldDescriptor<R> =>
-  ({ key, label, type: 'boolean' });
-const S = <R,>(
-  key: keyof R & string, label: string,
-  options: readonly { value: string; label: string }[],
-  required = true,
-): FormFieldDescriptor<R> => ({ key, label, type: 'select', required, options });
 
 const fmtDate = (iso: string): string => new Date(iso).toLocaleDateString();
 const fmtDateTime = (iso: string): string => new Date(iso).toLocaleString();
@@ -44,15 +32,15 @@ export const WarehousesPage: FC = () => {
       searchFn={(r, q) => r.name.toLowerCase().includes(q)}
       makeEmpty={() => ({ name: '', type: 'outlet', address: '', managerName: '', active: true })}
       fields={[
-        T('name',        'Warehouse Name', true),
-        S('type',        'Type', [
+        textField('name',        'Warehouse Name', true),
+        selectField('type',        'Type', [
           { value: 'outlet',  label: 'Outlet Kitchen' },
           { value: 'central', label: 'Central Warehouse' },
           { value: 'transit', label: 'Transit / Cold Chain' },
         ]),
-        T('address',     'Address', true),
-        T('managerName', 'Manager Name', true),
-        B('active',      'Active'),
+        textField('address',     'Address', true),
+        textField('managerName', 'Manager Name', true),
+        boolField('active',      'Active'),
       ]}
       columns={[
         { key: 'name',    label: 'Name',    sortValue: (r) => r.name, render: (r) => r.name },
@@ -76,9 +64,9 @@ export const RmCategoriesPage: FC = () => {
       searchFn={(r, q) => r.name.toLowerCase().includes(q)}
       makeEmpty={() => ({ name: '', sortOrder: 100, active: true })}
       fields={[
-        T('name', 'Name', true),
-        N('sortOrder', 'Sort Order'),
-        B('active', 'Active'),
+        textField('name', 'Name', true),
+        numField('sortOrder', 'Sort Order'),
+        boolField('active', 'Active'),
       ]}
       columns={[
         { key: 'name', label: 'Name', sortValue: (r) => r.name, render: (r) => r.name },
@@ -100,15 +88,15 @@ export const UomPage: FC = () => {
       searchFn={(r, q) => r.code.toLowerCase().includes(q) || r.name.toLowerCase().includes(q)}
       makeEmpty={() => ({ code: '', name: '', baseUnit: 'G', factor: 1, active: true })}
       fields={[
-        T('code',     'Code', true),
-        T('name',     'Name', true),
-        S('baseUnit', 'Base Unit', [
+        textField('code',     'Code', true),
+        textField('name',     'Name', true),
+        selectField('baseUnit', 'Base Unit', [
           { value: 'G',    label: 'Gram (G)' },
           { value: 'ML',   label: 'Millilitre (ML)' },
           { value: 'UNIT', label: 'Unit' },
         ]),
-        N('factor',   'Factor (relative to base)', 0.001),
-        B('active',   'Active'),
+        numField('factor',   'Factor (relative to base)', 0.001),
+        boolField('active',   'Active'),
       ]}
       columns={[
         { key: 'code',   label: 'Code',      sortValue: (r) => r.code, render: (r) => r.code },
@@ -140,17 +128,17 @@ export const StockAdjustmentsPage: FC = () => {
         performedBy: 'admin', performedAt: new Date().toISOString(),
       })}
       fields={[
-        S('warehouseId',  'Warehouse',  wh.rows.map((w) => ({ value: w.id, label: w.name }))),
-        S('ingredientId', 'Ingredient', ing.rows.map((i) => ({ value: i.id, label: i.name }))),
-        N('delta',        'Delta (+ add / - remove)', 0.01),
-        S('reason',       'Reason', [
+        selectField('warehouseId',  'Warehouse',  wh.rows.map((w) => ({ value: w.id, label: w.name }))),
+        selectField('ingredientId', 'Ingredient', ing.rows.map((i) => ({ value: i.id, label: i.name }))),
+        numField('delta',        'Delta (+ add / - remove)', 0.01),
+        selectField('reason',       'Reason', [
           { value: 'opening',    label: 'Opening balance' },
           { value: 'recount',    label: 'Recount' },
           { value: 'spoilage',   label: 'Spoilage' },
           { value: 'theft',      label: 'Theft' },
           { value: 'correction', label: 'Correction' },
         ]),
-        T('notes',        'Notes'),
+        textField('notes',        'Notes'),
       ]}
       columns={[
         { key: 'date',   label: 'Date',       sortValue: (r) => r.performedAt, render: (r) => fmtDateTime(r.performedAt) },
@@ -186,17 +174,17 @@ export const GRNsPage: FC = () => {
         invoiceNumber: '', notes: '',
       })}
       fields={[
-        T('grnNumber',     'GRN Number', true),
-        T('invoiceNumber', 'Supplier Invoice #'),
-        S('supplierId',    'Supplier',    sup.rows.map((s) => ({ value: s.id, label: s.name }))),
-        S('warehouseId',   'Warehouse',   wh.rows.map((w) => ({ value: w.id, label: w.name }))),
-        S('status',        'Status', [
+        textField('grnNumber',     'GRN Number', true),
+        textField('invoiceNumber', 'Supplier Invoice #'),
+        selectField('supplierId',    'Supplier',    sup.rows.map((s) => ({ value: s.id, label: s.name }))),
+        selectField('warehouseId',   'Warehouse',   wh.rows.map((w) => ({ value: w.id, label: w.name }))),
+        selectField('status',        'Status', [
           { value: 'draft',        label: 'Draft' },
           { value: 'received',     label: 'Received' },
           { value: 'discrepancy',  label: 'Discrepancy' },
         ]),
-        N('totalValue',    'Total Value (Rs)'),
-        T('notes',         'Notes'),
+        numField('totalValue',    'Total Value (Rs)'),
+        textField('notes',         'Notes'),
       ]}
       columns={[
         { key: 'grn',    label: 'GRN #',      sortValue: (r) => r.grnNumber, render: (r) => r.grnNumber },
@@ -231,16 +219,16 @@ export const StockTransfersPage: FC = () => {
         dispatchedAt: null, receivedAt: null, notes: '',
       })}
       fields={[
-        T('transferNumber', 'Transfer #', true),
-        S('fromWarehouseId', 'From',  wh.rows.map((w) => ({ value: w.id, label: w.name }))),
-        S('toWarehouseId',   'To',    wh.rows.map((w) => ({ value: w.id, label: w.name }))),
-        S('status', 'Status', [
+        textField('transferNumber', 'Transfer #', true),
+        selectField('fromWarehouseId', 'From',  wh.rows.map((w) => ({ value: w.id, label: w.name }))),
+        selectField('toWarehouseId',   'To',    wh.rows.map((w) => ({ value: w.id, label: w.name }))),
+        selectField('status', 'Status', [
           { value: 'draft',      label: 'Draft' },
           { value: 'in-transit', label: 'In Transit' },
           { value: 'received',   label: 'Received' },
           { value: 'cancelled',  label: 'Cancelled' },
         ]),
-        T('notes', 'Notes'),
+        textField('notes', 'Notes'),
       ]}
       columns={[
         { key: 'trf',    label: 'Transfer #', sortValue: (r) => r.transferNumber, render: (r) => r.transferNumber },
@@ -272,15 +260,15 @@ export const IndentsPage: FC = () => {
         lines: [], status: 'pending', approvedBy: null, notes: '',
       })}
       fields={[
-        T('indentNumber', 'Indent #', true),
-        S('status', 'Status', [
+        textField('indentNumber', 'Indent #', true),
+        selectField('status', 'Status', [
           { value: 'pending',   label: 'Pending' },
           { value: 'approved',  label: 'Approved' },
           { value: 'partial',   label: 'Partially Fulfilled' },
           { value: 'fulfilled', label: 'Fulfilled' },
           { value: 'rejected',  label: 'Rejected' },
         ]),
-        T('notes', 'Notes'),
+        textField('notes', 'Notes'),
       ]}
       columns={[
         { key: 'ind',    label: 'Indent #',   sortValue: (r) => r.indentNumber, render: (r) => r.indentNumber },
@@ -311,9 +299,9 @@ export const ProductionBatchesPage: FC = () => {
         expiresAt: null, status: 'in-progress',
       })}
       fields={[
-        T('batchNumber', 'Batch #', true),
-        N('yieldQty',    'Yield Qty', 0.1),
-        S('status',      'Status', [
+        textField('batchNumber', 'Batch #', true),
+        numField('yieldQty',    'Yield Qty', 0.1),
+        selectField('status',      'Status', [
           { value: 'in-progress', label: 'In Progress' },
           { value: 'complete',    label: 'Complete' },
           { value: 'expired',     label: 'Expired' },

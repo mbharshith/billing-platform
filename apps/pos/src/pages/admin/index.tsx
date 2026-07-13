@@ -16,7 +16,7 @@
 // All page components are named exports of pattern: <Entity>Page.
 
 import type { FC } from 'react';
-import { CrudPage, StubPage, type FormFieldDescriptor } from '@billing/ui/admin';
+import { CrudPage, StubPage, boolField, numField, selectField, textField } from '@billing/ui/admin';
 import { useTable } from '@billing/shared/hooks/useTable';
 import type {
   Market, Brand, Outlet, PaymentMode, OrderType, TaxSlab, Discount,
@@ -26,17 +26,7 @@ import type {
   FeedbackEntry,
 } from '@billing/shared/domain/restaurant';
 
-const boolField = <R,>(key: keyof R & string, label: string): FormFieldDescriptor<R> =>
-  ({ key, label, type: 'boolean' });
-const textField = <R,>(key: keyof R & string, label: string, required = false): FormFieldDescriptor<R> =>
-  ({ key, label, type: 'text', required });
-const numField = <R,>(key: keyof R & string, label: string, step = 1): FormFieldDescriptor<R> =>
-  ({ key, label, type: 'number', min: 0, step });
-const selectField = <R,>(
-  key: keyof R & string, label: string,
-  options: readonly { value: string; label: string }[],
-  required = true,
-): FormFieldDescriptor<R> => ({ key, label, type: 'select', required, options });
+
 
 /* ========================================================================== */
 /* PHASE 1  POS Configuration                                                 */
@@ -806,23 +796,4 @@ export const FeedbackPage: FC = () => {
   );
 };
 
-/* ========================================================================== */
-/* Overview + Reports stubs                                                   */
-/* ========================================================================== */
 
-export const OverviewDashboardPage: FC = () =>
-  <StubPage title="Overview Dashboard" phase="Overview" icon="chart"
-    hint="Combined revenue + top items + hourly heatmap + KOT wait times. Composed from existing dashboard analytics + Phase 5 metrics." />;
-
-// Reports stubs - Phase 5 promises 22 reports; scaffold them all to hit sidebar links.
-const makeReportStub = (title: string) => (): ReturnType<FC> =>
-  <StubPage title={title} phase="Phase 5" icon="chart"
-    hint="Filterable, exportable read-only report. Report engine + chart pack will land in Phase 5." />;
-
-export const SalesReportPage      = makeReportStub('Sales Report');
-export const ProductMixReportPage = makeReportStub('Product Mix Report');
-export const HourlyReportPage     = makeReportStub('Hourly Sales Report');
-export const DiscountReportPage   = makeReportStub('Discount Usage Report');
-export const TaxReportPage        = makeReportStub('Tax Summary Report');
-export const WastageReportPage    = makeReportStub('Wastage Report');
-export const CashierReportPage    = makeReportStub('Sales by Staff');

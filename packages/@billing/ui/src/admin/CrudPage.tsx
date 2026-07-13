@@ -43,6 +43,32 @@ export interface FormFieldDescriptor<Row> {
 }
 
 /* -------------------------------------------------------------------------- */
+/* Field builders - hoisted from the 5+ admin pages that reinvented them.     */
+/* Callers still get full inference via the caller-side type parameter.       */
+/* -------------------------------------------------------------------------- */
+
+export const boolField = <R,>(key: keyof R & string, label: string): FormFieldDescriptor<R> =>
+  ({ key, label, type: 'boolean' });
+
+export const textField = <R,>(
+  key: keyof R & string, label: string, required = false,
+): FormFieldDescriptor<R> => ({ key, label, type: 'text', required });
+
+export const numField = <R,>(
+  key: keyof R & string, label: string, step = 1,
+): FormFieldDescriptor<R> => ({ key, label, type: 'number', min: 0, step });
+
+export const textareaField = <R,>(
+  key: keyof R & string, label: string,
+): FormFieldDescriptor<R> => ({ key, label, type: 'textarea' });
+
+export const selectField = <R,>(
+  key: keyof R & string, label: string,
+  options: readonly { value: string; label: string }[],
+  required = true,
+): FormFieldDescriptor<R> => ({ key, label, type: 'select', required, options });
+
+/* -------------------------------------------------------------------------- */
 /* Props                                                                      */
 /* -------------------------------------------------------------------------- */
 

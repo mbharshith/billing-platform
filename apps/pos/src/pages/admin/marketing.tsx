@@ -3,25 +3,11 @@
 // keys land, the sending logic drops into the Campaign's status transition.
 
 import type { FC } from 'react';
-import { CrudPage, type FormFieldDescriptor } from '@billing/ui/admin';
+import { CrudPage, boolField, numField, selectField, textField, textareaField } from '@billing/ui/admin';
 import { useTable } from '@billing/shared/hooks/useTable';
 import type {
   WhatsAppTemplate, CustomerSegment, MarketingCampaign,
 } from '@billing/shared/domain/tmbill-extras';
-
-const T = <R,>(key: keyof R & string, label: string, required = false): FormFieldDescriptor<R> =>
-  ({ key, label, type: 'text', required });
-const TA = <R,>(key: keyof R & string, label: string): FormFieldDescriptor<R> =>
-  ({ key, label, type: 'textarea' });
-const N = <R,>(key: keyof R & string, label: string): FormFieldDescriptor<R> =>
-  ({ key, label, type: 'number', min: 0 });
-const B = <R,>(key: keyof R & string, label: string): FormFieldDescriptor<R> =>
-  ({ key, label, type: 'boolean' });
-const S = <R,>(
-  key: keyof R & string, label: string,
-  options: readonly { value: string; label: string }[],
-  required = true,
-): FormFieldDescriptor<R> => ({ key, label, type: 'select', required, options });
 
 const fmtDate = (iso: string): string => new Date(iso).toLocaleDateString();
 
@@ -40,20 +26,20 @@ export const WATemplatesPage: FC = () => {
         body: '', variables: [], approved: false, active: true,
       })}
       fields={[
-        T('name',     'Template Name', true),
-        S('category', 'Category', [
+        textField('name',     'Template Name', true),
+        selectField('category', 'Category', [
           { value: 'transactional', label: 'Transactional (bill, OTP)' },
           { value: 'promotional',   label: 'Promotional (offers)' },
           { value: 'utility',       label: 'Utility (updates)' },
         ]),
-        S('language', 'Language', [
+        selectField('language', 'Language', [
           { value: 'en', label: 'English' },
           { value: 'hi', label: 'Hindi' },
           { value: 'kn', label: 'Kannada' },
         ]),
-        TA('body',    'Message body'),
-        B('approved', 'Approved by Meta'),
-        B('active',   'Active'),
+        textareaField('body',    'Message body'),
+        boolField('approved', 'Approved by Meta'),
+        boolField('active',   'Active'),
       ]}
       columns={[
         { key: 'name', label: 'Name',   sortValue: (r) => r.name, render: (r) => r.name },
@@ -82,10 +68,10 @@ export const SegmentsPage: FC = () => {
         refreshedAt: new Date().toISOString(), active: true,
       })}
       fields={[
-        T('name',         'Segment Name', true),
-        TA('rule',        'Rule (DSL)'),
-        N('memberCount',  'Member Count'),
-        B('active',       'Active'),
+        textField('name',         'Segment Name', true),
+        textareaField('rule',        'Rule (DSL)'),
+        numField('memberCount',  'Member Count'),
+        boolField('active',       'Active'),
       ]}
       columns={[
         { key: 'name', label: 'Name', sortValue: (r) => r.name, render: (r) => r.name },
@@ -118,17 +104,17 @@ export const CampaignsPage: FC = () => {
         status: 'draft',
       })}
       fields={[
-        T('name',       'Campaign Name', true),
-        S('channel',    'Channel', [
+        textField('name',       'Campaign Name', true),
+        selectField('channel',    'Channel', [
           { value: 'whatsapp', label: 'WhatsApp' },
           { value: 'sms',      label: 'SMS' },
           { value: 'email',    label: 'Email' },
         ]),
-        S('templateId', 'Template',
+        selectField('templateId', 'Template',
           [{ value: '', label: '- none -' }, ...tpls.rows.map((t) => ({ value: t.id, label: t.name }))]),
-        S('segmentId',  'Segment',
+        selectField('segmentId',  'Segment',
           [{ value: '', label: '- none -' }, ...segs.rows.map((s) => ({ value: s.id, label: s.name }))]),
-        S('status',     'Status', [
+        selectField('status',     'Status', [
           { value: 'draft',     label: 'Draft' },
           { value: 'scheduled', label: 'Scheduled' },
           { value: 'sending',   label: 'Sending' },

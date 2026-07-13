@@ -3,24 +3,12 @@
 // Full double-entry ledger is future work - for now these are register-only.
 
 import type { FC } from 'react';
-import { CrudPage, type FormFieldDescriptor } from '@billing/ui/admin';
+import { CrudPage, boolField, numField, selectField, textField } from '@billing/ui/admin';
 import { useTable } from '@billing/shared/hooks/useTable';
 import type {
   Account, ExpenseCategory, Expense, VendorBill,
 } from '@billing/shared/domain/tmbill-extras';
 import type { Supplier } from '@billing/shared/domain/restaurant';
-
-const T = <R,>(key: keyof R & string, label: string, required = false): FormFieldDescriptor<R> =>
-  ({ key, label, type: 'text', required });
-const N = <R,>(key: keyof R & string, label: string, step = 1): FormFieldDescriptor<R> =>
-  ({ key, label, type: 'number', min: 0, step });
-const B = <R,>(key: keyof R & string, label: string): FormFieldDescriptor<R> =>
-  ({ key, label, type: 'boolean' });
-const S = <R,>(
-  key: keyof R & string, label: string,
-  options: readonly { value: string; label: string }[],
-  required = true,
-): FormFieldDescriptor<R> => ({ key, label, type: 'select', required, options });
 
 const fmtCurrency = (n: number): string => `Rs ${n.toLocaleString('en-IN')}`;
 const fmtDate = (iso: string): string => new Date(iso).toLocaleDateString();
@@ -40,18 +28,18 @@ export const ChartOfAccountsPage: FC = () => {
         openingBalance: 0, currentBalance: 0, active: true,
       })}
       fields={[
-        T('code',           'Code',           true),
-        T('name',           'Account Name',   true),
-        S('type',           'Type', [
+        textField('code',           'Code',           true),
+        textField('name',           'Account Name',   true),
+        selectField('type',           'Type', [
           { value: 'asset',     label: 'Asset' },
           { value: 'liability', label: 'Liability' },
           { value: 'equity',    label: 'Equity' },
           { value: 'revenue',   label: 'Revenue' },
           { value: 'expense',   label: 'Expense' },
         ]),
-        N('openingBalance', 'Opening Balance'),
-        N('currentBalance', 'Current Balance'),
-        B('active',         'Active'),
+        numField('openingBalance', 'Opening Balance'),
+        numField('currentBalance', 'Current Balance'),
+        boolField('active',         'Active'),
       ]}
       columns={[
         { key: 'code',    label: 'Code',    sortValue: (r) => r.code, render: (r) => r.code },
@@ -78,10 +66,10 @@ export const ExpenseCategoriesPage: FC = () => {
       searchFn={(r, q) => r.name.toLowerCase().includes(q)}
       makeEmpty={() => ({ name: '', accountId: expenseAccts[0]?.id ?? '', active: true })}
       fields={[
-        T('name',      'Category Name', true),
-        S('accountId', 'Ledger Account',
+        textField('name',      'Category Name', true),
+        selectField('accountId', 'Ledger Account',
           expenseAccts.map((a) => ({ value: a.id, label: `${a.code} - ${a.name}` }))),
-        B('active',    'Active'),
+        boolField('active',    'Active'),
       ]}
       columns={[
         { key: 'name', label: 'Name', sortValue: (r) => r.name, render: (r) => r.name },
@@ -111,16 +99,16 @@ export const ExpensesPage: FC = () => {
         billImageUrl: null, notes: '',
       })}
       fields={[
-        T('voucherNumber', 'Voucher #', true),
-        S('categoryId',    'Category',   cats.rows.map((c) => ({ value: c.id, label: c.name }))),
-        N('amount',        'Amount (Rs)', 0.01),
-        T('paidTo',        'Paid To',    true),
-        S('paidBy',        'Paid By', [
+        textField('voucherNumber', 'Voucher #', true),
+        selectField('categoryId',    'Category',   cats.rows.map((c) => ({ value: c.id, label: c.name }))),
+        numField('amount',        'Amount (Rs)', 0.01),
+        textField('paidTo',        'Paid To',    true),
+        selectField('paidBy',        'Paid By', [
           { value: 'cash', label: 'Cash' },
           { value: 'bank', label: 'Bank Transfer' },
           { value: 'card', label: 'Card' },
         ]),
-        T('notes',         'Notes'),
+        textField('notes',         'Notes'),
       ]}
       columns={[
         { key: 'vch',    label: 'Voucher #', sortValue: (r) => r.voucherNumber, render: (r) => r.voucherNumber },
@@ -153,17 +141,17 @@ export const VendorBillsPage: FC = () => {
         status: 'unpaid', notes: '',
       })}
       fields={[
-        T('billNumber',  'Bill #', true),
-        S('supplierId',  'Supplier', sup.rows.map((s) => ({ value: s.id, label: s.name }))),
-        N('totalAmount', 'Total (Rs)', 0.01),
-        N('paidAmount',  'Paid so far (Rs)', 0.01),
-        S('status', 'Status', [
+        textField('billNumber',  'Bill #', true),
+        selectField('supplierId',  'Supplier', sup.rows.map((s) => ({ value: s.id, label: s.name }))),
+        numField('totalAmount', 'Total (Rs)', 0.01),
+        numField('paidAmount',  'Paid so far (Rs)', 0.01),
+        selectField('status', 'Status', [
           { value: 'unpaid',  label: 'Unpaid' },
           { value: 'partial', label: 'Partially paid' },
           { value: 'paid',    label: 'Paid' },
           { value: 'overdue', label: 'Overdue' },
         ]),
-        T('notes', 'Notes'),
+        textField('notes', 'Notes'),
       ]}
       columns={[
         { key: 'bill',   label: 'Bill #',   sortValue: (r) => r.billNumber, render: (r) => r.billNumber },
