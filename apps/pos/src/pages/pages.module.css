@@ -337,3 +337,15 @@
   border-color: color-mix(in srgb, var(--app-danger, #dc2626) 35%, transparent);
   background: color-mix(in srgb, var(--app-danger, #dc2626) 6%, var(--app-surface));
 }
+
+/* --- Customers page: outlet-vs-chain scope toggle ----------------------- */
+/* Segmented look for the two buttons - visually distinct from the primary
+   "Add customer" CTA next to it. */
+.customerScopeToggle {
+  display: inline-flex;
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-md);
+  padding: 2px;
+  gap: 2px;
+}
+.customerScopeToggle button { border-radius: calc(var(--app-radius-md) - 2px); }

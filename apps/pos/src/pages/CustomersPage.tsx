@@ -1,5 +1,15 @@
 // CustomersPage — list, search, and create customers. Row click navigates to /customers/:id.
-import { useState, type FC, type FormEvent } from 'react';
+//
+// SCOPING (real-world model):
+//  * Customer records are STORE-scoped (chain-wide). A customer registered at
+//    outlet A can be recognised by phone at outlet B, and their loyalty /
+//    lending balance follows them. This is how QSR chains actually work.
+//  * BUT outlet managers care about "their" customers day-to-day, so this
+//    page defaults to "This outlet" - customers who have at least one sale
+//    from the currently-selected outlet, PLUS anyone with an outstanding
+//    lending balance (financial obligation must never be hidden).
+//  * A "All outlets" toggle exposes the full chain customer list.
+import { useMemo, useState, type FC, type FormEvent } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import cls from './pages.module.css';
 import { Badge, Button, Field, Input, Text, Textarea } from '@billing/ui/atoms';
@@ -10,8 +20,9 @@ import { PageHeader } from '../RegisterShell';
 import { STRINGS } from '@billing/shared/domain/strings';
 import { digitsOnly, fmtDate, formatPhone } from '@billing/shared/domain/format';
 import { useMoney } from '@billing/shared/hooks/useMoney';
-import { useAuth } from '@billing/shared/store/AuthContext';
+import { useAuth, useCurrentOutletId } from '@billing/shared/store/AuthContext';
 import { useCustomers } from '@billing/shared/store/CustomersContext';
+import { useSales } from '@billing/shared/store/SalesContext';
 import { useToast } from '@billing/shared/store/ToastContext';
 import type { Customer } from '@billing/shared/domain/types';
 
@@ -27,6 +38,8 @@ export const CustomersPage: FC = () => {
   const { slug = '' } = useParams<{ slug: string }>();
   const { money } = useMoney();
   const { customers, create, remove } = useCustomers();
+  const { sales } = useSales();
+  const currentOutletId = useCurrentOutletId();
   const { can } = useAuth();
   const canDelete = can('customer:delete');
   const navigate = useNavigate();
@@ -36,6 +49,27 @@ export const CustomersPage: FC = () => {
   const [form, setForm] = useState<FormState | null>(null);
   const [mobileError, setMobileError] = useState<string | undefined>();
   const [confirmingDelete, setConfirmingDelete] = useState<Customer | null>(null);
+  const [scope, setScope] = useState<'outlet' | 'chain'>('outlet');
+
+  // Customer IDs that have at least one sale from the currently-selected outlet.
+  // Recomputed only when sales list or outlet changes.
+  const outletCustomerIds = useMemo(() => {
+    if (!currentOutletId) return new Set<string>();
+    const ids = new Set<string>();
+    for (const s of sales) {
+      if (s.outletId === currentOutletId && s.customerId) ids.add(s.customerId);
+    }
+    return ids;
+  }, [sales, currentOutletId]);
+
+  // "This outlet" view = customers who ordered here + anyone with a live
+  // lending balance (obligations follow the chain, never hide them).
+  const visibleCustomers = useMemo(() => {
+    if (scope === 'chain' || !currentOutletId) return customers;
+    return customers.filter(
+      (c) => outletCustomerIds.has(c.id) || c.lendingBalance > 0.001,
+    );
+  }, [customers, scope, currentOutletId, outletCustomerIds]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -74,25 +108,51 @@ export const CustomersPage: FC = () => {
           { label: STRINGS.customers.pageTitle },
         ]}
         actions={
-          <Button
-            variant="primary"
-            leadingIcon="plus"
-            onClick={() => { setMobileError(undefined); setForm(emptyForm()); }}
-          >
-            {STRINGS.customers.addNew}
-          </Button>
+          <>
+            {currentOutletId && (
+              // Chain vs outlet scope toggle. Keeps managers focused on their
+              // outlet's customers by default but exposes the full chain.
+              <div className={cls.customerScopeToggle} role="group" aria-label="Customer scope">
+                <Button
+                  variant={scope === 'outlet' ? 'primary' : 'ghost'}
+                  size="sm"
+                  onClick={() => setScope('outlet')}
+                >
+                  This outlet
+                </Button>
+                <Button
+                  variant={scope === 'chain' ? 'primary' : 'ghost'}
+                  size="sm"
+                  onClick={() => setScope('chain')}
+                >
+                  All outlets
+                </Button>
+              </div>
+            )}
+            <Button
+              variant="primary"
+              leadingIcon="plus"
+              onClick={() => { setMobileError(undefined); setForm(emptyForm()); }}
+            >
+              {STRINGS.customers.addNew}
+            </Button>
+          </>
         }
       />
 
       <DataTable
-        data={customers}
+        data={visibleCustomers}
         getKey={(c) => c.id}
         searchPlaceholder={STRINGS.customers.searchPlaceholder}
         searchFn={(c, q) => c.name.toLowerCase().includes(q) || c.mobile.includes(q)}
         onRowClick={(c) => navigate(`/${slug}/cashier/customers/${c.id}`)}
         emptyIcon="user"
-        emptyTitle={STRINGS.customers.empty}
-        emptyHint={STRINGS.customers.emptyHint}
+        emptyTitle={scope === 'outlet' ? 'No customers at this outlet yet' : STRINGS.customers.empty}
+        emptyHint={
+          scope === 'outlet'
+            ? 'Switch to "All outlets" to see the full chain, or add a new customer.'
+            : STRINGS.customers.emptyHint
+        }
         emptySearchTitle={STRINGS.customers.emptySearch}
         emptySearchHint={STRINGS.customers.emptySearchHint}
         defaultPageSize={25}
@@ -148,7 +208,8 @@ export const CustomersPage: FC = () => {
                 </Button>
                 {canDelete && (
                   <Button
-                    variant="danger"
+                    variant="ghost"
+                    tone="danger"
                     size="sm"
                     onClick={(e) => { e.stopPropagation(); setConfirmingDelete(c); }}
                   >
