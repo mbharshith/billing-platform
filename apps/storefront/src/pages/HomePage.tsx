@@ -58,19 +58,21 @@ export const HomePage: FC = () => {
       {/* Hero */}
       <section className={cls.hero}>
         <div className={cls.hero__inner}>
-          <div className={cls.hero__eyebrow}>The {tenant.name.split(' ')[0]} Edit</div>
+          <div className={cls.hero__eyebrow}>Welcome to {tenant.name}</div>
           <h1 className={cls.hero__title}>
-            Discover the <em>everyday</em>, elevated.
+            {theme.tagline.split(',')[0]},<br />
+            <em>{theme.tagline.split(',').slice(1).join(',').trim() || 'delivered.'}</em>
           </h1>
           <p className={cls.hero__sub}>
-            A carefully curated selection, delivered to your door in {theme.deliveryEta.toLowerCase()}.
+            Browse the full catalog, add to cart, and check out in seconds.
+            Same order lands in the shop’s Sales Register in real time.
           </p>
           <div className={cls.hero__ctaRow}>
             <Link to={`/${slug}/browse`} className={cls.hero__cta}>
-              Shop the collection
+              Shop the catalog
             </Link>
-            <Link to={`/${slug}/track`} className={cls.hero__ctaGhost}>
-              Track your order
+            <Link to={`/${slug}/cart`} className={cls.hero__ctaGhost}>
+              View cart
             </Link>
           </div>
         </div>
@@ -105,8 +107,8 @@ export const HomePage: FC = () => {
         <div className={cls.section}>
           <div className={cls.sectionHead}>
             <div>
-              <h2 className={cls.sectionHead__title}>Most coveted</h2>
-              <div className={cls.sectionHead__sub}>Pieces our clients can't get enough of</div>
+              <h2 className={cls.sectionHead__title}>Popular right now</h2>
+              <div className={cls.sectionHead__sub}>Top sellers this season</div>
             </div>
             <Link to={`/${slug}/browse`} className={cls.sectionHead__link}>
               View all
@@ -123,8 +125,8 @@ export const HomePage: FC = () => {
         <div className={cls.section}>
           <div className={cls.sectionHead}>
             <div>
-              <h2 className={cls.sectionHead__title}>New this week</h2>
-              <div className={cls.sectionHead__sub}>Latest additions to the collection</div>
+              <h2 className={cls.sectionHead__title}>Latest additions</h2>
+              <div className={cls.sectionHead__sub}>Just added to the catalog</div>
             </div>
             <Link to={`/${slug}/browse`} className={cls.sectionHead__link}>
               View all
