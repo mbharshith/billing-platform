@@ -42,7 +42,6 @@ const emptyComponent = (): RecipeComponent => ({
   ingredientId: '', quantity: 0, unit: 'g',
 });
 
-/* -------------------------------------------------------------------------- */
 
 export const RecipesPage: FC = () => {
   const recipes     = useTable<Recipe>('recipes');

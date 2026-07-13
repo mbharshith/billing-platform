@@ -21,9 +21,7 @@ const S = SEED_STORE_BRANCH_ID;   // Spice Route Kitchen (restaurant)
 const V = SEED_STORE_MAIN_ID;     // Velvet Mumbai Flagship (fashion retail)
 const L = SEED_STORE_THIRD_ID;    // La Maison Boutique (SoHo NYC)
 
-/* -------------------------------------------------------------------------- */
-/* PHASE 1  POS Config                                                        */
-/* -------------------------------------------------------------------------- */
+// PHASE 1  POS Config
 
 export const SEED_MARKETS: readonly Market[] = [
   { id: 'mkt-in-s', name: 'India - South', code: 'IN-S', country: 'India',        currency: 'INR', active: true,  createdAt: NOW },
@@ -38,7 +36,7 @@ export const SEED_BRANDS: readonly Brand[] = [
 ];
 
 export const SEED_OUTLETS: readonly Outlet[] = [
-  /* -- Spice Route Kitchen (Bengaluru, 3 outlets) ----------------------- */
+  // -- Spice Route Kitchen (Bengaluru, 3 outlets) -----------------------
   {
     id: S, storeId: S, name: 'Spice Route - Indiranagar', brandId: 'brand-spice',
     marketId: 'mkt-in-s', city: 'Bengaluru', phone: '+91 80 4700 2000',
@@ -60,7 +58,7 @@ export const SEED_OUTLETS: readonly Outlet[] = [
     taxRate: 0.05, currency: 'INR', seatCapacity: 50,
     active: true, status: 'active', createdAt: NOW,
   },
-  /* -- Velvet Mumbai (2 outlets) ---------------------------------------- */
+  // -- Velvet Mumbai (2 outlets) ----------------------------------------
   {
     id: V, storeId: V, name: 'Velvet - Lower Parel', brandId: 'brand-velvet',
     marketId: 'mkt-in-s', city: 'Mumbai', phone: '+91 22 6100 4000',
@@ -75,7 +73,7 @@ export const SEED_OUTLETS: readonly Outlet[] = [
     taxRate: 0.12, currency: 'INR', seatCapacity: 0,
     active: true, status: 'active', createdAt: NOW,
   },
-  /* -- La Maison Boutique (SoHo) ---------------------------------------- */
+  // -- La Maison Boutique (SoHo) ----------------------------------------
   {
     id: L, storeId: L, name: 'La Maison - SoHo', brandId: 'brand-lamaison',
     marketId: 'mkt-uae', city: 'New York', phone: '+1 212 555 4000',
@@ -155,9 +153,7 @@ export const SEED_OUTLET_SETTINGS: readonly OutletSettings[] = [{
   updatedAt: NOW,
 }];
 
-/* -------------------------------------------------------------------------- */
-/* PHASE 2  Menu Management                                                   */
-/* -------------------------------------------------------------------------- */
+// PHASE 2  Menu Management
 
 export const SEED_MENU_CATEGORIES: readonly MenuCategory[] = [
   { id: 'mc-starter', storeId: S, name: 'Starters',        sortOrder: 1, iconUrl: null, kotStationId: 'kot-tandoor', active: true,  createdAt: NOW },
@@ -202,9 +198,7 @@ export const SEED_VARIANTS: readonly Variant[] = [
   { id: 'var-4', storeId: S, menuItemId: 'r07', label: 'Family',  priceOverride: 850, active: true, createdAt: NOW },
 ];
 
-/* -------------------------------------------------------------------------- */
-/* PHASE 3  Tables / KDS                                                      */
-/* -------------------------------------------------------------------------- */
+// PHASE 3  Tables / KDS
 
 export const SEED_SECTIONS: readonly FloorSection[] = [
   { id: 'sec-ground', storeId: S, name: 'Ground Floor',   sortOrder: 1, active: true, createdAt: NOW },
@@ -238,9 +232,7 @@ export const SEED_KOT_STATIONS: readonly KotStation[] = [
   { id: 'kot-bar',     storeId: S, name: 'Bar',           printer: 'BAR-192.168.1.12',     active: true, createdAt: NOW },
 ];
 
-/* -------------------------------------------------------------------------- */
-/* PHASE 4  Online Aggregators                                                */
-/* -------------------------------------------------------------------------- */
+// PHASE 4  Online Aggregators
 
 export const SEED_AGGREGATORS: readonly AggregatorConfig[] = [
   { id: 'agg-zom', storeId: S, provider: 'zomato',   enabled: true,  outletId: S, commissionPercent: 22, autoAccept: false, kotPrefix: 'Z', credentialsMasked: '***_z8k1', createdAt: NOW },
@@ -256,9 +248,7 @@ export const SEED_DELIVERY_ZONES: readonly DeliveryZone[] = [
   { id: 'dz-out',   storeId: S, name: 'Outer Zone (6-10km)',   pincodes: ['560103', '560068', '560048'], minOrder: 499, deliveryFee: 79, etaMinutes: 55, active: true, createdAt: NOW },
 ];
 
-/* -------------------------------------------------------------------------- */
-/* PHASE 6  Inventory                                                         */
-/* -------------------------------------------------------------------------- */
+// PHASE 6  Inventory
 
 export const SEED_INGREDIENTS: readonly Ingredient[] = [
   { id: 'ing-rice',    storeId: S, name: 'Basmati Rice',     unit: 'kg',    currentStock: 45, reorderLevel: 10, costPerUnit: 120, active: true, createdAt: NOW },
@@ -329,9 +319,7 @@ export const SEED_WASTAGE: readonly WastageEntry[] = [
   { id: 'wa-3', storeId: S, ingredientId: 'ing-chick', quantity: 0.3, reasonId: 'rsn-was2', reportedBy: 'cashier1', reportedAt: NOW, costImpact: 78,  createdAt: NOW },
 ];
 
-/* -------------------------------------------------------------------------- */
-/* PHASE 7  CRM / Loyalty                                                     */
-/* -------------------------------------------------------------------------- */
+// PHASE 7  CRM / Loyalty
 
 export const SEED_CUSTOMER_GROUPS: readonly CustomerGroup[] = [
   { id: 'cg-reg',  storeId: S, name: 'Regular',    discountPercent: 0,  customerCount: 145, active: true, createdAt: NOW },

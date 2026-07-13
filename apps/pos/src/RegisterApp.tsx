@@ -108,7 +108,7 @@ const R = (label: string, node: ReactNode): JSX.Element => (
   </ErrorBoundary>
 );
 
-/** Mounted at /:slug/cashier/*.  Cashier + views every staff member needs. */
+// * Mounted at /:slug/cashier/*.  Cashier + views every staff member needs.
 export const CashierApp: FC = () => (
   <Routes>
     <Route element={<ProtectedRoute />}>
@@ -124,7 +124,7 @@ export const CashierApp: FC = () => (
   </Routes>
 );
 
-/** Mounted at /:slug/admin/*.  Full TMBill-parity admin console. */
+// * Mounted at /:slug/admin/*.  Full TMBill-parity admin console.
 export const AdminApp: FC = () => (
   <Routes>
     <Route element={<AdminRoute />}>

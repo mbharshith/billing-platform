@@ -20,9 +20,9 @@ export interface LineItemColumn<T> {
   readonly options?: readonly { value: string; label: string }[];
   readonly step?: number;
   readonly min?: number;
-  /** For 'readonly': how to derive the cell value from the row. */
+  // * For 'readonly': how to derive the cell value from the row.
   readonly compute?: (row: T) => number | string;
-  /** CSS width for the column. Defaults let flex do its thing. */
+  // * CSS width for the column. Defaults let flex do its thing.
   readonly width?: string;
 }
 
@@ -33,8 +33,7 @@ interface LineItemsEditorProps<T> {
   readonly makeEmpty: () => T;
   readonly addLabel?: string;
   readonly emptyLabel?: string;
-  /** Called after each row edit; return the (possibly re-derived) row.
-   *  Handy for auto-computing lineTotal when qty or unitCost changes. */
+  // Called after each row edit; return the (possibly re-derived) row. *  Handy for auto-computing lineTotal when qty or unitCost changes.
   readonly reconcile?: (row: T) => T;
 }
 
@@ -81,9 +80,7 @@ export const LineItemsEditor = <T,>({
   );
 };
 
-/* -------------------------------------------------------------------------- */
-/* Cell renderer                                                              */
-/* -------------------------------------------------------------------------- */
+// Cell renderer
 
 const renderCell = <T,>(
   col: LineItemColumn<T>, row: T, idx: number,

@@ -15,11 +15,9 @@
 
 import type { Iso8601 } from './types';
 
-/* ========================================================================== */
-/* INVENTORY DEPTH                                                            */
-/* ========================================================================== */
+// INVENTORY DEPTH
 
-/** Physical location where inventory can live (outlet kitchen, central warehouse). */
+// * Physical location where inventory can live (outlet kitchen, central warehouse).
 export interface Warehouse {
   readonly id: string;
   readonly storeId: string;
@@ -40,7 +38,7 @@ export interface RawMaterialCategory {
   readonly createdAt: Iso8601;
 }
 
-/** Unit of Measure with conversion factor to a canonical base. */
+// * Unit of Measure with conversion factor to a canonical base.
 export interface UnitOfMeasure {
   readonly id: string;
   readonly storeId: string;
@@ -52,7 +50,7 @@ export interface UnitOfMeasure {
   readonly createdAt: Iso8601;
 }
 
-/** Manual stock add/deduct entry - opening balance, correction, spoilage. */
+// * Manual stock add/deduct entry - opening balance, correction, spoilage.
 export interface StockAdjustment {
   readonly id: string;
   readonly storeId: string;
@@ -66,7 +64,7 @@ export interface StockAdjustment {
   readonly createdAt: Iso8601;
 }
 
-/** Goods Receipt Note - matches a PO on arrival, tracks partial fulfilment. */
+// * Goods Receipt Note - matches a PO on arrival, tracks partial fulfilment.
 export interface GRN {
   readonly id: string;
   readonly storeId: string;
@@ -91,7 +89,7 @@ export interface GRNLine {
   readonly lineTotal: number;
 }
 
-/** Inter-warehouse or inter-outlet transfer. */
+// * Inter-warehouse or inter-outlet transfer.
 export interface StockTransfer {
   readonly id: string;
   readonly storeId: string;
@@ -113,7 +111,7 @@ export interface StockTransferLine {
   readonly unit: string;
 }
 
-/** Outlet -> HQ ingredient request (indent). */
+// * Outlet -> HQ ingredient request (indent).
 export interface IndentRequest {
   readonly id: string;
   readonly storeId: string;
@@ -135,7 +133,7 @@ export interface IndentLine {
   readonly unit: string;
 }
 
-/** Semi-finished / production batch (e.g. daily marinade prep). */
+// * Semi-finished / production batch (e.g. daily marinade prep).
 export interface ProductionBatch {
   readonly id: string;
   readonly storeId: string;
@@ -155,11 +153,9 @@ export interface ProductionConsumption {
   readonly unit: string;
 }
 
-/* ========================================================================== */
-/* ACCOUNTING                                                                 */
-/* ========================================================================== */
+// ACCOUNTING
 
-/** Ledger account (Chart of Accounts entry). */
+// * Ledger account (Chart of Accounts entry).
 export interface Account {
   readonly id: string;
   readonly storeId: string;
@@ -210,9 +206,7 @@ export interface VendorBill {
   readonly createdAt: Iso8601;
 }
 
-/* ========================================================================== */
-/* MARKETING (WhatsApp / SMS / Segments / Campaigns)                          */
-/* ========================================================================== */
+// MARKETING (WhatsApp / SMS / Segments / Campaigns)
 
 export interface WhatsAppTemplate {
   readonly id: string;

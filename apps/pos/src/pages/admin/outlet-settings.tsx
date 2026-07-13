@@ -165,9 +165,7 @@ export const OutletSettingsPage: FC = () => {
   );
 };
 
-/* -------------------------------------------------------------------------- */
-/* Local FormRow molecule - kept private to this page                         */
-/* -------------------------------------------------------------------------- */
+// Local FormRow molecule - kept private to this page
 
 interface FormRowProps {
   readonly label: string;

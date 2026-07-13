@@ -161,9 +161,7 @@ export const SidebarSettingsModal: FC<Props> = ({ open, onClose, groups }) => {
   );
 };
 
-/* -------------------------------------------------------------------------- */
-/* Tri-state checkbox glyph - purely presentational.                          */
-/* -------------------------------------------------------------------------- */
+// Tri-state checkbox glyph - purely presentational.
 
 const Checkbox: FC<{ state: 'all' | 'some' | 'none' }> = ({ state }) => (
   <span

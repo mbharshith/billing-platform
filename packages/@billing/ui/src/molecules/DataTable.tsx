@@ -16,26 +16,21 @@ import cls from './molecules.module.css';
 import { Icon, type IconName } from '../atoms/Icon';
 import { Text } from '../atoms';
 
-/* -------------------------------------------------------------------------- */
-/* Types                                                                      */
-/* -------------------------------------------------------------------------- */
+// Types
 
-/** Column definition for the data-driven DataTable. */
+// * Column definition for the data-driven DataTable.
 export interface DataTableColumn<T = unknown> {
-  /** Unique key — used as React key and sort identifier. */
+  // * Unique key — used as React key and sort identifier.
   key: string;
-  /** Header text or element. */
+  // * Header text or element.
   label: ReactNode;
-  /** Right-align header + cells; use for numeric values. */
+  // * Right-align header + cells; use for numeric values.
   numeric?: boolean;
-  /** Right-align + nowrap; use for action buttons. */
+  // * Right-align + nowrap; use for action buttons.
   actions?: boolean;
-  /** Renders the cell content for a given row. */
+  // * Renders the cell content for a given row.
   render?: (row: T) => ReactNode;
-  /**
-   * Accessor for sorting. Return a string or number.
-   * When present, the column header becomes a sort toggle.
-   */
+  // Accessor for sorting. Return a string or number. * When present, the column header becomes a sort toggle.
   sortValue?: (row: T) => string | number;
 }
 
@@ -43,62 +38,53 @@ type SortDir = 'asc' | 'desc';
 
 const DEFAULT_PAGE_SIZES = [10, 25, 50, 100] as const;
 
-/* -------------------------------------------------------------------------- */
-/* DataTable                                                                  */
-/* -------------------------------------------------------------------------- */
+// DataTable
 
 interface DataTableProps<T> {
-  /** The (optionally pre-filtered) rows to display. */
+  // * The (optionally pre-filtered) rows to display.
   data: readonly T[];
-  /** Column definitions including cell renderers. */
+  // * Column definitions including cell renderers.
   columns: DataTableColumn<T>[];
-  /** Returns a stable unique string key for each row. */
+  // * Returns a stable unique string key for each row.
   getKey: (row: T) => string;
 
   // ── Click ──────────────────────────────────────────────────────────────────
-  /** Row click handler — automatically adds cursor:pointer to rows. */
+  // * Row click handler — automatically adds cursor:pointer to rows.
   onRowClick?: (row: T) => void;
 
   // ── Row states ─────────────────────────────────────────────────────────────
-  /** Dims a row's text — use for inactive / soft-deleted records. */
+  // * Dims a row's text — use for inactive / soft-deleted records.
   getRowMuted?: (row: T) => boolean;
 
   // ── Search ─────────────────────────────────────────────────────────────────
-  /** Renders a search bar above the table. DataTable manages query state. */
+  // * Renders a search bar above the table. DataTable manages query state.
   searchPlaceholder?: string;
-  /**
-   * Predicate used to filter rows by the internal search query.
-   * Called with a lower-cased, trimmed query string.
-   * Omit to disable the built-in search bar.
-   */
+  // Predicate used to filter rows by the internal search query. * Called with a lower-cased, trimmed query string. * Omit to disable the built-in search bar.
   searchFn?: (row: T, query: string) => boolean;
 
   // ── Pagination ─────────────────────────────────────────────────────────────
-  /** Initial rows-per-page value. Defaults to 25. */
+  // * Initial rows-per-page value. Defaults to 25.
   defaultPageSize?: number;
-  /** Choices in the rows-per-page selector. */
+  // * Choices in the rows-per-page selector.
   pageSizeOptions?: readonly number[];
-  /** Pass true to hide pagination (e.g. for small embedded tables). */
+  // * Pass true to hide pagination (e.g. for small embedded tables).
   hidePagination?: boolean;
 
   // ── Empty state ────────────────────────────────────────────────────────────
   emptyIcon?: IconName;
-  /** Shown when `data` is empty (and no query is active). */
+  // * Shown when `data` is empty (and no query is active).
   emptyTitle?: string;
   emptyHint?: string;
-  /** Shown when `data` has rows but the search returns nothing. */
+  // * Shown when `data` has rows but the search returns nothing.
   emptySearchTitle?: string;
   emptySearchHint?: string;
 
   // ── Footer / totals row ───────────────────────────────────────────────────
-  /** <tr> elements rendered inside <tfoot>. */
+  // * <tr> elements rendered inside <tfoot>.
   footer?: ReactNode;
 
   // ── Style ──────────────────────────────────────────────────────────────────
-  /**
-   * Strip the border + border-radius from the wrapper.
-   * Use when the table lives inside a .card that already provides the container.
-   */
+  // Strip the border + border-radius from the wrapper. * Use when the table lives inside a .card that already provides the container.
   flush?: boolean;
 }
 
@@ -379,9 +365,7 @@ export function DataTable<T>({
   );
 }
 
-/* -------------------------------------------------------------------------- */
-/* DataTableRow — lightweight companion for custom/structural table layouts  */
-/* -------------------------------------------------------------------------- */
+// DataTableRow — lightweight companion for custom/structural table layouts
 interface DataTableRowProps extends HTMLAttributes<HTMLTableRowElement> {
   clickable?: boolean;
   muted?: boolean;

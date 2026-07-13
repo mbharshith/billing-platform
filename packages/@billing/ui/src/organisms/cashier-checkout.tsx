@@ -39,9 +39,7 @@ const PAYMENT_METHOD_OPTS: readonly { code: PaymentMethod; label: string }[] = [
   { code: 'cod',     label: 'COD'     },
 ];
 
-/* -------------------------------------------------------------------------- */
-/* Mode detection - defensive against tenants that rename their order types.  */
-/* -------------------------------------------------------------------------- */
+// Mode detection - defensive against tenants that rename their order types.
 type Mode = 'counter' | 'dine-in' | 'delivery' | 'aggregator';
 
 const AGGREGATOR_KEYWORDS = [
@@ -69,9 +67,7 @@ const MODE_LABELS: Record<Mode, string> = {
 };
 const MODE_ORDER: readonly Mode[] = ['counter', 'dine-in', 'delivery', 'aggregator'];
 
-/* -------------------------------------------------------------------------- */
-/* Payload emitted on Confirm. Parent turns this into a Sale via buildSale.   */
-/* -------------------------------------------------------------------------- */
+// Payload emitted on Confirm. Parent turns this into a Sale via buildSale.
 export interface CheckoutPayload {
   readonly payments: readonly SalePayment[];
   readonly orderTypeCode: string | null;
@@ -103,7 +99,7 @@ export const CheckoutModal: FC<CheckoutModalProps> = ({
   total, onConfirm, onClose,
   orderTypes, tables, sections, customers, recentSales, onCreateCustomer,
 }) => {
-  /* ---------- Categorize OrderTypes into modes ------------------------- */
+  // ---------- Categorize OrderTypes into modes -------------------------
   const typesByMode = useMemo(() => {
     const m: Record<Mode, OrderType[]> = { counter: [], 'dine-in': [], delivery: [], aggregator: [] };
     orderTypes.filter((t) => t.active).forEach((t) => { m[detectMode(t)].push(t); });
@@ -115,13 +111,13 @@ export const CheckoutModal: FC<CheckoutModalProps> = ({
     [typesByMode],
   );
 
-  /* ---------- Mode selection ------------------------------------------- */
+  // ---------- Mode selection -------------------------------------------
   const [mode, setMode] = useState<Mode>(() => availableModes[0] ?? 'counter');
   useEffect(() => {
     if (!availableModes.includes(mode) && availableModes[0]) setMode(availableModes[0]);
   }, [availableModes, mode]);
 
-  /* ---------- OrderType selection (per mode) --------------------------- */
+  // ---------- OrderType selection (per mode) ---------------------------
   // For counter/dine-in/delivery: there's usually only 1 OrderType per mode,
   // so we just pick the first. For aggregator: user picks explicitly.
   const [aggregatorTypeCode, setAggregatorTypeCode] = useState<string | null>(
@@ -140,7 +136,7 @@ export const CheckoutModal: FC<CheckoutModalProps> = ({
     return typesByMode[mode][0] ?? null;
   }, [mode, aggregatorTypeCode, typesByMode]);
 
-  /* ---------- Table (Dine-in) ------------------------------------------ */
+  // ---------- Table (Dine-in) ------------------------------------------
   const [tableId, setTableId] = useState<string | null>(null);
   const activeTables = useMemo(() => tables.filter((t) => t.active), [tables]);
   const tablesBySection = useMemo(() => {
@@ -150,7 +146,7 @@ export const CheckoutModal: FC<CheckoutModalProps> = ({
   }, [activeTables]);
   const selectedTable = tableId ? activeTables.find((t) => t.id === tableId) ?? null : null;
 
-  /* ---------- Delivery: recent addresses dropdown + new-address form --- */
+  // ---------- Delivery: recent addresses dropdown + new-address form ---
   const recentAddresses = useMemo(() => {
     const uniq = new Map<string, DeliveryAddress>();
     recentSales.forEach((s) => {
@@ -181,10 +177,10 @@ export const CheckoutModal: FC<CheckoutModalProps> = ({
     return picked;
   }, [mode, addressChoice, addressLine, deliveryPhone, recentAddresses]);
 
-  /* ---------- Aggregator ref ------------------------------------------- */
+  // ---------- Aggregator ref -------------------------------------------
   const [aggregatorRef, setAggregatorRef] = useState('');
 
-  /* ---------- Payment tenders ------------------------------------------ */
+  // ---------- Payment tenders ------------------------------------------
   const [rows, setRows] = useState<TenderRow[]>([
     { key: 'p1', method: 'cash', amount: total.toFixed(2) },
   ]);
@@ -200,7 +196,7 @@ export const CheckoutModal: FC<CheckoutModalProps> = ({
   const patchRow = (key: string, patch: Partial<TenderRow>) =>
     setRows((prev) => prev.map((r) => (r.key === key ? { ...r, ...patch } : r)));
 
-  /* ---------- Customer (inline picker) --------------------------------- */
+  // ---------- Customer (inline picker) ---------------------------------
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [customerQuery, setCustomerQuery] = useState('');
   const [newName, setNewName] = useState('');
@@ -225,7 +221,7 @@ export const CheckoutModal: FC<CheckoutModalProps> = ({
     if (c) { setSelectedCustomer(c); setNewName(''); setNewMobile(''); }
   };
 
-  /* ---------- Validation ----------------------------------------------- */
+  // ---------- Validation -----------------------------------------------
   const contextOK =
     (mode !== 'dine-in'    || !!tableId) &&
     (mode !== 'delivery'   || !!activeDeliveryAddress) &&

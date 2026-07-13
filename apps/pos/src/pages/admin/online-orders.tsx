@@ -19,7 +19,6 @@ import { resolveDateWindow } from '@billing/shared/domain/dateRange';
 import type { OrderStatus, Sale } from '@billing/shared/domain/types';
 import cls from './admin.module.css';
 
-/* -------------------------------------------------------------------------- */
 
 const STATUS_LABELS: Readonly<Record<OrderStatus, string>> = {
   placed: 'New',
@@ -41,9 +40,7 @@ const STATUS_VARIANT: Readonly<Record<OrderStatus, 'neutral' | 'primary' | 'acce
 
 type StatusFilter = 'all' | OrderStatus;
 
-/* -------------------------------------------------------------------------- */
-/* Detail panel - expanded row content                                        */
-/* -------------------------------------------------------------------------- */
+// Detail panel - expanded row content
 
 interface DetailProps { readonly sale: Sale; readonly money: (n: number) => string }
 
@@ -97,9 +94,7 @@ const OrderDetail: FC<DetailProps> = ({ sale, money }) => {
   );
 };
 
-/* -------------------------------------------------------------------------- */
-/* Page                                                                       */
-/* -------------------------------------------------------------------------- */
+// Page
 
 export const OnlineOrdersPage: FC = () => {
   const { sales } = useSales();

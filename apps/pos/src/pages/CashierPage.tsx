@@ -48,7 +48,6 @@ import type {
   Discount, Coupon, AdditionalCharge, Modifier, Variant,
 } from '@billing/shared/domain/restaurant';
 
-/* -------------------------------------------------------------------------- */
 export const CashierPage: FC = () => {
   const { activeProducts, decrementStock } = useProducts();
   const { customers, addLending, create: createCustomer } = useCustomers();
@@ -57,7 +56,7 @@ export const CashierPage: FC = () => {
   const { settings } = useSettings();
   const toast = useToast();
 
-  /* -- DB-backed catalogs ------------------------------------------------ */
+  // -- DB-backed catalogs ------------------------------------------------
   const orderTypesApi = useTable<OrderType>('orderTypes');
   const tablesApi     = useTable<DiningTable>('diningTables');
   const sectionsApi   = useTable<FloorSection>('sections');
@@ -68,23 +67,21 @@ export const CashierPage: FC = () => {
   const modifiersApi  = useTable<Modifier>('modifiers');
   const variantsApi   = useTable<Variant>('variants');
 
-  /* -- Cart + product-grid state ----------------------------------------- */
+  // -- Cart + product-grid state -----------------------------------------
   const [query, setQuery] = useState('');
   const [categoryName, setCategoryName] = useState<string>('All');
   const [draftLines, setDraftLines] = useState<SaleLine[]>([]);
   const [flashId, setFlashId] = useState<string | null>(null);
   const [mobileCartOpen, setMobileCartOpen] = useState(false);
 
-  /* -- Sale context ------------------------------------------------------ *
-   * NOTE: order type, table and customer are now collected inside the      *
-   * CheckoutModal itself. This page no longer keeps any of that state.    */
+  // -- Sale context ------------------------------------------------------ * * NOTE: order type, table and customer are now collected inside the      * * CheckoutModal itself. This page no longer keeps any of that state.
 
-  /* -- Money ------------------------------------------------------------- */
+  // -- Money -------------------------------------------------------------
   const [billDiscount, setBillDiscount] = useState<SaleBillDiscount | undefined>();
   const [coupon, setCoupon] = useState<SaleCoupon | undefined>();
   const [charges, setCharges] = useState<SaleCharge[]>([]);
 
-  /* -- Modal state ------------------------------------------------------- */
+  // -- Modal state -------------------------------------------------------
   const [showBillDiscount, setShowBillDiscount] = useState(false);
   const [showCharges, setShowCharges] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
@@ -92,7 +89,7 @@ export const CashierPage: FC = () => {
   const [lastSale, setLastSale] = useState<Sale | null>(null);
   const [showKot, setShowKot] = useState<Sale | null>(null);
 
-  /* -- Derived ----------------------------------------------------------- */
+  // -- Derived -----------------------------------------------------------
   // Charges filter needs an order type - the checkout modal decides that,
   // so during cart building we just show all charges not scoped to a type.
 
@@ -123,7 +120,7 @@ export const CashierPage: FC = () => {
     return map;
   }, [variantsApi.rows]);
 
-  /* -- Cart mutations ---------------------------------------------------- */
+  // -- Cart mutations ----------------------------------------------------
   const upsertLine = (line: SaleLine, replace = false) => {
     setDraftLines((prev) => {
       const idx = prev.findIndex((l) => l.productId === line.productId
@@ -185,7 +182,7 @@ export const CashierPage: FC = () => {
     setCharges([]);
   };
 
-  /* -- Money mutations --------------------------------------------------- */
+  // -- Money mutations ---------------------------------------------------
   const toggleCharge = (c: AdditionalCharge) => {
     setCharges((prev) => {
       if (prev.find((x) => x.chargeId === c.id)) return prev.filter((x) => x.chargeId !== c.id);
@@ -196,17 +193,13 @@ export const CashierPage: FC = () => {
 
 
 
-  /* -- Payment / commit -------------------------------------------------- */
+  // -- Payment / commit --------------------------------------------------
   const openPayment = () => {
     if (draftLines.length === 0) { toast.error(STRINGS.errors.emptyCart); return; }
     setShowPayment(true);
   };
 
-  /**
-   * completeSale runs when CheckoutModal fires onConfirm. The modal has
-   * already validated that lending/COD tenders have a customer attached,
-   * dine-in has a table, delivery has an address, etc.
-   */
+  // completeSale runs when CheckoutModal fires onConfirm. The modal has * already validated that lending/COD tenders have a customer attached, * dine-in has a table, delivery has an address, etc.
   const completeSale = async (payload: CheckoutPayload) => {
     if (!currentUser || !currentStoreId) return;
     const {
@@ -248,7 +241,7 @@ export const CashierPage: FC = () => {
     toast.success(`Sale ${sale.invoiceNo} recorded.`);
   };
 
-  /* -- Cart panel money-slot content (chip row + breakdown rows) --------- */
+  // -- Cart panel money-slot content (chip row + breakdown rows) ---------
   const fmt = (n: number) => `Rs ${n.toFixed(2)}`;
   const moneyActions = draftLines.length === 0 ? null : (
     <>
@@ -452,9 +445,7 @@ export const CashierPage: FC = () => {
   );
 };
 
-/* -------------------------------------------------------------------------- */
-/* Helper - true if two modifier lists match (by optionId set)                */
-/* -------------------------------------------------------------------------- */
+// Helper - true if two modifier lists match (by optionId set)
 const sameMods = (a: readonly SaleLineModifier[], b: readonly SaleLineModifier[]): boolean => {
   if (a.length !== b.length) return false;
   const setA = new Set(a.map((m) => m.optionId));

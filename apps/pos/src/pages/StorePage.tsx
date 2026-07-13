@@ -116,9 +116,7 @@ export const StorePage: FC = () => {
   );
 };
 
-/* -------------------------------------------------------------------------- */
-/* Small local components                                                     */
-/* -------------------------------------------------------------------------- */
+// Small local components
 const IdentityField: FC<{ label: string; value: string; icon: Parameters<typeof Icon>[0]['name'] }> =
   ({ label, value, icon }) => (
   <div className={cls.identityField}>

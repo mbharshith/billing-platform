@@ -14,9 +14,7 @@ import { useMoney } from '@billing/shared/hooks/useMoney';
 import type { PaymentMethod, Product, Sale, SaleLine } from '@billing/shared/domain/types';
 import { TAX_RATE } from '@billing/shared/domain/catalog';
 
-/* -------------------------------------------------------------------------- */
-/* AppHeader                                                                  */
-/* -------------------------------------------------------------------------- */
+// AppHeader
 type NavRoute = 'cashier' | 'dashboard';
 
 interface AppHeaderProps {
@@ -66,9 +64,7 @@ export const AppHeader: FC<AppHeaderProps> = ({ route, onNavigate }) => (
   </header>
 );
 
-/* -------------------------------------------------------------------------- */
-/* ProductGrid                                                                */
-/* -------------------------------------------------------------------------- */
+// ProductGrid
 interface ProductGridProps {
   products: readonly Product[];
   cart: Readonly<Record<string, number>>;
@@ -101,9 +97,7 @@ export const ProductGrid: FC<ProductGridProps> = ({ products, cart, flashId, onA
   );
 };
 
-/* -------------------------------------------------------------------------- */
-/* ProductToolbar (search + filters)                                          */
-/* -------------------------------------------------------------------------- */
+// ProductToolbar (search + filters)
 interface ProductToolbarProps<T extends string> {
   query: string;
   onQueryChange: (value: string) => void;
@@ -126,9 +120,7 @@ export const ProductToolbar = <T extends string>({
   </div>
 );
 
-/* -------------------------------------------------------------------------- */
-/* CartPanel                                                                  */
-/* -------------------------------------------------------------------------- */
+// CartPanel
 interface CartPanelProps {
   lines: readonly SaleLine[];
   subtotal: number;
@@ -242,9 +234,7 @@ export const CartPanel: FC<CartPanelProps> = ({
   );
 };
 
-/* -------------------------------------------------------------------------- */
-/* MobileCartBar — sticky bottom bar shown < 1024px when cart has items      */
-/* -------------------------------------------------------------------------- */
+// MobileCartBar — sticky bottom bar shown < 1024px when cart has items
 interface MobileCartBarProps {
   unitCount: number;
   total: number;
@@ -276,9 +266,7 @@ export const MobileCartBar: FC<MobileCartBarProps> = ({ unitCount, total, onOpen
   );
 };
 
-/* -------------------------------------------------------------------------- */
-/* Generic Modal (with focus trap + Esc-to-close)                             */
-/* -------------------------------------------------------------------------- */
+// Generic Modal (with focus trap + Esc-to-close)
 interface ModalProps {
   title: string;
   subtitle?: string;
@@ -319,17 +307,14 @@ export const Modal: FC<ModalProps> = ({ title, subtitle, onClose, wide, children
   );
 };
 
-/* -------------------------------------------------------------------------- */
-/* PaymentModal - method + optional lending customer                          */
-/*                                                                            */
-/* Lending needs a customer so the balance can be tracked. Two flows:         */
-/*   1) A customer is already attached to the sale (top-of-page chip) -       */
-/*      we skip the mobile input and show a read-only 'Charge to' summary     */
-/*      with a 'Change' button that reopens the picker.                       */
-/*   2) No customer attached - we show ONE big 'Pick or add customer' button  */
-/*      that opens the CustomerPickerModal (which itself supports adding a    */
-/*      new customer inline). No manual mobile entry needed.                  */
-/* -------------------------------------------------------------------------- */
+// PaymentModal - method + optional lending customer
+// Lending needs a customer so the balance can be tracked. Two flows:
+// 1) A customer is already attached to the sale (top-of-page chip) -
+// we skip the mobile input and show a read-only 'Charge to' summary
+// with a 'Change' button that reopens the picker.
+// 2) No customer attached - we show ONE big 'Pick or add customer' button
+// that opens the CustomerPickerModal (which itself supports adding a
+// new customer inline). No manual mobile entry needed.
 interface PaymentModalAttachedCustomer {
   readonly name: string;
   readonly mobile: string;
@@ -339,11 +324,9 @@ interface PaymentModalProps {
   unitCount: number;
   onCancel: () => void;
   onConfirm: (method: PaymentMethod, mobile: string | null) => void;
-  /** Customer attached to the sale (chip in the cashier header). */
+  // * Customer attached to the sale (chip in the cashier header).
   attachedCustomer?: PaymentModalAttachedCustomer | null;
-  /** If provided, the modal shows a 'Pick or add customer' button when      *
-   *  lending is selected without a customer, delegating the picker to the   *
-   *  parent. Falls back to a manual mobile input when omitted.              */
+  // If provided, the modal shows a 'Pick or add customer' button when      * *  lending is selected without a customer, delegating the picker to the   * *  parent. Falls back to a manual mobile input when omitted.
   onAttachCustomer?: () => void;
 }
 
@@ -481,9 +464,7 @@ export const PaymentModal: FC<PaymentModalProps> = ({
   );
 };
 
-/* -------------------------------------------------------------------------- */
-/* ReceiptModal                                                               */
-/* -------------------------------------------------------------------------- */
+// ReceiptModal
 interface ReceiptModalProps {
   sale: Sale;
   onClose: () => void;
@@ -743,9 +724,7 @@ export const InventoryTable: FC<InventoryTableProps> = ({ aggregates }) => {
   );
 };
 
-/* -------------------------------------------------------------------------- */
-/* Dashboard: KPI grid                                                        */
-/* -------------------------------------------------------------------------- */
+// Dashboard: KPI grid
 interface DashboardKpisProps {
   revenue: number;
   saleCount: number;
@@ -779,9 +758,7 @@ export const DashboardKpis: FC<DashboardKpisProps> = ({
   );
 };
 
-/* -------------------------------------------------------------------------- */
-/* Helper: build a fresh Sale value                                           */
-/* -------------------------------------------------------------------------- */
+// Helper: build a fresh Sale value
 export interface BuildSaleInput {
   readonly lines: readonly SaleLine[];
   readonly subtotal: number;
@@ -793,10 +770,10 @@ export interface BuildSaleInput {
   readonly cashierId: string;
   readonly cashierName: string;
   readonly storeId: string;
-  /** Physical outlet the sale belongs to. Defaults to storeId when omitted. */
+  // * Physical outlet the sale belongs to. Defaults to storeId when omitted.
   readonly outletId?: string;
 
-  /* -- Optional cashier extensions - passed through when present ---------- */
+  // -- Optional cashier extensions - passed through when present ----------
   readonly orderTypeCode?: string;
   readonly tableId?: string;
   readonly tableCode?: string;
@@ -851,11 +828,9 @@ export const buildSale = (input: BuildSaleInput): Sale => ({
 // Re-export spinner for pages that need it
 export { Spinner };
 
-/* -------------------------------------------------------------------------- */
-/* Cashier organisms - order type, table picker, customer picker, discount,   */
-/* coupon, charges, split-payment, modifiers, held orders, KOT.                */
-/* Split across 3 files to keep each under 400 lines. All share cashier.module.css. */
-/* -------------------------------------------------------------------------- */
+// Cashier organisms - order type, table picker, customer picker, discount,
+// coupon, charges, split-payment, modifiers, held orders, KOT.
+// Split across 3 files to keep each under 400 lines. All share cashier.module.css.
 
 export {
   OrderTypeToggle, TablePickerModal, CustomerPickerModal,

@@ -27,9 +27,7 @@ import type {
 
 
 
-/* ========================================================================== */
-/* PHASE 1  POS Configuration                                                 */
-/* ========================================================================== */
+// PHASE 1  POS Configuration
 
 export const MarketsPage: FC = () => {
   const api = useTable<Market>('markets', false);
@@ -308,9 +306,7 @@ export const ReasonsPage: FC = () => {
   );
 };
 
-/* ========================================================================== */
-/* PHASE 2  Menu Management                                                   */
-/* ========================================================================== */
+// PHASE 2  Menu Management
 
 export const MenuCategoriesPage: FC = () => {
   const api = useTable<MenuCategory>('menuCategories');
@@ -415,9 +411,7 @@ export const VariantsPage: FC = () => {
   );
 };
 
-/* ========================================================================== */
-/* PHASE 3  Tables & KDS                                                      */
-/* ========================================================================== */
+// PHASE 3  Tables & KDS
 
 export const SectionsPage: FC = () => {
   const api = useTable<FloorSection>('sections');
@@ -496,9 +490,7 @@ export const KotStationsPage: FC = () => {
   );
 };
 
-/* ========================================================================== */
-/* PHASE 4  Online & Delivery                                                 */
-/* ========================================================================== */
+// PHASE 4  Online & Delivery
 
 export const AggregatorsPage: FC = () => {
   const api = useTable<AggregatorConfig>('aggregators');
@@ -560,9 +552,7 @@ export const DeliveryZonesPage: FC = () => {
   );
 };
 
-/* ========================================================================== */
-/* PHASE 6  Inventory                                                         */
-/* ========================================================================== */
+// PHASE 6  Inventory
 
 export const IngredientsPage: FC = () => {
   const api = useTable<Ingredient>('ingredients');
@@ -656,9 +646,7 @@ export const WastagePage: FC = () => {
   );
 };
 
-/* ========================================================================== */
-/* PHASE 7  CRM & Loyalty                                                     */
-/* ========================================================================== */
+// PHASE 7  CRM & Loyalty
 
 export const CustomerGroupsPage: FC = () => {
   const api = useTable<CustomerGroup>('customerGroups');

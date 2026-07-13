@@ -49,7 +49,6 @@ const reconcileItem = (row: PurchaseOrderItem): PurchaseOrderItem => ({
 const orderTotal = (items: readonly PurchaseOrderItem[]): number =>
   Math.round(items.reduce((s, i) => s + i.lineTotal, 0) * 100) / 100;
 
-/* -------------------------------------------------------------------------- */
 
 export const PurchaseOrdersPage: FC = () => {
   const pos         = useTable<PurchaseOrder>('purchaseOrders');

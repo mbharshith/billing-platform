@@ -1,8 +1,6 @@
 // Domain types - shared vocabulary. Every entity carries id+createdAt; add tenantId once backend arrives.
 
-/* -------------------------------------------------------------------------- */
-/* Shared primitives                                                          */
-/* -------------------------------------------------------------------------- */
+// Shared primitives
 export type Iso8601 = string;
 export type PaymentMethod = 'cash' | 'card' | 'lending' | 'cod' | 'online';
 
@@ -34,9 +32,7 @@ export interface OrderStatusEvent {
   readonly note: string;
 }
 
-/* -------------------------------------------------------------------------- */
-/* Stores (multi-tenant)                                                      */
-/* -------------------------------------------------------------------------- */
+// Stores (multi-tenant)
 export interface Store {
   readonly id: string;
   readonly name: string;
@@ -65,9 +61,7 @@ export type AsyncStatus<T, E = string> =
   | { readonly kind: 'success'; readonly data: T }
   | { readonly kind: 'error';   readonly error: E };
 
-/* -------------------------------------------------------------------------- */
-/* Products                                                                   */
-/* -------------------------------------------------------------------------- */
+// Products
 export type ProductCategory =
   | 'Grocery' | 'Produce' | 'Beverages' | 'Snacks'
   | 'Household' | 'Personal' | 'Meat' | 'Frozen' | 'Electronics' | 'Other';
@@ -91,13 +85,11 @@ export interface Product {
   // Store that owns this product.
   readonly storeId: string;
 
-  /** Optional photo URL — populated in fixture tenants; future: served by product API. */
+  // * Optional photo URL — populated in fixture tenants; future: served by product API.
   readonly image?: string;
 }
 
-/* -------------------------------------------------------------------------- */
-/* Sales                                                                      */
-/* -------------------------------------------------------------------------- */
+// Sales
 export interface SaleLine {
   readonly productId: string;
   readonly sku: string;
@@ -107,19 +99,18 @@ export interface SaleLine {
   readonly quantity: number;
   readonly lineTotal: number;         // (unitPrice * quantity) - lineDiscount
 
-  /* -- Cashier extensions (all optional for back-compat with old sales) --- */
-  /** Original list price before variant / modifier deltas. Populated only
-   *  when the line was configured through the modifier picker. */
+  // -- Cashier extensions (all optional for back-compat with old sales) ---
+  // Original list price before variant / modifier deltas. Populated only *  when the line was configured through the modifier picker.
   readonly originalUnitPrice?: number;
-  /** Variant selected (e.g. "Half", "Full"). */
+  // * Variant selected (e.g. "Half", "Full").
   readonly variantId?: string;
   readonly variantLabel?: string;
-  /** Chosen modifier options (extra cheese, no onions, etc.). */
+  // * Chosen modifier options (extra cheese, no onions, etc.).
   readonly modifiers?: readonly SaleLineModifier[];
-  /** Discount applied on this line specifically (positive currency amount). */
+  // * Discount applied on this line specifically (positive currency amount).
   readonly lineDiscount?: number;
   readonly lineDiscountReason?: string;
-  /** Note the cashier attached (e.g. "allergy: peanuts"). */
+  // * Note the cashier attached (e.g. "allergy: peanuts").
   readonly note?: string;
 }
 
@@ -131,14 +122,14 @@ export interface SaleLineModifier {
   readonly priceDelta: number;
 }
 
-/** A single payment tender on a split-payment sale. */
+// * A single payment tender on a split-payment sale.
 export interface SalePayment {
   readonly method: PaymentMethod;
   readonly amount: number;
   readonly reference?: string;      // e.g. UPI txn id, last-4 card
 }
 
-/** An additional charge line (service / packaging / delivery / etc). */
+// * An additional charge line (service / packaging / delivery / etc).
 export interface SaleCharge {
   readonly chargeId: string;
   readonly name: string;
@@ -146,7 +137,7 @@ export interface SaleCharge {
   readonly taxable: boolean;
 }
 
-/** Bill-level discount snapshot. */
+// * Bill-level discount snapshot.
 export interface SaleBillDiscount {
   readonly discountId: string | null;   // null = ad-hoc manual discount
   readonly name: string;
@@ -155,7 +146,7 @@ export interface SaleBillDiscount {
   readonly amount: number;              // computed currency amount
 }
 
-/** Coupon redemption snapshot. */
+// * Coupon redemption snapshot.
 export interface SaleCoupon {
   readonly couponId: string;
   readonly code: string;
@@ -187,8 +178,7 @@ export interface Sale {
   readonly voidedReason: string | null;
   // Store where the sale happened.
   readonly storeId: string;
-  /** Physical outlet within storeId. Optional for back-compat with sales
-   *  written before multi-outlet support landed — those default to storeId. */
+  // Physical outlet within storeId. Optional for back-compat with sales *  written before multi-outlet support landed — those default to storeId.
   readonly outletId?: string;
 
   // -- Online-order fields (all null for counter sales) --------------------
@@ -199,25 +189,25 @@ export interface Sale {
   readonly customerNotes: string | null;
   readonly statusHistory: readonly OrderStatusEvent[] | null;
 
-  /* -- Cashier extensions (all optional for back-compat) ----------------- */
-  /** Order type code (dine-in / takeaway / delivery / etc). */
+  // -- Cashier extensions (all optional for back-compat) -----------------
+  // * Order type code (dine-in / takeaway / delivery / etc).
   readonly orderTypeCode?: string;
-  /** Table (Dine-in only). */
+  // * Table (Dine-in only).
   readonly tableId?: string;
   readonly tableCode?: string;
-  /** Bill-level discount applied. */
+  // * Bill-level discount applied.
   readonly billDiscount?: SaleBillDiscount;
-  /** Coupon redeemed. */
+  // * Coupon redeemed.
   readonly coupon?: SaleCoupon;
-  /** Sum of every SaleLine.lineDiscount (denormalised for fast reporting). */
+  // * Sum of every SaleLine.lineDiscount (denormalised for fast reporting).
   readonly lineDiscountTotal?: number;
-  /** Additional charges applied to this bill. */
+  // * Additional charges applied to this bill.
   readonly charges?: readonly SaleCharge[];
-  /** Split-payment tenders. paymentMethod above is payments[0].method. */
+  // * Split-payment tenders. paymentMethod above is payments[0].method.
   readonly payments?: readonly SalePayment[];
-  /** Held-order timestamp. Non-null while the sale is parked; cleared on resume. */
+  // * Held-order timestamp. Non-null while the sale is parked; cleared on resume.
   readonly heldAt?: Iso8601 | null;
-  /** Sale-level note. */
+  // * Sale-level note.
   readonly note?: string;
 }
 
@@ -229,9 +219,7 @@ export const SYSTEM_ACTOR_NAME = 'Customer (online)';
 export const ACTIVE_ORDER_STATUSES: readonly OrderStatus[] =
   ['placed', 'confirmed', 'packing', 'out_for_delivery'];
 
-/* -------------------------------------------------------------------------- */
-/* Customers                                                                  */
-/* -------------------------------------------------------------------------- */
+// Customers
 export interface Customer {
   readonly id: string;
   readonly name: string;
@@ -256,7 +244,6 @@ export interface CustomerPayment {
   readonly notes: string | null;
 }
 
-/* -------------------------------------------------------------------------- */
 // Users (staff). Role capabilities live in permissions.ts, not here.
 export type UserRole = 'vendor' | 'admin' | 'cashier';
 
@@ -280,9 +267,7 @@ export interface User {
 // Subset of User safe to keep in the browser session.
 export type SessionUser = Omit<User, 'password'>;
 
-/* -------------------------------------------------------------------------- */
-/* Settings                                                                   */
-/* -------------------------------------------------------------------------- */
+// Settings
 export interface StoreSettings {
   readonly storeName: string;
   readonly address: string;
@@ -294,9 +279,7 @@ export interface StoreSettings {
   readonly receiptFooter: string;
 }
 
-/* -------------------------------------------------------------------------- */
-/* Vendor audit log                                                           */
-/* -------------------------------------------------------------------------- */
+// Vendor audit log
 // Immutable record of a vendor action across the tenant fleet.
 //  Written server-side in production; here we append to a Dexie table.
 export type VendorAction =

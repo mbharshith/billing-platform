@@ -13,7 +13,7 @@ import { toSessionUser, useUsers } from './UsersContext';
 const SESSION_KEY = 'session';
 const OUTLET_KEY_PREFIX = 'active-outlet:';   // per-user active outlet id
 
-/** SHA-256 hash — used to avoid storing passwords in plaintext. */
+// * SHA-256 hash — used to avoid storing passwords in plaintext.
 const sha256 = async (text: string): Promise<string> => {
   const bytes = new TextEncoder().encode(text);
   const buf   = await crypto.subtle.digest('SHA-256', bytes);
@@ -28,8 +28,7 @@ interface AuthContextValue {
   readonly currentUser: SessionUser | null;
   // The tenant id this session is bound to. Null iff not logged in.
   readonly currentStoreId: string | null;
-  /** Physical outlet the user is operating at. Defaults to their storeId if
-   *  no outlet has been explicitly picked yet. Null iff not logged in. */
+  // Physical outlet the user is operating at. Defaults to their storeId if *  no outlet has been explicitly picked yet. Null iff not logged in.
   readonly currentOutletId: string | null;
   readonly setCurrentOutletId: (outletId: string) => void;
   readonly isAdmin: boolean;
@@ -43,7 +42,7 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-/** Read the persisted outlet id for a user, defaulting to their storeId. */
+// * Read the persisted outlet id for a user, defaulting to their storeId.
 const readOutletFor = (user: SessionUser | null): string | null => {
   if (!user) return null;
   try {
@@ -58,10 +57,7 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
     () => storage.load<SessionUser | null>(SESSION_KEY, null),
   );
 
-  /* -- Active outlet ---------------------------------------------------- *
-   * Persisted per-user under 'active-outlet:<userId>' so switching users
-   * doesn't leak outlet state. Defaults to the user's storeId (which is
-   * always guaranteed to have a matching outlet row via seed). */
+  // -- Active outlet ---------------------------------------------------- * * Persisted per-user under 'active-outlet:<userId>' so switching users * doesn't leak outlet state. Defaults to the user's storeId (which is * always guaranteed to have a matching outlet row via seed).
   const [currentOutletId, setCurrentOutletIdState] =
     useState<string | null>(() => readOutletFor(currentUser));
 

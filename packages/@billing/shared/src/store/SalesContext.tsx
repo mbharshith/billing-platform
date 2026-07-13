@@ -68,6 +68,21 @@ export const SalesProvider: FC<{ children: ReactNode }> = ({ children }) => {
     if (allProducts.length === 0 || stores.length === 0) return;
     let cancelled = false;
     (async () => {
+      // Self-heal STALE seed data: earlier builds generated invoice numbers
+      // with a hard-coded 'WM-' prefix (Walmart cruft) and collision-prone
+      // Date.now()-only suffix. If the DB still has any of those, wipe the
+      // seeded online orders so the fresh generator (INV-<ts><tick>) can
+      // re-seed with realistic minutes-old timestamps.
+      // Counter sales are safe because they used a separate monotonic
+      // counter, not nextInvoiceNo().
+      const staleOnline = await db.sales
+        .where('channel').equals('online')
+        .and((s) => s.invoiceNo.startsWith('WM-'))
+        .toArray();
+      if (staleOnline.length > 0 && !cancelled) {
+        await db.sales.bulkDelete(staleOnline.map((s) => s.id));
+      }
+
       const totalSales = await db.sales.count();
       const onlineCount = await db.sales.where('channel').equals('online').count();
 

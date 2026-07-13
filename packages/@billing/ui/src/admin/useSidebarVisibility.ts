@@ -26,14 +26,12 @@ export interface VisibilityPrefs {
 
 const EMPTY: VisibilityPrefs = { hiddenGroups: [], hiddenLinks: [] };
 
-/** Composite key so link paths don't have to be globally unique. */
+// * Composite key so link paths don't have to be globally unique.
 export const linkKey = (groupId: string, link: SidebarLink): string =>
   `${groupId}::${link.path}`;
 
-/* -------------------------------------------------------------------------- */
-/* Storage plumbing - useSyncExternalStore keeps every mounted subscriber     */
-/* in lock-step (settings modal + sidebar both re-render on change).          */
-/* -------------------------------------------------------------------------- */
+// Storage plumbing - useSyncExternalStore keeps every mounted subscriber
+// in lock-step (settings modal + sidebar both re-render on change).
 
 const read = (): VisibilityPrefs => {
   try {
@@ -47,11 +45,7 @@ const read = (): VisibilityPrefs => {
   } catch { return EMPTY; }
 };
 
-/* useSyncExternalStore requires a stable snapshot reference between calls
- * when the underlying data hasn't changed. Returning a fresh object each
- * time here triggers React error #185 (Maximum update depth). We cache the
- * last snapshot + the raw JSON string it was built from and only invalidate
- * when the string actually changes. */
+// useSyncExternalStore requires a stable snapshot reference between calls * when the underlying data hasn't changed. Returning a fresh object each * time here triggers React error #185 (Maximum update depth). We cache the * last snapshot + the raw JSON string it was built from and only invalidate * when the string actually changes.
 let cachedRaw: string | null | undefined = undefined;
 let cachedSnapshot: VisibilityPrefs = EMPTY;
 
@@ -87,9 +81,7 @@ if (typeof window !== 'undefined') {
   });
 }
 
-/* -------------------------------------------------------------------------- */
-/* Public hook                                                                */
-/* -------------------------------------------------------------------------- */
+// Public hook
 
 export interface UseSidebarVisibility {
   readonly prefs: VisibilityPrefs;
@@ -98,8 +90,7 @@ export interface UseSidebarVisibility {
   readonly toggleGroup:   (groupId: string) => void;
   readonly toggleLink:    (groupId: string, link: SidebarLink) => void;
   readonly reset:         () => void;
-  /** Filter a group list, dropping hidden groups + hidden links. Also drops
-   *  any group that ends up with zero visible links (empty-parent rule). */
+  // Filter a group list, dropping hidden groups + hidden links. Also drops *  any group that ends up with zero visible links (empty-parent rule).
   readonly filter:        (groups: readonly SidebarGroup[]) => readonly SidebarGroup[];
 }
 
@@ -158,8 +149,8 @@ export const useSidebarVisibility = (): UseSidebarVisibility => {
   return { prefs, isGroupHidden, isLinkHidden, toggleGroup, toggleLink, reset, filter };
 };
 
-/** Small helper: whether the given group is the pinned/non-toggleable one. */
+// * Small helper: whether the given group is the pinned/non-toggleable one.
 export const isPinnedGroup = (id: string): boolean => id === PINNED_GROUP_ID;
-/** Small helper: whether the given link within a group is pinned. */
+// * Small helper: whether the given link within a group is pinned.
 export const isPinnedLink = (groupId: string, link: SidebarLink): boolean =>
   groupId === PINNED_GROUP_ID && link.path === '';

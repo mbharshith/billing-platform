@@ -10,9 +10,7 @@ import { STRINGS } from '@billing/shared/domain/strings';
 import { formatPhone, monogramFor } from '@billing/shared/domain/format';
 import { useMoney } from '@billing/shared/hooks/useMoney';
 
-/* -------------------------------------------------------------------------- */
-/* ProductBadge — the "image" of a product (colored monogram)                 */
-/* -------------------------------------------------------------------------- */
+// ProductBadge — the "image" of a product (colored monogram)
 interface ProductBadgeProps {
   name: string;
   tone: BadgeTone;
@@ -32,9 +30,7 @@ export const ProductBadge: FC<ProductBadgeProps> = ({ name, tone, size = 'md' })
   </div>
 );
 
-/* -------------------------------------------------------------------------- */
-/* ProductCard                                                                */
-/* -------------------------------------------------------------------------- */
+// ProductCard
 interface ProductCardProps {
   product: Product;
   quantityInCart: number;
@@ -72,9 +68,7 @@ export const ProductCard: FC<ProductCardProps> = ({
   );
 };
 
-/* -------------------------------------------------------------------------- */
-/* SearchBar                                                                  */
-/* -------------------------------------------------------------------------- */
+// SearchBar
 interface SearchBarProps {
   value: string;
   onChange: (value: string) => void;
@@ -100,9 +94,7 @@ export const SearchBar: FC<SearchBarProps> = ({ value, onChange, placeholder, cl
   </div>
 );
 
-/* -------------------------------------------------------------------------- */
-/* CategoryFilter                                                             */
-/* -------------------------------------------------------------------------- */
+// CategoryFilter
 interface CategoryFilterProps<T extends string> {
   categories: readonly T[];
   active: T;
@@ -134,9 +126,7 @@ export const CategoryFilter = <T extends string>({
   </div>
 );
 
-/* -------------------------------------------------------------------------- */
-/* CartLineItem                                                               */
-/* -------------------------------------------------------------------------- */
+// CartLineItem
 interface CartLineItemProps {
   line: SaleLine;
   onIncrement: () => void;
@@ -178,9 +168,7 @@ export const CartLineItem: FC<CartLineItemProps> = ({
   );
 };
 
-/* -------------------------------------------------------------------------- */
-/* StatCard                                                                   */
-/* -------------------------------------------------------------------------- */
+// StatCard
 type StatTone = 'primary' | 'accent' | 'success' | 'danger';
 
 interface StatCardProps {
@@ -222,9 +210,7 @@ export const StatCard: FC<StatCardProps> = ({ label, value, fullValue, icon, ton
   );
 };
 
-/* -------------------------------------------------------------------------- */
-/* EmptyState                                                                 */
-/* -------------------------------------------------------------------------- */
+// EmptyState
 interface EmptyStateProps {
   icon: IconName;
   title: string;
@@ -243,9 +229,7 @@ export const EmptyState: FC<EmptyStateProps> = ({ icon, title, hint, action }) =
   </div>
 );
 
-/* -------------------------------------------------------------------------- */
-/* MobileNumberField                                                          */
-/* -------------------------------------------------------------------------- */
+// MobileNumberField
 interface MobileNumberFieldProps {
   id: string;
   value: string;
@@ -277,9 +261,7 @@ export const MobileNumberField: FC<MobileNumberFieldProps> = ({
   </Field>
 );
 
-/* -------------------------------------------------------------------------- */
-/* PaymentMethodOption                                                        */
-/* -------------------------------------------------------------------------- */
+// PaymentMethodOption
 interface PaymentMethodOptionProps {
   method: PaymentMethod;
   icon: IconName;
@@ -312,9 +294,7 @@ export const PaymentMethodOption: FC<PaymentMethodOptionProps> = ({
   </button>
 );
 
-/* -------------------------------------------------------------------------- */
-/* Badge convenience: sale payment method → chip                              */
-/* -------------------------------------------------------------------------- */
+// Badge convenience: sale payment method → chip
 interface PaymentBadgeProps { method: PaymentMethod }
 
 export const PaymentBadge: FC<PaymentBadgeProps> = ({ method }) => {
@@ -335,9 +315,7 @@ export const PaymentBadge: FC<PaymentBadgeProps> = ({ method }) => {
   return <Badge variant={variantMap[method]}>{labelMap[method]}</Badge>;
 };
 
-/* -------------------------------------------------------------------------- */
-/* Pagination — reusable page nav with page-size selector                     */
-/* -------------------------------------------------------------------------- */
+// Pagination — reusable page nav with page-size selector
 interface PaginationProps {
   page: number;                       // 1-indexed
   pageSize: number;
@@ -431,9 +409,7 @@ export const Pagination: FC<PaginationProps> = ({
   );
 };
 
-/* -------------------------------------------------------------------------- */
-/* DateRangeFilter — Today | Week | Month | Quarter | All | Custom            */
-/* -------------------------------------------------------------------------- */
+// DateRangeFilter — Today | Week | Month | Quarter | All | Custom
 // DateRangeKey lives in the shared/domain layer (resolveDateWindow needs it
 // too, and domain can't depend on ui). Re-exported here for back-compat so
 // existing consumers importing from @billing/ui/molecules keep working.

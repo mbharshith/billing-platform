@@ -23,9 +23,7 @@ import { BRAND } from '@billing/shared/brand';
 import { useSidebarVisibility } from './useSidebarVisibility';
 import { SidebarSettingsModal } from './SidebarSettingsModal';
 
-/* -------------------------------------------------------------------------- */
-/* Types                                                                      */
-/* -------------------------------------------------------------------------- */
+// Types
 
 export interface SidebarLink {
   readonly path: string;
@@ -36,18 +34,14 @@ export interface SidebarLink {
 export interface SidebarGroup {
   readonly id: string;
   readonly label: string;
-  /** Icon shown next to the group header. Falls back to a coloured dot
-   *  when not supplied (back-compat with older callers). */
+  // Icon shown next to the group header. Falls back to a coloured dot *  when not supplied (back-compat with older callers).
   readonly icon?: IconName;
-  /** Whether the group is expanded on the FIRST visit. Once the user
-   *  toggles it, localStorage takes over. */
+  // Whether the group is expanded on the FIRST visit. Once the user *  toggles it, localStorage takes over.
   readonly defaultOpen: boolean;
   readonly links: readonly SidebarLink[];
 }
 
-/* -------------------------------------------------------------------------- */
-/* Local-storage helpers - one key per group, keeps the parse cheap.          */
-/* -------------------------------------------------------------------------- */
+// Local-storage helpers - one key per group, keeps the parse cheap.
 
 const GROUP_STATE_KEY = 'admin-sidebar-groups';
 
@@ -65,9 +59,7 @@ const writeGroupState = (state: GroupState): void => {
   catch { /* ignore quota errors */ }
 };
 
-/* -------------------------------------------------------------------------- */
-/* AdminSidebar                                                               */
-/* -------------------------------------------------------------------------- */
+// AdminSidebar
 
 interface AdminSidebarProps {
   readonly slug: string;
@@ -267,9 +259,7 @@ export const AdminSidebar: FC<AdminSidebarProps> = ({ slug, collapsed, groups })
   );
 };
 
-/* -------------------------------------------------------------------------- */
-/* Utility: highlight matched substring in link label                         */
-/* -------------------------------------------------------------------------- */
+// Utility: highlight matched substring in link label
 
 const highlightMatch = (label: string, needle: string) => {
   if (!needle) return label;

@@ -164,9 +164,7 @@ export const SIDEBAR_GROUPS: readonly SidebarGroup[] = [
     ],
   },
 ];
-/* -------------------------------------------------------------------------- */
-/* Top bar - hamburger, outlet chip, global search, quick actions, alerts     */
-/* -------------------------------------------------------------------------- */
+// Top bar - hamburger, outlet chip, global search, quick actions, alerts
 
 interface TopBarProps {
   readonly collapsed: boolean;
@@ -220,9 +218,7 @@ export const TopBar: FC<TopBarProps> = ({
   </header>
 );
 
-/* -------------------------------------------------------------------------- */
-/* AdminShell - hosts sidebar + top-bar. Owns the collapsed state.            */
-/* -------------------------------------------------------------------------- */
+// AdminShell - hosts sidebar + top-bar. Owns the collapsed state.
 
 const COLLAPSED_KEY = 'admin-sidebar-collapsed';
 
@@ -261,15 +257,12 @@ export const AdminShell: FC<AdminShellProps> = ({
   );
 };
 
-/* -------------------------------------------------------------------------- */
-/* AdminPage - shared header + intro + actions envelope                       */
-/* -------------------------------------------------------------------------- */
-/* AdminPage - shared header + intro + actions envelope                       */
-/* Breadcrumbs are auto-derived from the current URL:                         */
-/*   [HOME] > [Group (clickable)] > [Current page]                            */
-/* Falls back to the passed `breadcrumb` prop if the URL doesn't match any    */
-/* known SIDEBAR_GROUPS entry.                                                */
-/* -------------------------------------------------------------------------- */
+// AdminPage - shared header + intro + actions envelope
+// AdminPage - shared header + intro + actions envelope
+// Breadcrumbs are auto-derived from the current URL:
+// [HOME] > [Group (clickable)] > [Current page]
+// Falls back to the passed `breadcrumb` prop if the URL doesn't match any
+// known SIDEBAR_GROUPS entry.
 
 interface AdminPageProps {
   readonly title: string;
@@ -284,8 +277,7 @@ interface Crumb {
   readonly to?: string;
 }
 
-/** Given the current admin path (after `/admin/`), find the matching group
- *  and return [group crumb, current-page crumb] with proper links. */
+// Given the current admin path (after `/admin/`), find the matching group *  and return [group crumb, current-page crumb] with proper links.
 const deriveCrumbs = (slug: string, adminPath: string): readonly Crumb[] | null => {
   const cleanPath = adminPath.replace(/^\/+/, '');
   for (const group of SIDEBAR_GROUPS) {
@@ -350,7 +342,6 @@ export const AdminPage: FC<AdminPageProps> = ({
   );
 };
 
-/* -------------------------------------------------------------------------- */
 // Re-export CrudPage helper so consumers only import from @billing/ui/admin.
 export * from './CrudPage';
 export * from './LineItemsEditor';

@@ -38,22 +38,12 @@ export interface CrudApi<Row extends TenantRow> {
   readonly setActive: (id: string, active: boolean) => Promise<void>;
 }
 
-/** Which Dexie tables are declared in the AppDB class. */
+// * Which Dexie tables are declared in the AppDB class.
 type DbKey = {
   [K in keyof typeof db]: (typeof db)[K] extends Table<infer _R, string> ? K : never;
 }[keyof typeof db];
 
-/**
- * Bind a live CRUD API to a specific Dexie table.
- *
- *   const markets = useTable<Market>('markets');
- *   const menuCats = useTable<MenuCategory>('menuCategories');
- *
- * @param tableName    Dexie table name (typed against AppDB fields).
- * @param scopeStore   When true (default), scopes the live query to the
- *                     signed-in user's storeId. Set false for cross-tenant
- *                     tables like markets / brands.
- */
+// Bind a live CRUD API to a specific Dexie table. * *   const markets = useTable<Market>('markets'); *   const menuCats = useTable<MenuCategory>('menuCategories'); * * @param tableName    Dexie table name (typed against AppDB fields). * @param scopeStore   When true (default), scopes the live query to the *                     signed-in user's storeId. Set false for cross-tenant *                     tables like markets / brands.
 export const useTable = <Row extends TenantRow>(
   tableName: DbKey,
   scopeStore = true,

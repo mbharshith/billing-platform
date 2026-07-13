@@ -6,14 +6,10 @@ import { Icon, Input, Select, Text } from '../atoms';
 import type { Discount, Coupon, AdditionalCharge } from '@billing/shared/domain/restaurant';
 import type { PaymentMethod, SalePayment } from '@billing/shared/domain/types';
 
-/* -------------------------------------------------------------------------- */
-/* Currency helper                                                            */
-/* -------------------------------------------------------------------------- */
+// Currency helper
 const fmt = (n: number) => `Rs ${n.toFixed(2)}`;
 
-/* -------------------------------------------------------------------------- */
-/* BillDiscountModal - pick from catalog OR enter ad-hoc                      */
-/* -------------------------------------------------------------------------- */
+// BillDiscountModal - pick from catalog OR enter ad-hoc
 
 export interface BillDiscountModalProps {
   readonly discounts: readonly Discount[];
@@ -107,9 +103,7 @@ export const BillDiscountModal: FC<BillDiscountModalProps> = ({
   );
 };
 
-/* -------------------------------------------------------------------------- */
-/* CouponInput - inline code entry with validate                              */
-/* -------------------------------------------------------------------------- */
+// CouponInput - inline code entry with validate
 
 export interface CouponInputProps {
   readonly coupons: readonly Coupon[];
@@ -165,9 +159,7 @@ export const CouponInput: FC<CouponInputProps> = ({
   );
 };
 
-/* -------------------------------------------------------------------------- */
-/* ChargesPickerModal - pick from AdditionalCharge catalog                    */
-/* -------------------------------------------------------------------------- */
+// ChargesPickerModal - pick from AdditionalCharge catalog
 
 export interface ChargesPickerModalProps {
   readonly charges: readonly AdditionalCharge[];
@@ -230,9 +222,7 @@ export const ChargesPickerModal: FC<ChargesPickerModalProps> = ({
   );
 };
 
-/* -------------------------------------------------------------------------- */
-/* SplitPaymentModal - N tenders that must sum to grand total                 */
-/* -------------------------------------------------------------------------- */
+// SplitPaymentModal - N tenders that must sum to grand total
 
 const PAYMENT_METHOD_OPTS: readonly { code: PaymentMethod; label: string; icon: string }[] = [
   { code: 'cash',    label: 'Cash',    icon: 'coins' },
@@ -246,12 +236,9 @@ export interface SplitPaymentModalProps {
   readonly total: number;
   readonly onConfirm: (payments: readonly SalePayment[], customerMobile: string | null) => void;
   readonly onClose: () => void;
-  /** Customer already attached to the sale (chip in the cashier header). *
-   *  When present + a lending/COD tender is picked, the modal skips the   *
-   *  mobile input and shows a read-only 'Charge to' card instead.        */
+  // Customer already attached to the sale (chip in the cashier header). * *  When present + a lending/COD tender is picked, the modal skips the   * *  mobile input and shows a read-only 'Charge to' card instead.
   readonly attachedCustomer?: { readonly name: string; readonly mobile: string } | null;
-  /** If provided, the modal shows a 'Pick or add customer' button when   *
-   *  lending/COD is picked without a customer, delegating to the parent. */
+  // If provided, the modal shows a 'Pick or add customer' button when   * *  lending/COD is picked without a customer, delegating to the parent.
   readonly onAttachCustomer?: () => void;
 }
 
@@ -406,9 +393,7 @@ export const SplitPaymentModal: FC<SplitPaymentModalProps> = ({
   );
 };
 
-/* -------------------------------------------------------------------------- */
-/* LineDiscountModal - simple per-line discount                               */
-/* -------------------------------------------------------------------------- */
+// LineDiscountModal - simple per-line discount
 
 export interface LineDiscountModalProps {
   readonly lineName: string;

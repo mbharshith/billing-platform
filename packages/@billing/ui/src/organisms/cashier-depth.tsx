@@ -8,9 +8,7 @@ import type { Product, Sale, SaleLineModifier } from '@billing/shared/domain/typ
 
 const fmt = (n: number) => `Rs ${n.toFixed(2)}`;
 
-/* -------------------------------------------------------------------------- */
-/* ModifierPickerModal - configure a menu item's variant + modifier choices   */
-/* -------------------------------------------------------------------------- */
+// ModifierPickerModal - configure a menu item's variant + modifier choices
 
 export interface ModifierPickerModalProps {
   readonly product: Product;
@@ -178,9 +176,7 @@ export const ModifierPickerModal: FC<ModifierPickerModalProps> = ({
   );
 };
 
-/* -------------------------------------------------------------------------- */
-/* HeldOrdersDrawer - list held sales, recall or discard                      */
-/* -------------------------------------------------------------------------- */
+// HeldOrdersDrawer - list held sales, recall or discard
 
 export interface HeldOrdersDrawerProps {
   readonly held: readonly Sale[];
@@ -228,9 +224,7 @@ export const HeldOrdersDrawer: FC<HeldOrdersDrawerProps> = ({
   </div>
 );
 
-/* -------------------------------------------------------------------------- */
-/* KotPreviewModal - one 80mm-ticket per KOT station in the sale              */
-/* -------------------------------------------------------------------------- */
+// KotPreviewModal - one 80mm-ticket per KOT station in the sale
 
 export interface KotPreviewModalProps {
   readonly sale: Sale;

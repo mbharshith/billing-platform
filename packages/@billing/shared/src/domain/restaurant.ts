@@ -13,11 +13,9 @@
 
 import type { Iso8601 } from './types';
 
-/* -------------------------------------------------------------------------- */
-/* PHASE 1  POS Config                                                        */
-/* -------------------------------------------------------------------------- */
+// PHASE 1  POS Config
 
-/** Geographic market a brand operates in (e.g. India-South, UAE). */
+// * Geographic market a brand operates in (e.g. India-South, UAE).
 export interface Market {
   readonly id: string;
   readonly name: string;
@@ -28,7 +26,7 @@ export interface Market {
   readonly createdAt: Iso8601;
 }
 
-/** Restaurant brand - one legal entity, many outlets. */
+// * Restaurant brand - one legal entity, many outlets.
 export interface Brand {
   readonly id: string;
   readonly name: string;
@@ -39,11 +37,7 @@ export interface Brand {
   readonly createdAt: Iso8601;
 }
 
-/** Physical outlet (renamed from "Store" for restaurant vertical).
- *
- *  storeId scopes the outlet to a tenant. A brand may host many outlets
- *  across a tenant — the cashier picks which outlet a sale belongs to via
- *  the top-bar OutletPicker (see AuthContext.currentOutletId). */
+// Physical outlet (renamed from "Store" for restaurant vertical). * *  storeId scopes the outlet to a tenant. A brand may host many outlets *  across a tenant — the cashier picks which outlet a sale belongs to via *  the top-bar OutletPicker (see AuthContext.currentOutletId).
 export interface Outlet {
   readonly id: string;              // aliased to legacy Store.id for compat
   readonly storeId: string;         // tenant scope (matches Store.id)
@@ -61,7 +55,7 @@ export interface Outlet {
   readonly createdAt: Iso8601;
 }
 
-/** Payment mode (Cash, Card, UPI, Zomato Wallet, Comp/On-house...). */
+// * Payment mode (Cash, Card, UPI, Zomato Wallet, Comp/On-house...).
 export interface PaymentMode {
   readonly id: string;
   readonly storeId: string;
@@ -73,7 +67,7 @@ export interface PaymentMode {
   readonly createdAt: Iso8601;
 }
 
-/** Order type: Dine-in, Takeaway, Delivery, Zomato, Swiggy... */
+// * Order type: Dine-in, Takeaway, Delivery, Zomato, Swiggy...
 export interface OrderType {
   readonly id: string;
   readonly storeId: string;
@@ -87,7 +81,7 @@ export interface OrderType {
   readonly createdAt: Iso8601;
 }
 
-/** Tax slab (GST 5%, 12%, 18%; VAT 5%; Service tax). */
+// * Tax slab (GST 5%, 12%, 18%; VAT 5%; Service tax).
 export interface TaxSlab {
   readonly id: string;
   readonly storeId: string;
@@ -99,7 +93,7 @@ export interface TaxSlab {
   readonly createdAt: Iso8601;
 }
 
-/** Discount (%, flat, BOGO). */
+// * Discount (%, flat, BOGO).
 export interface Discount {
   readonly id: string;
   readonly storeId: string;
@@ -112,7 +106,7 @@ export interface Discount {
   readonly createdAt: Iso8601;
 }
 
-/** Additional charge (Service charge, Delivery fee, Container). */
+// * Additional charge (Service charge, Delivery fee, Container).
 export interface AdditionalCharge {
   readonly id: string;
   readonly storeId: string;
@@ -125,7 +119,7 @@ export interface AdditionalCharge {
   readonly createdAt: Iso8601;
 }
 
-/** Reason master (Void, Cancel, Refund, Wastage, Manager Override). */
+// * Reason master (Void, Cancel, Refund, Wastage, Manager Override).
 export interface Reason {
   readonly id: string;
   readonly storeId: string;
@@ -135,7 +129,7 @@ export interface Reason {
   readonly createdAt: Iso8601;
 }
 
-/** Global print / terminal / round-off settings (single row per outlet). */
+// * Global print / terminal / round-off settings (single row per outlet).
 export interface OutletSettings {
   readonly outletId: string;
   readonly printBillHeader: string;
@@ -148,9 +142,7 @@ export interface OutletSettings {
   readonly updatedAt: Iso8601;
 }
 
-/* -------------------------------------------------------------------------- */
-/* PHASE 2  Menu Management                                                   */
-/* -------------------------------------------------------------------------- */
+// PHASE 2  Menu Management
 
 export interface MenuCategory {
   readonly id: string;
@@ -163,7 +155,7 @@ export interface MenuCategory {
   readonly createdAt: Iso8601;
 }
 
-/** Add-on / modifier (Extra cheese, Spice level, Sauce choice). */
+// * Add-on / modifier (Extra cheese, Spice level, Sauce choice).
 export interface Modifier {
   readonly id: string;
   readonly storeId: string;
@@ -180,7 +172,7 @@ export interface ModifierOption {
   readonly priceDelta: number;
 }
 
-/** Combo meal - N items bundled at a fixed price. */
+// * Combo meal - N items bundled at a fixed price.
 export interface Combo {
   readonly id: string;
   readonly storeId: string;
@@ -191,7 +183,7 @@ export interface Combo {
   readonly createdAt: Iso8601;
 }
 
-/** Variant of a menu item (Half / Full / Quarter). */
+// * Variant of a menu item (Half / Full / Quarter).
 export interface Variant {
   readonly id: string;
   readonly storeId: string;
@@ -202,9 +194,7 @@ export interface Variant {
   readonly createdAt: Iso8601;
 }
 
-/* -------------------------------------------------------------------------- */
-/* PHASE 3  Tables / KDS                                                      */
-/* -------------------------------------------------------------------------- */
+// PHASE 3  Tables / KDS
 
 export interface FloorSection {
   readonly id: string;
@@ -236,9 +226,7 @@ export interface KotStation {
   readonly createdAt: Iso8601;
 }
 
-/* -------------------------------------------------------------------------- */
-/* PHASE 4  Online / Aggregators                                              */
-/* -------------------------------------------------------------------------- */
+// PHASE 4  Online / Aggregators
 
 export interface AggregatorConfig {
   readonly id: string;
@@ -265,9 +253,7 @@ export interface DeliveryZone {
   readonly createdAt: Iso8601;
 }
 
-/* -------------------------------------------------------------------------- */
-/* PHASE 6  Inventory                                                         */
-/* -------------------------------------------------------------------------- */
+// PHASE 6  Inventory
 
 export interface Ingredient {
   readonly id: string;
@@ -340,9 +326,7 @@ export interface WastageEntry {
   readonly createdAt: Iso8601;
 }
 
-/* -------------------------------------------------------------------------- */
-/* PHASE 7  CRM / Loyalty                                                     */
-/* -------------------------------------------------------------------------- */
+// PHASE 7  CRM / Loyalty
 
 export interface CustomerGroup {
   readonly id: string;

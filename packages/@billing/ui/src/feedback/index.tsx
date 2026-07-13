@@ -11,9 +11,7 @@ import { Modal } from '../organisms';
 import { STRINGS } from '@billing/shared/domain/strings';
 import { useToast, type Toast } from '@billing/shared/store/ToastContext';
 
-/* -------------------------------------------------------------------------- */
-/* ToastStack                                                                 */
-/* -------------------------------------------------------------------------- */
+// ToastStack
 const iconFor = (kind: Toast['kind']): 'check' | 'close' | 'zap' =>
   kind === 'success' ? 'check' : kind === 'error' ? 'close' : 'zap';
 
@@ -56,9 +54,7 @@ export const ToastStack: FC = () => {
   );
 };
 
-/* -------------------------------------------------------------------------- */
-/* ConfirmDialog                                                              */
-/* -------------------------------------------------------------------------- */
+// ConfirmDialog
 interface ConfirmDialogProps {
   title: string;
   message: string;
@@ -92,5 +88,5 @@ export const ConfirmDialog: FC<ConfirmDialogProps> = ({
   </Modal>
 );
 
-/* Re-export IconButton so pages don't need to reach into atoms for it. */
+// Re-export IconButton so pages don't need to reach into atoms for it.
 export { IconButton };

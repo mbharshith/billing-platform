@@ -26,9 +26,7 @@ ChartJS.register(
   Legend, LinearScale, LineElement, PointElement, Tooltip,
 );
 
-/* -------------------------------------------------------------------------- */
-/* Theme observer - forces every chart to re-render when data-theme flips.    */
-/* -------------------------------------------------------------------------- */
+// Theme observer - forces every chart to re-render when data-theme flips.
 
 const useThemeVersion = (): number => {
   const [v, setV] = useState(0);
@@ -52,7 +50,7 @@ const readVar = (name: string, fallback: string): string => {
   return v || fallback;
 };
 
-/** Full theme palette - resolved fresh on every render (see useThemeVersion). */
+// * Full theme palette - resolved fresh on every render (see useThemeVersion).
 interface ChartTheme {
   readonly palette: readonly string[];
   readonly surface: string;
@@ -86,12 +84,7 @@ const useChartTheme = (): ChartTheme => {
       border,
       textPrimary,
       textSubtle,
-      /* Tooltip must contrast with the chart surface in BOTH themes.
-       * Using text-color as the background + surface as the text auto-inverts
-       * per theme so we always get a readable floating chip:
-       *   light: near-black bg + white text
-       *   dark:  near-white bg + near-black text
-       */
+      // Tooltip must contrast with the chart surface in BOTH themes. * Using text-color as the background + surface as the text auto-inverts * per theme so we always get a readable floating chip: *   light: near-black bg + white text *   dark:  near-white bg + near-black text
       tooltipBg: textPrimary,
       tooltipFg: surface,
       gridColor: readVar('--app-border-subtle', border) + '55', // subtle even without a token
@@ -101,9 +94,7 @@ const useChartTheme = (): ChartTheme => {
   }, [version]);
 };
 
-/* -------------------------------------------------------------------------- */
-/* Utility: mix a hex colour with an alpha (0-1) for gradient endpoints.      */
-/* -------------------------------------------------------------------------- */
+// Utility: mix a hex colour with an alpha (0-1) for gradient endpoints.
 
 const hexToRgba = (colour: string, alpha: number): string => {
   const c = colour.trim();
@@ -120,7 +111,7 @@ const hexToRgba = (colour: string, alpha: number): string => {
   return `rgba(${r || 0}, ${g || 0}, ${b || 0}, ${alpha})`;
 };
 
-/** Build a top-to-bottom gradient inside the given canvas. */
+// * Build a top-to-bottom gradient inside the given canvas.
 const buildGradient = (
   ctx: ScriptableContext<'bar' | 'line'>,
   colour: string,
@@ -136,9 +127,7 @@ const buildGradient = (
   return g;
 };
 
-/* -------------------------------------------------------------------------- */
-/* ChartFrame - shared chrome                                                 */
-/* -------------------------------------------------------------------------- */
+// ChartFrame - shared chrome
 
 export interface ChartFrameProps {
   readonly title?: string;
@@ -161,9 +150,7 @@ export const ChartFrame: FC<ChartFrameProps> = ({ title, subtitle, meta, childre
   </div>
 );
 
-/* -------------------------------------------------------------------------- */
-/* Base options builder                                                       */
-/* -------------------------------------------------------------------------- */
+// Base options builder
 
 const buildBaseOpts = (theme: ChartTheme): ChartOptions => ({
   responsive: true,
@@ -203,9 +190,7 @@ const buildBaseOpts = (theme: ChartTheme): ChartOptions => ({
 export type ChartSize = 'sm' | 'md' | 'lg' | 'xl';
 const sizeClass = (size: ChartSize = 'md'): string => cls[`chart--${size}`]!;
 
-/* -------------------------------------------------------------------------- */
-/* BarChart                                                                   */
-/* -------------------------------------------------------------------------- */
+// BarChart
 
 export interface BarChartProps {
   readonly labels: readonly string[];
@@ -266,9 +251,7 @@ export const BarChart: FC<BarChartProps> = ({
   );
 };
 
-/* -------------------------------------------------------------------------- */
-/* LineChart                                                                  */
-/* -------------------------------------------------------------------------- */
+// LineChart
 
 export interface LineChartProps {
   readonly labels: readonly string[];
@@ -329,17 +312,15 @@ export const LineChart: FC<LineChartProps> = ({ labels, datasets, size, fill }) 
   );
 };
 
-/* -------------------------------------------------------------------------- */
-/* DoughnutChart - with optional centre text                                  */
-/* -------------------------------------------------------------------------- */
+// DoughnutChart - with optional centre text
 
 export interface DoughnutChartProps {
   readonly labels: readonly string[];
   readonly data: readonly number[];
   readonly size?: ChartSize;
-  /** Big text in the middle of the donut (e.g. total). */
+  // * Big text in the middle of the donut (e.g. total).
   readonly centerText?: string;
-  /** Smaller line under centerText. */
+  // * Smaller line under centerText.
   readonly centerSubtext?: string;
 }
 
@@ -395,9 +376,7 @@ export const DoughnutChart: FC<DoughnutChartProps> = ({
   );
 };
 
-/* -------------------------------------------------------------------------- */
-/* KPI card - big number stat tile with subtle glow                           */
-/* -------------------------------------------------------------------------- */
+// KPI card - big number stat tile with subtle glow
 
 export interface KPIProps {
   readonly label: string;

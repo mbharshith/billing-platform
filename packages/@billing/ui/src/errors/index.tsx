@@ -6,9 +6,7 @@ import cls from './errors.module.css';
 import { Button, Icon, Text } from '../atoms';
 import { STRINGS } from '@billing/shared/domain/strings';
 
-/* ------------------------------------------------------------------------- */
-/* ErrorBoundary                                                             */
-/* ------------------------------------------------------------------------- */
+// ErrorBoundary
 interface BoundaryProps {
   children: ReactNode;
   // Optional label so we can distinguish nested boundaries in logs.
@@ -70,17 +68,14 @@ const BoundaryFallback: FC<{ onReset: () => void }> = ({ onReset }) => (
   </div>
 );
 
-/* ------------------------------------------------------------------------- */
-/* AppSplash — boot + boot-failed screen                                     */
-/* ------------------------------------------------------------------------- */
+// AppSplash — boot + boot-failed screen
 interface SplashProps {
   state: 'loading' | 'failed';
   onRetry?: () => void;
 }
 
 export const AppSplash: FC<SplashProps> = ({ state, onRetry }) => {
-  /* Only paint the loader once we've been mounted for ≥250ms. Under
-     normal Dexie hydration boot is < 100ms and users should see nothing. */
+  // Only paint the loader once we've been mounted for ≥250ms. Under normal Dexie hydration boot is < 100ms and users should see nothing.
   const [visible, setVisible] = useState(state === 'failed');
   useEffect(() => {
     if (state === 'failed') { setVisible(true); return; }
@@ -120,9 +115,7 @@ export const AppSplash: FC<SplashProps> = ({ state, onRetry }) => {
   );
 };
 
-/* ------------------------------------------------------------------------- */
-/* NotFoundPage                                                              */
-/* ------------------------------------------------------------------------- */
+// NotFoundPage
 export const NotFoundPage: FC = () => {
   const navigate = useNavigate();
   return (

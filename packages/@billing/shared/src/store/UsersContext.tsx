@@ -9,7 +9,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@billing/shared/lib/db';
 import type { SessionUser, User, UserRole } from '@billing/shared/domain/types';
 
-/** SHA-256 — mirrors the helper in AuthContext. Keep in sync. */
+// * SHA-256 — mirrors the helper in AuthContext. Keep in sync.
 const sha256 = async (text: string): Promise<string> => {
   const bytes = new TextEncoder().encode(text);
   const buf   = await crypto.subtle.digest('SHA-256', bytes);

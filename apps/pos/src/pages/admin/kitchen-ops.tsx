@@ -168,7 +168,6 @@ export const OperationsPage: FC = () => {
   );
 };
 
-/* -------------------------------------------------------------------------- */
 
 interface KpiCardProps {
   readonly label: string;

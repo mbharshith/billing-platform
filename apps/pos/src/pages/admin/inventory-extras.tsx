@@ -18,7 +18,6 @@ const fmtDate = (iso: string): string => new Date(iso).toLocaleDateString();
 const fmtDateTime = (iso: string): string => new Date(iso).toLocaleString();
 const fmtCurrency = (n: number): string => `Rs ${n.toLocaleString('en-IN')}`;
 
-/* -------------------------------------------------------------------------- */
 
 export const WarehousesPage: FC = () => {
   const api = useTable<Warehouse>('warehouses');

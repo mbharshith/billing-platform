@@ -8,9 +8,7 @@ import { Icon, Text, type IconName } from '../atoms';
 import type { OrderType, DiningTable, FloorSection } from '@billing/shared/domain/restaurant';
 import type { Customer } from '@billing/shared/domain/types';
 
-/* -------------------------------------------------------------------------- */
-/* OrderTypeToggle - 2-6 button horizontal toggle                             */
-/* -------------------------------------------------------------------------- */
+// OrderTypeToggle - 2-6 button horizontal toggle
 
 export interface OrderTypeToggleProps {
   readonly types: readonly OrderType[];
@@ -38,9 +36,7 @@ export const OrderTypeToggle: FC<OrderTypeToggleProps> = ({
   </div>
 );
 
-/* -------------------------------------------------------------------------- */
-/* TablePickerModal - grid of sections + tables, colour-coded by status       */
-/* -------------------------------------------------------------------------- */
+// TablePickerModal - grid of sections + tables, colour-coded by status
 
 export interface TablePickerModalProps {
   readonly sections: readonly FloorSection[];
@@ -105,9 +101,7 @@ export const TablePickerModal: FC<TablePickerModalProps> = ({
   );
 };
 
-/* -------------------------------------------------------------------------- */
-/* CustomerPickerModal - search customers, add new, or walk-in                */
-/* -------------------------------------------------------------------------- */
+// CustomerPickerModal - search customers, add new, or walk-in
 
 export interface CustomerPickerModalProps {
   readonly customers: readonly Customer[];

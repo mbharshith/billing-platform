@@ -7,15 +7,10 @@ import { forwardRef } from 'react';
 import cls from './atoms.module.css';
 import { Icon, type IconName } from './Icon';
 
-/* -------------------------------------------------------------------------- */
-/* Button                                                                     */
-/* -------------------------------------------------------------------------- */
+// Button
 type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
 type ButtonSize    = 'sm' | 'md' | 'lg';
-/** Optional tone override. Currently only 'danger' - tints the text/hover
- *  red without changing the button's dimensions. Use with variant='ghost'
- *  when you want a subtle destructive affordance (e.g. Delete row action)
- *  that doesn't visually dominate the row. */
+// Optional tone override. Currently only 'danger' - tints the text/hover *  red without changing the button's dimensions. Use with variant='ghost' *  when you want a subtle destructive affordance (e.g. Delete row action) *  that doesn't visually dominate the row.
 type ButtonTone    = 'danger';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -64,9 +59,7 @@ export const Button: FC<ButtonProps> = ({
   );
 };
 
-/* -------------------------------------------------------------------------- */
-/* IconButton                                                                 */
-/* -------------------------------------------------------------------------- */
+// IconButton
 interface IconButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   icon: IconName;
   a11yLabel: string;             // §10 RULE: every interactive element has an accessible name
@@ -90,9 +83,7 @@ export const IconButton: FC<IconButtonProps> = ({
   );
 };
 
-/* -------------------------------------------------------------------------- */
-/* Input (with Field wrapper)                                                 */
-/* -------------------------------------------------------------------------- */
+// Input (with Field wrapper)
 interface FieldProps {
   label: string;
   required?: boolean;
@@ -144,9 +135,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
 );
 Input.displayName = 'Input';
 
-/* -------------------------------------------------------------------------- */
-/* Badge                                                                      */
-/* -------------------------------------------------------------------------- */
+// Badge
 type BadgeVariant = 'neutral' | 'primary' | 'accent' | 'success' | 'danger';
 
 interface BadgeProps {
@@ -161,9 +150,7 @@ export const Badge: FC<BadgeProps> = ({ children, variant = 'neutral', className
   </span>
 );
 
-/* -------------------------------------------------------------------------- */
-/* Text — the ONLY typography atom                                            */
-/* -------------------------------------------------------------------------- */
+// Text — the ONLY typography atom
 type TextSize   = 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl';
 type TextWeight = 'regular' | 'medium' | 'semibold' | 'bold' | 'heavy';
 type TextTone   = 'default' | 'subtle' | 'muted' | 'inverse' | 'danger' | 'success' | 'primary';
@@ -202,9 +189,7 @@ export const Text: FC<TextProps> = ({
   return <Tag className={classes}>{children}</Tag>;
 };
 
-/* -------------------------------------------------------------------------- */
-/* Spinner                                                                    */
-/* -------------------------------------------------------------------------- */
+// Spinner
 export const Spinner: FC<{ className?: string }> = ({ className }) => (
   <span
     className={[cls.spinner, className].filter(Boolean).join(' ')}
@@ -213,9 +198,7 @@ export const Spinner: FC<{ className?: string }> = ({ className }) => (
   />
 );
 
-/* -------------------------------------------------------------------------- */
-/* Select                                                                     */
-/* -------------------------------------------------------------------------- */
+// Select
 type SelectAttrs = Omit<SelectHTMLAttributes<HTMLSelectElement>, 'className'>;
 interface SelectProps extends SelectAttrs { invalid?: boolean; className?: string }
 
@@ -238,9 +221,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
 );
 Select.displayName = 'Select';
 
-/* -------------------------------------------------------------------------- */
-/* Textarea                                                                   */
-/* -------------------------------------------------------------------------- */
+// Textarea
 type TextareaAttrs = Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, 'className'>;
 interface TextareaProps extends TextareaAttrs { invalid?: boolean; className?: string }
 

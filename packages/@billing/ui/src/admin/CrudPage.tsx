@@ -24,9 +24,7 @@ import type { CrudApi, TenantRow } from '@billing/shared/hooks/useTable';
 import { AdminPage } from '@billing/ui/admin';
 import cls from './admin.module.css';
 
-/* -------------------------------------------------------------------------- */
-/* Field descriptor types                                                     */
-/* -------------------------------------------------------------------------- */
+// Field descriptor types
 
 export type FormFieldType = 'text' | 'number' | 'select' | 'boolean' | 'textarea';
 
@@ -42,10 +40,8 @@ export interface FormFieldDescriptor<Row> {
   readonly placeholder?: string;
 }
 
-/* -------------------------------------------------------------------------- */
-/* Field builders - hoisted from the 5+ admin pages that reinvented them.     */
-/* Callers still get full inference via the caller-side type parameter.       */
-/* -------------------------------------------------------------------------- */
+// Field builders - hoisted from the 5+ admin pages that reinvented them.
+// Callers still get full inference via the caller-side type parameter.
 
 export const boolField = <R,>(key: keyof R & string, label: string): FormFieldDescriptor<R> =>
   ({ key, label, type: 'boolean' });
@@ -68,9 +64,7 @@ export const selectField = <R,>(
   required = true,
 ): FormFieldDescriptor<R> => ({ key, label, type: 'select', required, options });
 
-/* -------------------------------------------------------------------------- */
-/* Props                                                                      */
-/* -------------------------------------------------------------------------- */
+// Props
 
 export interface CrudPageProps<Row extends TenantRow> {
   readonly title: string;
@@ -80,24 +74,22 @@ export interface CrudPageProps<Row extends TenantRow> {
   readonly columns: readonly DataTableColumn<Row>[];
   readonly fields: readonly FormFieldDescriptor<Row>[];
   readonly makeEmpty: () => Partial<Row>;
-  /** Optional row->form projection for edit. Defaults to identity. */
+  // * Optional row->form projection for edit. Defaults to identity.
   readonly rowToForm?: (row: Row) => Partial<Row>;
-  /** Optional validation. Return an error string to abort save; null to pass. */
+  // * Optional validation. Return an error string to abort save; null to pass.
   readonly validate?: (form: Partial<Row>) => string | null;
   readonly searchFn?: (row: Row, q: string) => boolean;
   readonly searchPlaceholder?: string;
   readonly emptyTitle?: string;
   readonly emptyHint?: string;
   readonly addLabel?: string;
-  /** Whether rows support active/inactive toggle. Default true. */
+  // * Whether rows support active/inactive toggle. Default true.
   readonly hasActiveToggle?: boolean;
-  /** Right-of-title actions besides the built-in Add. */
+  // * Right-of-title actions besides the built-in Add.
   readonly extraActions?: ReactNode;
 }
 
-/* -------------------------------------------------------------------------- */
-/* Component                                                                  */
-/* -------------------------------------------------------------------------- */
+// Component
 
 export const CrudPage = <Row extends TenantRow>({
   title, subtitle, breadcrumb, api, columns, fields, makeEmpty, rowToForm,
@@ -251,9 +243,7 @@ export const CrudPage = <Row extends TenantRow>({
   );
 };
 
-/* -------------------------------------------------------------------------- */
-/* Field renderer - switch over descriptor type                               */
-/* -------------------------------------------------------------------------- */
+// Field renderer - switch over descriptor type
 
 function renderField<Row>(
   field: FormFieldDescriptor<Row>,

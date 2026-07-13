@@ -22,9 +22,7 @@ import {
 } from '@billing/shared/domain/types';
 import cls from './admin.module.css';
 
-/* -------------------------------------------------------------------------- */
-/* Status metadata                                                            */
-/* -------------------------------------------------------------------------- */
+// Status metadata
 
 interface StatusMeta {
   readonly title: string;
@@ -41,9 +39,7 @@ const STATUS_META: Readonly<Record<OrderStatus, StatusMeta>> = {
   cancelled:        { title: 'Cancelled',        next: null,               nextLabel: '' },
 };
 
-/* -------------------------------------------------------------------------- */
-/* Time-ago helper (short form)                                               */
-/* -------------------------------------------------------------------------- */
+// Time-ago helper (short form)
 
 const timeAgo = (iso: string): string => {
   const diffMs = Date.now() - new Date(iso).getTime();
@@ -55,9 +51,7 @@ const timeAgo = (iso: string): string => {
   return `${Math.floor(hrs / 24)}d ago`;
 };
 
-/* -------------------------------------------------------------------------- */
-/* Order card                                                                 */
-/* -------------------------------------------------------------------------- */
+// Order card
 
 interface OrderCardProps {
   readonly sale: Sale;
@@ -100,9 +94,7 @@ const OrderCard: FC<OrderCardProps> = ({ sale, money, onAdvance, onCancel, canAc
   );
 };
 
-/* -------------------------------------------------------------------------- */
-/* Page                                                                       */
-/* -------------------------------------------------------------------------- */
+// Page
 
 export const LiveOrdersPage: FC = () => {
   const { sales, advanceOrderStatus } = useSales();

@@ -48,7 +48,7 @@ export interface CartTotals {
   readonly unitCount: number;
 }
 
-/** Round money to 2 decimals to avoid float drift on the receipt. */
+// * Round money to 2 decimals to avoid float drift on the receipt.
 const money = (n: number): number => Math.round(n * 100) / 100;
 
 export const computeCartTotals = (input: CartComputeInput): CartTotals => {
@@ -91,9 +91,7 @@ export const computeCartTotals = (input: CartComputeInput): CartTotals => {
   };
 };
 
-/* -------------------------------------------------------------------------- */
-/* Snapshot builders - turn a chosen Discount/Coupon/Charge into a Sale*      */
-/* -------------------------------------------------------------------------- */
+// Snapshot builders - turn a chosen Discount/Coupon/Charge into a Sale*
 
 export const snapshotBillDiscount = (
   discount: Discount | null,
@@ -155,9 +153,7 @@ export const snapshotCharge = (
   };
 };
 
-/** Given an order type, tell the cashier whether it needs a table pick.
- *  Matches by code prefix `DIN` or the substring `dine` in either code or name
- *  so both `DIN` / `DINEIN` / `DINE_IN` fixtures work out of the box. */
+// Given an order type, tell the cashier whether it needs a table pick. *  Matches by code prefix `DIN` or the substring `dine` in either code or name *  so both `DIN` / `DINEIN` / `DINE_IN` fixtures work out of the box.
 export const orderTypeNeedsTable = (ot: OrderType | null): boolean => {
   if (!ot) return false;
   const c = ot.code.toLowerCase();

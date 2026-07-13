@@ -14,9 +14,7 @@ const DAY_MS = 86400_000;
 const daysAgo = (n: number) => new Date(Date.now() - n * DAY_MS).toISOString();
 const daysFromNow = (n: number) => new Date(Date.now() + n * DAY_MS).toISOString();
 
-/* -------------------------------------------------------------------------- */
-/* INVENTORY DEPTH                                                            */
-/* -------------------------------------------------------------------------- */
+// INVENTORY DEPTH
 
 export const SEED_WAREHOUSES: readonly Warehouse[] = [
   { id: 'wh-outlet',  storeId: S, name: 'Outlet Kitchen (Spice Route)', type: 'outlet',  address: 'Indiranagar, Bengaluru', managerName: 'Vikram Shetty',   active: true, createdAt: NOW },
@@ -118,9 +116,7 @@ export const SEED_PRODUCTION_BATCHES: readonly ProductionBatch[] = [
     ] },
 ];
 
-/* -------------------------------------------------------------------------- */
-/* ACCOUNTING                                                                 */
-/* -------------------------------------------------------------------------- */
+// ACCOUNTING
 
 export const SEED_ACCOUNTS: readonly Account[] = [
   // Assets
@@ -184,9 +180,7 @@ export const SEED_VENDOR_BILLS: readonly VendorBill[] = [
     dueDate: daysFromNow(15), status: 'partial', notes: 'Split payment', createdAt: daysAgo(10) },
 ];
 
-/* -------------------------------------------------------------------------- */
-/* MARKETING                                                                  */
-/* -------------------------------------------------------------------------- */
+// MARKETING
 
 export const SEED_WA_TEMPLATES: readonly WhatsAppTemplate[] = [
   { id: 'wat-welcome', storeId: S, name: 'Welcome Offer', category: 'promotional', language: 'en',

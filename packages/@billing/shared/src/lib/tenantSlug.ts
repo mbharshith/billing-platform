@@ -12,10 +12,7 @@ import { useStores } from '@billing/shared/store/StoresContext';
 import { storeIdToSlug } from '@billing/shared/lib/resolveTenant';
 import type { Store } from '@billing/shared/domain/types';
 
-/**
- * System paths that cannot be used as tenant slugs. Adding a new top-level route
- * (e.g. `/status`) means adding it here too.
- */
+// System paths that cannot be used as tenant slugs. Adding a new top-level route * (e.g. `/status`) means adding it here too.
 export const RESERVED_SLUGS: ReadonlySet<string> = new Set([
   'dashboard',   // SaaS owner console
   'login',       // auth
@@ -33,20 +30,14 @@ export const RESERVED_SLUGS: ReadonlySet<string> = new Set([
 export const isReservedSlug = (slug: string): boolean =>
   RESERVED_SLUGS.has(slug.toLowerCase().trim());
 
-/**
- * Extract the tenant slug from the current URL (`/:slug/...`).
- * Returns null if we're on a non-tenant route (e.g. `/login`, `/`).
- */
+// Extract the tenant slug from the current URL (`/:slug/...`). * Returns null if we're on a non-tenant route (e.g. `/login`, `/`).
 export const useTenantSlug = (): string | null => {
   const { slug } = useParams<{ slug: string }>();
   if (!slug || isReservedSlug(slug)) return null;
   return slug;
 };
 
-/**
- * Resolve the current tenant Store from the slug in the URL.
- * Returns null if the slug is missing, reserved, or unknown.
- */
+// Resolve the current tenant Store from the slug in the URL. * Returns null if the slug is missing, reserved, or unknown.
 export const useCurrentTenant = (): Store | null => {
   const slug = useTenantSlug();
   const { stores } = useStores();
@@ -56,10 +47,7 @@ export const useCurrentTenant = (): Store | null => {
   }, [slug, stores]);
 };
 
-/**
- * Given a store, build the URL for one of its sub-surfaces.
- * Central factory so a route rename touches ONE file, not fifty.
- */
+// Given a store, build the URL for one of its sub-surfaces. * Central factory so a route rename touches ONE file, not fifty.
 export const tenantPath = (
   slug: string,
   surface: 'shop' | 'cashier' | 'admin',
