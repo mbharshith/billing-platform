@@ -56,7 +56,6 @@ export const OutletPicker: FC = () => {
   if (!currentStoreId || available.length === 0 || !active) return null;
 
   const label = active.name;
-  const tag = active.city?.toUpperCase();
   const single = available.length === 1;
 
   return (
@@ -71,8 +70,12 @@ export const OutletPicker: FC = () => {
         title={active.address}
       >
         <span className={cls.outletPicker__dot} aria-hidden />
-        <span className={cls.outletPicker__name}>{label}</span>
-        {tag && <span className={cls.outletPicker__tag}>{tag}</span>}
+        <span className={cls.outletPicker__body}>
+          <span className={cls.outletPicker__name}>{label}</span>
+          {active.address && (
+            <span className={cls.outletPicker__addr}>{active.address}</span>
+          )}
+        </span>
         {!single && <Icon name="arrow" size={12} />}
       </button>
 

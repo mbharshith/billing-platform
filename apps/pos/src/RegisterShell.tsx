@@ -1,4 +1,4 @@
-// RegisterShell — top-level layout: Header, nav, TenantBadge, and UserMenu. Renders pages via <Outlet />.
+// RegisterShell — top-level layout: Header, nav, OutletPicker (name+address), and UserMenu. Renders pages via <Outlet />.
 import { useEffect, useRef, useState, type FC, type ReactNode } from 'react';
 import { NavLink, Outlet, useNavigate, useParams } from 'react-router-dom';
 import cls from './layout.module.css';
@@ -10,7 +10,6 @@ import { monogramFor } from '@billing/shared/domain/format';
 import { useAuth } from '@billing/shared/store/AuthContext';
 import { useStores } from '@billing/shared/store/StoresContext';
 import { useToast } from '@billing/shared/store/ToastContext';
-import { storeIdToSlug } from '@billing/shared/lib/resolveTenant';
 
 // NavItem — react-router NavLink with active class
 interface NavItemProps { to: string; icon: Parameters<typeof Icon>[0]['name']; children: ReactNode; label: string }
@@ -25,49 +24,6 @@ const NavItem: FC<NavItemProps> = ({ to, icon, children, label }) => (
     <span className={cls.navLink__label}>{children}</span>
   </NavLink>
 );
-
-// TenantBadge — shows the tenant name; admins can click to jump to /store.
-const TenantBadge: FC = () => {
-  const { currentStoreId, isAdmin } = useAuth();
-  const { byId } = useStores();
-  const navigate = useNavigate();
-  const store = byId(currentStoreId);
-  if (!store) return null;
-
-  // Full store name in tooltip for long tenant names.
-  const tooltip = isAdmin ? `${store.name} — manage your tenant` : store.name;
-
-  const content = (
-    <>
-      <Icon name="store" size={14} />
-      <span className={cls.tenantBadge__name}>{store.name}</span>
-      {isAdmin && <Icon name="arrow" size={12} />}
-    </>
-  );
-
-  if (!isAdmin) {
-    return (
-      <div
-        className={cls.tenantBadge}
-        aria-label={`Tenant: ${store.name}`}
-        title={tooltip}
-      >
-        {content}
-      </div>
-    );
-  }
-  return (
-    <button
-      type="button"
-      className={[cls.tenantBadge, cls['tenantBadge--interactive']].join(' ')}
-      onClick={() => navigate(`/${storeIdToSlug(store.id)}/admin/store`)}
-      title={tooltip}
-      aria-label={tooltip}
-    >
-      {content}
-    </button>
-  );
-};
 
 // UserMenu - exported so AdminShellRoute can reuse it in the sidebar topbar.
 export const UserMenu: FC = () => {
@@ -178,7 +134,6 @@ const Header: FC = () => {
 
         <div className={cls.brandSeparator} aria-hidden="true" />
 
-        <TenantBadge />
         <OutletPicker />
 
         <nav className={cls.nav} aria-label={STRINGS.ariaLabels.navigate}>

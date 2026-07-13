@@ -42,3 +42,7 @@ cashier-api/coverage/
 full-walkthrough.sh
 tsconfig.tsbuildinfo
 AlAdams.docx
+
+# Ad-hoc screenshots dropped in repo root
+Screenshot *.png
+screenshot-*.png

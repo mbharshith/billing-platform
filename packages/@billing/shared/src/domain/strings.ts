@@ -12,7 +12,7 @@ export const STRINGS = {
   },
 
   nav: {
-    cashier:    'Register',
+    cashier:    'Terminal',
     dashboard:  'Dashboard',
     sales:      'Sales',
     customers:  'Customers',
@@ -20,7 +20,7 @@ export const STRINGS = {
     users:      'Staff',
     settings:   'Settings',
     logout:     'Log out',
-    register:   'Register #01',
+    register:   'Terminal #01',
     account:    'Account',
     myStore:    'My store',
   },
@@ -40,7 +40,7 @@ export const STRINGS = {
     sessionExpired: 'Your session has expired. Please sign in again.',    welcome:        (name: string) => `Welcome, ${name}!`,  },
 
   cashier: {
-    pageTitle:        'Sales Register',
+    pageTitle:        'Sales Terminal',
     pageSubtitle:     'Ring up items and check out customers.',
     searchPlaceholder:'Search by product name…',
     clearSearch:      'Clear search',
@@ -115,7 +115,7 @@ export const STRINGS = {
     kpiLendingWO:   'Lending balance',
 
     recentSalesTitle:     'Recent sales',
-    recentSalesEmpty:     'No sales yet — head to the Register to ring one up.',
+    recentSalesEmpty:     'No sales yet — head to the Terminal to ring one up.',
     columnInvoice:        'Invoice',
     columnTime:           'Time',
     columnItems:          'Items',
@@ -165,7 +165,7 @@ export const STRINGS = {
     save:          'Save',
     saving:        'Saving…',
     saved:         'Product saved.',
-    deleteConfirm: 'Deactivate this product? It will be hidden from the Sales Register.',
+    deleteConfirm: 'Deactivate this product? It will be hidden from the Sales Terminal.',
     duplicateSku:      'A product with that SKU already exists.',
     searchPlaceholder: 'Search by name or SKU…',
     clearSearch:       'Clear search',
@@ -249,7 +249,7 @@ export const STRINGS = {
     pageTitle:      'Sales history',
     pageSubtitle:   'Every sale, filterable, exportable, voidable.',
     empty:          'No sales recorded yet.',
-    emptyHint:      'Head to the Register to ring one up.',
+    emptyHint:      'Head to the Terminal to ring one up.',
     filterAll:      'All',
     filterCash:     'Cash',
     filterCard:     'Card',
