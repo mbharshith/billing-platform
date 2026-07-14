@@ -19,6 +19,7 @@
   "dependencies": {
     "@billing/shared": "workspace:*",
     "chart.js": "^4.5.1",
+    "qrcode": "^1.5.4",
     "react-chartjs-2": "^5.3.1"
   },
   "peerDependencies": {
@@ -27,6 +28,7 @@
     "react-router-dom": "^6"
   },
   "devDependencies": {
+    "@types/qrcode": "^1.5.6",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "react": "^18.3.1",

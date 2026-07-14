@@ -5,13 +5,17 @@
 // in db.outletSettings (primary key = outletId, not id). On first open we
 // synthesise a default record and save it on Save.
 
-import { useCallback, useEffect, useState, type FC } from 'react';
+import { useCallback, useEffect, useMemo, useState, type FC } from 'react';
 import { AdminPage } from '@billing/ui/admin';
 import { Badge, Button, Text } from '@billing/ui/atoms';
+import { ShareMenuDialog } from '@billing/ui/organisms';
 import { useToast } from '@billing/shared/store/ToastContext';
-import { useCurrentOutletId } from '@billing/shared/store/AuthContext';
+import { useCurrentOutletId, useCurrentStoreId } from '@billing/shared/store/AuthContext';
 import { db } from '@billing/shared/lib/db';
-import type { OutletSettings } from '@billing/shared/domain/restaurant';
+import { storeIdToSlug } from '@billing/shared/lib/resolveTenant';
+import { outletSlug } from '@billing/shared/lib/resolveOutlet';
+import type { OutletSettings, Outlet } from '@billing/shared/domain/restaurant';
+import type { Store } from '@billing/shared/domain/types';
 import cls from './admin.module.css';
 
 const ROUND_MODES: readonly { value: OutletSettings['roundOff']; label: string }[] = [
@@ -41,23 +45,42 @@ const emptySettings = (outletId: string): OutletSettings => ({
 
 export const OutletSettingsPage: FC = () => {
   const outletId = useCurrentOutletId();
+  const storeId  = useCurrentStoreId();
   const toast = useToast();
   const [form, setForm]       = useState<OutletSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving]   = useState(false);
 
+  // Menu-share dialog state: resolve the (Store, Outlet) pair so we can
+  // compute a canonical share URL. Fetched once when the outlet changes.
+  const [store,  setStore]  = useState<Store  | null>(null);
+  const [outlet, setOutlet] = useState<Outlet | null>(null);
+  const [showShare, setShowShare] = useState(false);
+
   useEffect(() => {
     let cancelled = false;
     (async () => {
       if (!outletId) { setLoading(false); return; }
-      const row = await db.outletSettings.get(outletId);
+      const [row, o, s] = await Promise.all([
+        db.outletSettings.get(outletId),
+        db.outlets.get(outletId),
+        storeId ? db.stores.get(storeId) : Promise.resolve(null),
+      ]);
       if (!cancelled) {
         setForm(row ?? emptySettings(outletId));
+        setOutlet(o ?? null);
+        setStore(s ?? null);
         setLoading(false);
       }
     })();
     return () => { cancelled = true; };
-  }, [outletId]);
+  }, [outletId, storeId]);
+
+  const shareUrl = useMemo(() => {
+    if (!store || !outlet) return '';
+    const slug = storeIdToSlug(store.id);
+    return `${window.location.origin}/${slug}/menu/${outletSlug(outlet, store)}`;
+  }, [store, outlet]);
 
   const patch = useCallback(<K extends keyof OutletSettings>(k: K, v: OutletSettings[K]) => {
     setForm((f) => (f ? { ...f, [k]: v } : f));
@@ -96,6 +119,11 @@ export const OutletSettingsPage: FC = () => {
       actions={
         <>
           <Badge variant="neutral">Outlet: {outletId.slice(0, 8)}</Badge>
+          {shareUrl && (
+            <Button variant="secondary" size="sm" onClick={() => setShowShare(true)}>
+              Share menu
+            </Button>
+          )}
           <Button variant="primary" size="sm" loading={saving} onClick={handleSave}>Save settings</Button>
         </>
       }
@@ -161,6 +189,17 @@ export const OutletSettingsPage: FC = () => {
           Last updated: {new Date(form.updatedAt).toLocaleString()}
         </Text>
       </div>
+
+      {showShare && store && outlet && (
+        <ShareMenuDialog
+          title={`Share ${outlet.name} menu`}
+          subtitle="Anyone with the link can view this menu"
+          url={shareUrl}
+          whatsappMessage={`Check out our menu at ${outlet.name}:`}
+          footerNote="Add ?order=1 to the URL if you want customers to order online too."
+          onClose={() => setShowShare(false)}
+        />
+      )}
     </AdminPage>
   );
 };

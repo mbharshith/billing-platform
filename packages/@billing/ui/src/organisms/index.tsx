@@ -859,3 +859,6 @@ export { CheckoutModal } from './cashier-checkout';
 export type { CheckoutModalProps, CheckoutPayload } from './cashier-checkout';
 
 export { OutletPicker } from './outlet-picker';
+
+export { ShareMenuDialog } from './share-menu-dialog';
+export type { ShareMenuDialogProps } from './share-menu-dialog';

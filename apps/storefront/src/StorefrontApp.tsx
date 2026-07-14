@@ -1,11 +1,14 @@
 // StorefrontApp - customer-facing shop router. Mounted at /:slug/* by <Shell />.
 // URL shape: /<slug>/<page>
-//   /velvet                 -> Home
-//   /velvet/browse          -> Browse (?q=... &category=...)
-//   /velvet/product/<id>    -> PDP
-//   /velvet/cart            -> Cart
-//   /velvet/checkout        -> Checkout
-//   /velvet/order/<id>      -> Confirmation
+//   /velvet                      -> Home
+//   /velvet/browse               -> Browse (?q=... &category=...)
+//   /velvet/menu                 -> Public menu, primary outlet
+//   /velvet/menu/koram           -> Public menu for a specific outlet
+//   /velvet/menu/koram?order=1   -> Same menu, cart enabled
+//   /velvet/product/<id>         -> PDP
+//   /velvet/cart                 -> Cart
+//   /velvet/checkout             -> Checkout
+//   /velvet/order/<id>           -> Confirmation
 //
 // The slug lives in a URL param that everything downstream reads via
 // useParams({ slug }) or the useTenantSlug() shared helper.
@@ -22,6 +25,7 @@ import { StorefrontShell } from './StorefrontShell';
 // Lazy pages - each becomes its own chunk. Landing on / only pulls HomePage.
 const HomePage           = lazy(() => import('./pages/HomePage').then((m) => ({ default: m.HomePage })));
 const BrowsePage         = lazy(() => import('./pages/BrowsePage').then((m) => ({ default: m.BrowsePage })));
+const MenuPage           = lazy(() => import('./pages/MenuPage').then((m) => ({ default: m.MenuPage })));
 const ProductPage        = lazy(() => import('./pages/ProductPage').then((m) => ({ default: m.ProductPage })));
 const CartPage           = lazy(() => import('./pages/CartPage').then((m) => ({ default: m.CartPage })));
 const CheckoutPage       = lazy(() => import('./pages/CheckoutPage').then((m) => ({ default: m.CheckoutPage })));
@@ -42,6 +46,8 @@ export const StorefrontApp: FC = () => (
         <Routes>
           <Route index                       element={R('sf-home',     <HomePage />)} />
           <Route path="browse"               element={R('sf-browse',   <BrowsePage />)} />
+          <Route path="menu"                 element={R('sf-menu',     <MenuPage />)} />
+          <Route path="menu/:outletSlug"     element={R('sf-menu',     <MenuPage />)} />
           <Route path="product/:productId"   element={R('sf-product',  <ProductPage />)} />
           <Route path="cart"                 element={R('sf-cart',     <CartPage />)} />
           <Route path="checkout"             element={R('sf-checkout', <CheckoutPage />)} />
